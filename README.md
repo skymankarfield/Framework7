@@ -121,5 +121,3 @@ Tutorials available at http://framework7.io/tutorials/
 ## Showcase
 
 Appstore apps made with Framework7: http://framework7.io/showcase/
-
-Just adding my signature....
