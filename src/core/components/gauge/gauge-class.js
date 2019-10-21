@@ -6,7 +6,7 @@ import Framework7Class from '../../utils/class';
 class Gauge extends Framework7Class {
   constructor(app, params = {}) {
     // Extends with open/close Modal methods;
-    super(app, params);
+    super(params, [app]);
 
     const gauge = this;
 
@@ -303,7 +303,7 @@ class Gauge extends Framework7Class {
   destroy() {
     const gauge = this;
     if (!gauge.$el || gauge.destroyed) return;
-    gauge.$el.trigger('gauge:beforedestroy', gauge);
+    gauge.$el.trigger('gauge:beforedestroy');
     gauge.emit('local::beforeDestroy gaugeBeforeDestroy', gauge);
     gauge.$gaugeSvgEl.remove();
     delete gauge.$el[0].f7Gauge;

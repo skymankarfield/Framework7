@@ -7,27 +7,28 @@ export default {
     id: [String, Number],
     animated: Boolean,
     swipeable: Boolean,
-    routable: Boolean
+    routable: Boolean,
+    swiperParams: {
+      type: Object,
+      default: undefined
+    }
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      animated,
-      swipeable,
-      id,
-      style,
-      className,
-      routable
-    } = props;
-    const classes = Utils.classNames(className, Mixins.colorClasses(props));
-    const wrapClasses = Utils.classNames({
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var animated = props.animated,
+        swipeable = props.swipeable,
+        id = props.id,
+        style = props.style,
+        className = props.className,
+        routable = props.routable;
+    var classes = Utils.classNames(className, Mixins.colorClasses(props));
+    var wrapClasses = Utils.classNames({
       'tabs-animated-wrap': animated,
       'tabs-swipeable-wrap': swipeable
     });
-    const tabsClasses = Utils.classNames({
+    var tabsClasses = Utils.classNames({
       tabs: true,
       'tabs-routable': routable
     });
@@ -36,6 +37,7 @@ export default {
       return _h('div', {
         style: style,
         class: Utils.classNames(wrapClasses, classes),
+        ref: 'wrapEl',
         attrs: {
           id: id
         }
@@ -52,11 +54,19 @@ export default {
       }
     }, [this.$slots['default']]);
   },
-
+  mounted: function mounted() {
+    var self = this;
+    var _self$props = self.props,
+        swipeable = _self$props.swipeable,
+        swiperParams = _self$props.swiperParams;
+    if (!swipeable || !swiperParams) return;
+    var wrapEl = self.$refs.wrapEl;
+    if (!wrapEl) return;
+    wrapEl.f7SwiperParams = swiperParams;
+  },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

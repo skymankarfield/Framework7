@@ -6,7 +6,6 @@
 */
 
 const config = {
-  target: 'universal',
   rtl: false,
   components: [
     // Appbar
@@ -107,16 +106,26 @@ const config = {
     // Menu
     'menu',
 
-    // VI Video Ads
-    'vi',
+    // Color Picker
+    'color-picker',
+
+    // Tree View
+    'treeview',
+
+    // WYSIWYG Editor
+    'text-editor',
 
     // Elevation
     'elevation',
 
     // Typography
     'typography',
+
+    // VI Video Ads
+    'vi',
   ],
   darkTheme: true,
+  lightTheme: true,
   themes: [
     'ios',
     'md',

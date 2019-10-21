@@ -16,7 +16,7 @@ const autoprefixer = require('./utils/autoprefixer');
 const cleanCSS = require('./utils/clean-css');
 const getConfig = require('./get-core-config.js');
 const getOutput = require('./get-output.js');
-const coreComponents = require('./core-components');
+const coreComponents = require('./core-components-list');
 const fs = require('./utils/fs-extra');
 
 const intro = `
@@ -64,16 +64,19 @@ async function buildLazyComponentsLess(components, rtl, cb) {
   const includeMdTheme = config.themes.indexOf('md') >= 0;
   const includeAuroraTheme = config.themes.indexOf('aurora') >= 0;
   const includeDarkTheme = config.darkTheme;
+  const includeLightTheme = config.lightTheme;
 
   const mainLess = fs.readFileSync(path.resolve(__dirname, '../src/core/framework7.less'))
     .split('\n')
     .filter(line => line.indexOf('@import url(\'./components') < 0)
     .join('\n')
     .replace('@import (reference) \'./less/mixins.less\';', '@import (reference) \'../../less/mixins.less\';')
+    .replace('@import (reference) \'./less/vars.less\';', '@import (reference) \'../../less/vars.less\';')
     .replace('$includeIosTheme', includeIosTheme)
     .replace('$includeMdTheme', includeMdTheme)
     .replace('$includeAuroraTheme', includeAuroraTheme)
     .replace('$includeDarkTheme', includeDarkTheme)
+    .replace('$includeLightTheme', includeLightTheme)
     .replace('$themeColor', config.themeColor)
     .replace('$colors', colors)
     .replace('$rtl', rtl);
@@ -104,9 +107,7 @@ async function buildLazyComponentsLess(components, rtl, cb) {
 }
 
 function buildLazyComponentsJs(components, cb) {
-  const config = getConfig();
   const env = process.env.NODE_ENV || 'development';
-  const target = process.env.TARGET || config.target || 'universal';
   const format = 'umd';
   const output = `${getOutput()}/core`;
 
@@ -122,10 +123,9 @@ function buildLazyComponentsJs(components, cb) {
         replace({
           delimiters: ['', ''],
           'process.env.NODE_ENV': JSON.stringify(env), // or 'production'
-          'process.env.TARGET': JSON.stringify(target),
           'process.env.FORMAT': JSON.stringify(format),
         }),
-        resolve({ jsnext: true }),
+        resolve({ mainFields: ['module', 'main', 'jsnext'] }),
         commonjs(),
         buble(),
       ],
@@ -172,6 +172,12 @@ function buildLazyComponentsJs(components, cb) {
           .replace(/export default ([a-zA-Z_]*);/, (line, name) => { // eslint-disable-line
             return install.replace(/COMPONENT/g, name);
           });
+        if (fileContent.indexOf('Support$1') >= 0) {
+          fileContent = fileContent.replace('var Support = Framework7.support;', 'var Support$1 = Framework7.support;');
+        }
+        if (fileContent.indexOf('Device$1') >= 0) {
+          fileContent = fileContent.replace('var Device = Framework7.device;', 'var Device$1 = Framework7.device;');
+        }
 
         fileContent = Terser.minify(fileContent).code;
         fileContent = `(${fileContent}(Framework7, typeof Framework7AutoInstallComponent === 'undefined' ? undefined : Framework7AutoInstallComponent))`;

@@ -27,15 +27,24 @@ export default {
     hidden: Boolean,
     noShadow: Boolean,
     noHairline: Boolean,
-    inner: {
-      type: Boolean,
-      default: true,
-    },
     innerClass: String,
     innerClassName: String,
     large: Boolean,
+    largeTransparent: Boolean,
     titleLarge: String,
     ...Mixins.colorProps,
+  },
+  state() {
+    const self = this;
+    const $f7 = self.$f7;
+    if (!$f7) {
+      self.$f7ready(() => {
+        self.setState({ _theme: self.$theme });
+      });
+    }
+    return {
+      _theme: $f7 ? self.$theme : null,
+    };
   },
   render() {
     const self = this;
@@ -48,7 +57,6 @@ export default {
       sliding,
       title,
       subtitle,
-      inner,
       innerClass,
       innerClassName,
       className,
@@ -58,92 +66,96 @@ export default {
       noShadow,
       noHairline,
       large,
+      largeTransparent,
       titleLarge,
     } = props;
 
-    let innerEl;
+    const theme = self.state.theme;
+
     let leftEl;
     let titleEl;
     let rightEl;
     let titleLargeEl;
 
-    const addLeftTitleClass = self.$theme && self.$theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
-    const addCenterTitleClass = (self.$theme && self.$theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle)
-      || (self.$theme && self.$theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle);
+    const addLeftTitleClass = theme && theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
+    const addCenterTitleClass = (theme && theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle)
+      || (theme && theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle);
 
     const slots = self.slots;
 
-    if (inner) {
-      if (backLink || slots['nav-left']) {
-        leftEl = (
-          <F7NavLeft
-            backLink={backLink}
-            backLinkUrl={backLinkUrl}
-            backLinkForce={backLinkForce}
-            backLinkShowText={backLinkShowText}
-            onBackClick={self.onBackClick}
-          >{slots['nav-left']}</F7NavLeft>
-        );
-      }
-      if (title || subtitle || slots.title) {
-        titleEl = (
-          <F7NavTitle
-            title={title}
-            subtitle={subtitle}
-          >{slots.title}</F7NavTitle>
-        );
-      }
-      if (slots['nav-right']) {
-        rightEl = (
-          <F7NavRight>{slots['nav-right']}</F7NavRight>
-        );
-      }
-      let largeTitle = titleLarge;
-      if (!largeTitle && large && title) largeTitle = title;
-      if (largeTitle) {
-        titleLargeEl = (
-          <div className="title-large">
-            <div className="title-large-text">{largeTitle}</div>
-          </div>
-        );
-      }
-      innerEl = (
-        <div
-          ref="inner"
-          className={Utils.classNames(
-            'navbar-inner',
-            innerClass,
-            innerClassName,
-            {
-              sliding,
-              'navbar-inner-left-title': addLeftTitleClass,
-              'navbar-inner-centered-title': addCenterTitleClass,
-              'navbar-inner-large': large,
-            }
-          )}
-        >
-          {leftEl}
-          {titleEl}
-          {rightEl}
-          {titleLargeEl}
-          <slot />
-        </div>
-      );
-    }
     const classes = Utils.classNames(
       className,
       'navbar',
       {
         'navbar-hidden': hidden,
-        'no-shadow': noShadow,
-        'no-hairline': noHairline,
         'navbar-large': large,
+        'navbar-large-transparent': largeTransparent,
       },
       Mixins.colorClasses(props),
     );
 
+    if (backLink || slots['nav-left'] || slots.left) {
+      leftEl = (
+        <F7NavLeft
+          backLink={backLink}
+          backLinkUrl={backLinkUrl}
+          backLinkForce={backLinkForce}
+          backLinkShowText={backLinkShowText}
+          onBackClick={self.onBackClick}
+        >{slots['nav-left']}{slots.left}</F7NavLeft>
+      );
+    }
+    if (title || subtitle || slots.title) {
+      titleEl = (
+        <F7NavTitle
+          title={title}
+          subtitle={subtitle}
+        >{slots.title}</F7NavTitle>
+      );
+    }
+    if (slots['nav-right'] || slots.right) {
+      rightEl = (
+        <F7NavRight>{slots['nav-right']}{slots.right}</F7NavRight>
+      );
+    }
+    let largeTitle = titleLarge;
+    if (!largeTitle && large && title) largeTitle = title;
+    if (largeTitle || slots['title-large']) {
+      titleLargeEl = (
+        <div className="title-large">
+          <div className="title-large-text">
+            {largeTitle || ''}
+            <slot name="title-large" />
+          </div>
+        </div>
+      );
+    }
+    const innerEl = (
+      <div
+        className={Utils.classNames(
+          'navbar-inner',
+          innerClass,
+          innerClassName,
+          {
+            sliding,
+            'no-shadow': noShadow,
+            'no-hairline': noHairline,
+            'navbar-inner-left-title': addLeftTitleClass,
+            'navbar-inner-centered-title': addCenterTitleClass,
+          }
+        )}
+      >
+        {leftEl}
+        {titleEl}
+        {rightEl}
+        {titleLargeEl}
+        <slot />
+      </div>
+    );
+
     return (
       <div ref="el" id={id} style={style} className={classes}>
+        <div className="navbar-bg" />
         <slot name="before-inner" />
         {innerEl}
         <slot name="after-inner" />
@@ -151,19 +163,55 @@ export default {
     );
   },
   componentDidCreate() {
-    Utils.bindMethods(this, ['onBackClick']);
+    Utils.bindMethods(this, ['onBackClick', 'onHide', 'onShow', 'onExpand', 'onCollapse']);
+  },
+  componentDidMount() {
+    const self = this;
+    const { el } = self.refs;
+    if (!el) return;
+    self.$f7ready((f7) => {
+      self.eventTargetEl = el;
+      f7.on('navbarShow', self.onShow);
+      f7.on('navbarHide', self.onHide);
+      f7.on('navbarCollapse', self.onCollapse);
+      f7.on('navbarExpand', self.onExpand);
+    });
   },
   componentDidUpdate() {
     const self = this;
     if (!self.$f7) return;
     const el = self.refs.el;
-    if (el && el.children && el.children.length) {
-      self.$f7.navbar.size(el);
-    } else if (self.refs.inner) {
-      self.$f7.navbar.size(self.refs.inner);
-    }
+    self.$f7.navbar.size(el);
+  },
+  componentWillUnmount() {
+    const self = this;
+    const { el } = self.refs;
+    if (!el || !self.$f7) return;
+    const f7 = self.$f7;
+    f7.off('navbarShow', self.onShow);
+    f7.off('navbarHide', self.onHide);
+    f7.off('navbarCollapse', self.onCollapse);
+    f7.off('navbarExpand', self.onExpand);
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
   },
   methods: {
+    onHide(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:hide navbarHide');
+    },
+    onShow(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:show navbarShow');
+    },
+    onExpand(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:expand navbarExpand');
+    },
+    onCollapse(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:collapse navbarCollapse');
+    },
     hide(animate) {
       const self = this;
       if (!self.$f7) return;

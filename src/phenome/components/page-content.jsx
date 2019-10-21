@@ -1,5 +1,6 @@
 import Utils from '../utils/utils';
 import Mixins from '../utils/mixins';
+import Preloader from './preloader';
 
 export default {
   name: 'f7-page-content',
@@ -54,14 +55,14 @@ export default {
     if (ptr && (ptrPreloader)) {
       ptrEl = (
         <div className="ptr-preloader">
-          <div className="preloader" />
+          <Preloader />
           <div className="ptr-arrow" />
         </div>
       );
     }
     if ((infinite) && infinitePreloader) {
       infiniteEl = (
-        <div className="preloader infinite-scroll-preloader" />
+        <Preloader className="infinite-scroll-preloader" />
       );
     }
     return (
@@ -136,59 +137,70 @@ export default {
     const self = this;
     const el = self.refs.el;
     const { ptr, infinite, tab } = self.props;
-    if (ptr) {
-      el.addEventListener('ptr:pullstart', self.onPtrPullStart);
-      el.addEventListener('ptr:pullmove', self.onPtrPullMove);
-      el.addEventListener('ptr:pullend', self.onPtrPullEnd);
-      el.addEventListener('ptr:refresh', self.onPtrRefresh);
-      el.addEventListener('ptr:done', self.onPtrDone);
-    }
-    if (infinite) {
-      el.addEventListener('infinite', self.onInfinite);
-    }
-    if (tab) {
-      el.addEventListener('tab:show', self.onTabShow);
-      el.addEventListener('tab:hide', self.onTabHide);
-    }
+    self.$f7ready((f7) => {
+      self.eventTargetEl = el;
+      if (ptr) {
+        f7.on('ptrPullStart', self.onPtrPullStart);
+        f7.on('ptrPullMove', self.onPtrPullMove);
+        f7.on('ptrPullEnd', self.onPtrPullEnd);
+        f7.on('ptrRefresh', self.onPtrRefresh);
+        f7.on('ptrDone', self.onPtrDone);
+      }
+      if (infinite) {
+        f7.on('infinite', self.onInfinite);
+      }
+      if (tab) {
+        f7.on('tabShow', self.onTabShow);
+        f7.on('tabHide', self.onTabHide);
+      }
+    });
   },
   componentWillUnmount() {
     const self = this;
-    const el = self.refs.el;
-
-    el.removeEventListener('ptr:pullstart', self.onPtrPullStart);
-    el.removeEventListener('ptr:pullmove', self.onPtrPullMove);
-    el.removeEventListener('ptr:pullend', self.onPtrPullEnd);
-    el.removeEventListener('ptr:refresh', self.onPtrRefresh);
-    el.removeEventListener('ptr:done', self.onPtrDone);
-    el.removeEventListener('infinite', self.onInfinite);
-    el.removeEventListener('tab:show', self.onTabShow);
-    el.removeEventListener('tab:hide', self.onTabHide);
+    if (!self.$f7) return;
+    self.$f7.off('ptrPullStart', self.onPtrPullStart);
+    self.$f7.off('ptrPullMove', self.onPtrPullMove);
+    self.$f7.off('ptrPullEnd', self.onPtrPullEnd);
+    self.$f7.off('ptrRefresh', self.onPtrRefresh);
+    self.$f7.off('ptrDone', self.onPtrDone);
+    self.$f7.off('infinite', self.onInfinite);
+    self.$f7.off('tabShow', self.onTabShow);
+    self.$f7.off('tabHide', self.onTabHide);
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
   },
   methods: {
-    onPtrPullStart(event) {
-      this.dispatchEvent('ptr:pullstart ptrPullStart', event);
+    onPtrPullStart(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('ptr:pullstart ptrPullStart');
     },
-    onPtrPullMove(event) {
-      this.dispatchEvent('ptr:pullmove ptrPullMove', event);
+    onPtrPullMove(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('ptr:pullmove ptrPullMove');
     },
-    onPtrPullEnd(event) {
-      this.dispatchEvent('ptr:pullend ptrPullEnd', event);
+    onPtrPullEnd(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('ptr:pullend ptrPullEnd');
     },
-    onPtrRefresh(event) {
-      const done = event.detail;
-      this.dispatchEvent('ptr:refresh ptrRefresh', event, done);
+    onPtrRefresh(el, done) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('ptr:refresh ptrRefresh', done);
     },
-    onPtrDone(event) {
-      this.dispatchEvent('ptr:done ptrDone', event);
+    onPtrDone(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('ptr:done ptrDone');
     },
-    onInfinite(event) {
-      this.dispatchEvent('infinite', event);
+    onInfinite(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('infinite');
     },
-    onTabShow(event) {
-      this.dispatchEvent('tab:show tabShow', event);
+    onTabShow(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tab:show tabShow');
     },
-    onTabHide(event) {
-      this.dispatchEvent('tab:hide tabHide', event);
+    onTabHide(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tab:hide tabHide');
     },
   },
 };

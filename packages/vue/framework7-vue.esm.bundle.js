@@ -1,5 +1,5 @@
 /**
- * Framework7 Vue 4.2.0
+ * Framework7 Vue 5.0.5
  * Build full featured iOS & Android apps using Framework7 & Vue
  * http://framework7.io/vue/
  *
@@ -7,7 +7,7 @@
  *
  * Released under the MIT License
  *
- * Released on: March 20, 2019
+ * Released on: October 16, 2019
  */
 import Vue from 'vue';
 import f7AccordionContent from './components/accordion-content';
@@ -86,7 +86,6 @@ import f7Segmented from './components/segmented';
 import f7Sheet from './components/sheet';
 import f7SkeletonBlock from './components/skeleton-block';
 import f7SkeletonText from './components/skeleton-text';
-import f7Statusbar from './components/statusbar';
 import f7Stepper from './components/stepper';
 import f7Subnavbar from './components/subnavbar';
 import f7SwipeoutActions from './components/swipeout-actions';
@@ -95,20 +94,34 @@ import f7SwiperSlide from './components/swiper-slide';
 import f7Swiper from './components/swiper';
 import f7Tab from './components/tab';
 import f7Tabs from './components/tabs';
+import f7TextEditor from './components/text-editor';
 import f7Toggle from './components/toggle';
 import f7Toolbar from './components/toolbar';
+import f7TreeviewItem from './components/treeview-item';
+import f7Treeview from './components/treeview';
 import f7View from './components/view';
 import f7Views from './components/views';
 
 /* eslint no-underscore-dangle: "off" */
 import componentsRouter from './utils/components-router';
-import f7 from './utils/f7';
+import f7, { f7Instance } from './utils/f7';
+
+function f7ready(callback) {
+  f7.ready(callback);
+}
+
+const f7Theme = {};
 
 const Plugin = {
   name: 'phenomePlugin',
+  installed: false,
   install(params = {}) {
+    if (Plugin.installed) return;
+    Plugin.installed = true;
+
     const Framework7 = this;
     f7.Framework7 = Framework7;
+    f7.events = new Framework7.Events();
 
     const Extend = params.Vue || Vue; // eslint-disable-line
 
@@ -188,7 +201,6 @@ const Plugin = {
     Vue.component('f7-sheet', f7Sheet);
     Vue.component('f7-skeleton-block', f7SkeletonBlock);
     Vue.component('f7-skeleton-text', f7SkeletonText);
-    Vue.component('f7-statusbar', f7Statusbar);
     Vue.component('f7-stepper', f7Stepper);
     Vue.component('f7-subnavbar', f7Subnavbar);
     Vue.component('f7-swipeout-actions', f7SwipeoutActions);
@@ -197,8 +209,11 @@ const Plugin = {
     Vue.component('f7-swiper', f7Swiper);
     Vue.component('f7-tab', f7Tab);
     Vue.component('f7-tabs', f7Tabs);
+    Vue.component('f7-text-editor', f7TextEditor);
     Vue.component('f7-toggle', f7Toggle);
     Vue.component('f7-toolbar', f7Toolbar);
+    Vue.component('f7-treeview-item', f7TreeviewItem);
+    Vue.component('f7-treeview', f7Treeview);
     Vue.component('f7-view', f7View);
     Vue.component('f7-views', f7Views);
 
@@ -209,36 +224,37 @@ const Plugin = {
       },
     });
 
-    const $theme = {};
     const { theme } = params;
-    if (theme === 'md') $theme.md = true;
-    if (theme === 'ios') $theme.ios = true;
-    if (theme === 'aurora') $theme.aurora = true;
+    if (theme === 'md') f7Theme.md = true;
+    if (theme === 'ios') f7Theme.ios = true;
+    if (theme === 'aurora') f7Theme.aurora = true;
     if (!theme || theme === 'auto') {
-      $theme.ios = !!Framework7.device.ios;
-      $theme.aurora = Framework7.device.desktop && Framework7.device.electron;
-      $theme.md = !$theme.ios && !$theme.aurora;
+      f7Theme.ios = !!Framework7.device.ios;
+      f7Theme.aurora = Framework7.device.desktop && Framework7.device.electron;
+      f7Theme.md = !f7Theme.ios && !f7Theme.aurora;
     }
+    f7.ready(() => {
+      f7Theme.ios = f7.instance.theme === 'ios';
+      f7Theme.md = f7.instance.theme === 'md';
+      f7Theme.aurora = f7.instance.theme === 'aurora';
+    });
     Object.defineProperty(Extend.prototype, '$theme', {
       get() {
         return {
-          ios: f7.instance ? f7.instance.theme === 'ios' : $theme.ios,
-          md: f7.instance ? f7.instance.theme === 'md' : $theme.md,
-          aurora: f7.instance ? f7.instance.theme === 'aurora' : $theme.aurora,
+          ios: f7.instance ? f7.instance.theme === 'ios' : f7Theme.ios,
+          md: f7.instance ? f7.instance.theme === 'md' : f7Theme.md,
+          aurora: f7.instance ? f7.instance.theme === 'aurora' : f7Theme.aurora,
         };
       },
     });
 
-    function f7ready(callback) {
-      f7.ready(callback);
-    }
+
     Extend.prototype.Dom7 = Framework7.$;
     Extend.prototype.$$ = Framework7.$;
     Extend.prototype.$device = Framework7.device;
     Extend.prototype.$request = Framework7.request;
     Extend.prototype.$utils = Framework7.utils;
     Extend.prototype.$f7ready = f7ready;
-    Extend.prototype.$f7Ready = f7ready;
 
     Object.defineProperty(Extend.prototype, '$f7route', {
       get() {
@@ -303,4 +319,5 @@ const Plugin = {
   },
 };
 
+export { f7ready, f7Instance as f7, f7Theme as theme };
 export default Plugin;

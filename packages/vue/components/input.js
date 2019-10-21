@@ -2,6 +2,8 @@ import Utils from '../utils/utils';
 import Mixins from '../utils/mixins';
 import F7Toggle from './toggle';
 import F7Range from './range';
+import F7TextEditor from './text-editor';
+import __vueComponentTransformJSXProps from '../runtime-helpers/vue-component-transform-jsx-props.js';
 import __vueComponentSetState from '../runtime-helpers/vue-component-set-state.js';
 import __vueComponentDispatchEvent from '../runtime-helpers/vue-component-dispatch-event.js';
 import __vueComponentProps from '../runtime-helpers/vue-component-props.js';
@@ -10,7 +12,7 @@ export default {
   props: Object.assign({
     type: String,
     name: String,
-    value: [String, Number, Array],
+    value: [String, Number, Array, Date, Object],
     defaultValue: [String, Number, Array],
     placeholder: String,
     id: [String, Number],
@@ -54,108 +56,118 @@ export default {
     dropdown: {
       type: [String, Boolean],
       default: 'auto'
-    }
+    },
+    calendarParams: Object,
+    colorPickerParams: Object,
+    textEditorParams: Object
   }, Mixins.colorProps),
+  data: function data() {
+    var props = __vueComponentProps(this);
 
-  data() {
-    const props = __vueComponentProps(this);
-
-    const state = (() => {
+    var state = function () {
       return {
         inputFocused: false,
         inputInvalid: false
       };
-    })();
+    }();
 
     return {
-      state
+      state: state
     };
   },
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var type = props.type,
+        name = props.name,
+        value = props.value,
+        defaultValue = props.defaultValue,
+        placeholder = props.placeholder,
+        id = props.id,
+        inputId = props.inputId,
+        size = props.size,
+        accept = props.accept,
+        autocomplete = props.autocomplete,
+        autocorrect = props.autocorrect,
+        autocapitalize = props.autocapitalize,
+        spellcheck = props.spellcheck,
+        autofocus = props.autofocus,
+        autosave = props.autosave,
+        checked = props.checked,
+        disabled = props.disabled,
+        max = props.max,
+        min = props.min,
+        step = props.step,
+        maxlength = props.maxlength,
+        minlength = props.minlength,
+        multiple = props.multiple,
+        readonly = props.readonly,
+        required = props.required,
+        inputStyle = props.inputStyle,
+        pattern = props.pattern,
+        validate = props.validate,
+        validateOnBlur = props.validateOnBlur,
+        tabindex = props.tabindex,
+        resizable = props.resizable,
+        clearButton = props.clearButton,
+        errorMessage = props.errorMessage,
+        errorMessageForce = props.errorMessageForce,
+        info = props.info,
+        wrap = props.wrap,
+        dropdown = props.dropdown,
+        style = props.style,
+        className = props.className,
+        noStoreData = props.noStoreData,
+        noFormStoreData = props.noFormStoreData,
+        ignoreStoreData = props.ignoreStoreData,
+        outline = props.outline,
+        textEditorParams = props.textEditorParams;
+    var domValue = self.domValue();
+    var inputHasValue = self.inputHasValue();
+    var inputEl;
 
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      type,
-      name,
-      value,
-      defaultValue,
-      placeholder,
-      id,
-      inputId,
-      size,
-      accept,
-      autocomplete,
-      autocorrect,
-      autocapitalize,
-      spellcheck,
-      autofocus,
-      autosave,
-      checked,
-      disabled,
-      max,
-      min,
-      step,
-      maxlength,
-      minlength,
-      multiple,
-      readonly,
-      required,
-      inputStyle,
-      pattern,
-      validate,
-      validateOnBlur,
-      tabindex,
-      resizable,
-      clearButton,
-      errorMessage,
-      errorMessageForce,
-      info,
-      wrap,
-      dropdown,
-      style,
-      className,
-      noStoreData,
-      noFormStoreData,
-      ignoreStoreData,
-      outline
-    } = props;
-    const domValue = self.domValue();
-    const inputHasValue = self.inputHasValue();
-    let inputEl;
+    var createInput = function createInput(InputTag, children) {
+      var needsValue = type !== 'file' && type !== 'datepicker' && type !== 'colorpicker';
+      var needsType = InputTag === 'input';
+      var inputType = type;
 
-    const createInput = (InputTag, children) => {
-      const needsValue = type !== 'file';
-      const needsType = InputTag === 'input';
-      const inputClassName = Utils.classNames(!wrap && className, {
-        resizable: type === 'textarea' && resizable,
+      if (inputType === 'datepicker' || inputType === 'colorpicker') {
+        inputType = 'text';
+      }
+
+      var inputClassName = Utils.classNames(!wrap && className, {
+        resizable: inputType === 'textarea' && resizable,
         'no-store-data': noFormStoreData || noStoreData || ignoreStoreData,
         'input-invalid': errorMessage && errorMessageForce || self.state.inputInvalid,
         'input-with-value': inputHasValue,
         'input-focused': self.state.inputFocused
       });
-      let input;
-      let inputValue;
+      var input;
+      var inputValue;
 
       if (needsValue) {
         if (typeof value !== 'undefined') inputValue = value;else inputValue = domValue;
       }
 
-      const valueProps = {};
-      if ('value' in props) valueProps.value = inputValue;
-      if ('defaultValue' in props) valueProps.defaultValue = defaultValue;
+      var valueProps = {};
+
+      if (type !== 'datepicker' && type !== 'colorpicker') {
+        if ('value' in props) valueProps.value = inputValue;
+        if ('defaultValue' in props) valueProps.defaultValue = defaultValue;
+      }
+
       {
         input = _h(InputTag, {
           ref: 'inputEl',
           style: inputStyle,
           class: inputClassName,
           domProps: Object.assign({
-            checked,
-            disabled,
+            checked: checked,
+            disabled: disabled,
             readOnly: readonly,
-            multiple,
-            required
+            multiple: multiple,
+            required: required
           }, valueProps),
           on: {
             focus: self.onFocus,
@@ -165,7 +177,7 @@ export default {
           },
           attrs: {
             name: name,
-            type: needsType ? type : undefined,
+            type: needsType ? inputType : undefined,
             placeholder: placeholder,
             id: inputId,
             size: size,
@@ -193,10 +205,9 @@ export default {
       return input;
     };
 
-    const {
-      default: slotsDefault,
-      info: slotsInfo
-    } = self.$slots;
+    var _self$$slots = self.$slots,
+        slotsDefault = _self$$slots.default,
+        slotsInfo = _self$$slots.info;
 
     if (type === 'select' || type === 'textarea' || type === 'file') {
       if (type === 'select') {
@@ -238,12 +249,26 @@ export default {
           input: true
         }
       });
+    } else if (type === 'texteditor') {
+      inputEl = _h(F7TextEditor, __vueComponentTransformJSXProps(Object.assign({}, textEditorParams, {
+        on: {
+          textEditorFocus: self.onFocus,
+          textEditorBlur: self.onBlur,
+          textEditorInput: self.onInput,
+          textEditorChange: self.onChange
+        },
+        attrs: {
+          value: value,
+          resizable: resizable,
+          placeholder: placeholder
+        }
+      })));
     } else {
       inputEl = createInput('input');
     }
 
     if (wrap) {
-      const wrapClasses = Utils.classNames(className, 'input', {
+      var wrapClasses = Utils.classNames(className, 'input', {
         'input-outline': outline,
         'input-dropdown': dropdown === 'auto' ? type === 'select' : dropdown
       }, Mixins.colorClasses(props));
@@ -265,37 +290,41 @@ export default {
 
     return inputEl;
   },
-
   watch: {
     'props.value': function watchValue() {
-      const self = this;
-      const {
-        type
-      } = self.props;
+      var self = this;
+      var type = self.props.type;
       if (type === 'range' || type === 'toggle') return;
       if (!self.$f7) return;
       self.updateInputOnDidUpdate = true;
+
+      if (self.f7Calendar) {
+        self.f7Calendar.setValue(self.props.value);
+      }
+
+      if (self.f7ColorPicker) {
+        self.f7ColorPicker.setValue(self.props.value);
+      }
     }
   },
-
-  created() {
+  created: function created() {
     Utils.bindMethods(this, 'onFocus onBlur onInput onChange onTextareaResize onInputNotEmpty onInputEmpty onInputClear'.split(' '));
   },
-
-  mounted() {
-    const self = this;
-    self.$f7ready(f7 => {
-      const {
-        validate,
-        validateOnBlur,
-        resizable,
-        type,
-        clearButton,
-        value,
-        defaultValue
-      } = self.props;
+  mounted: function mounted() {
+    var self = this;
+    self.$f7ready(function (f7) {
+      var _self$props = self.props,
+          validate = _self$props.validate,
+          validateOnBlur = _self$props.validateOnBlur,
+          resizable = _self$props.resizable,
+          type = _self$props.type,
+          clearButton = _self$props.clearButton,
+          value = _self$props.value,
+          defaultValue = _self$props.defaultValue,
+          calendarParams = _self$props.calendarParams,
+          colorPickerParams = _self$props.colorPickerParams;
       if (type === 'range' || type === 'toggle') return;
-      const inputEl = self.$refs.inputEl;
+      var inputEl = self.$refs.inputEl;
       if (!inputEl) return;
       inputEl.addEventListener('input:notempty', self.onInputNotEmpty, false);
 
@@ -308,10 +337,34 @@ export default {
         inputEl.addEventListener('input:clear', self.onInputClear, false);
       }
 
+      if (type === 'datepicker') {
+        self.f7Calendar = f7.calendar.create(Object.assign({
+          inputEl: inputEl,
+          value: value,
+          on: {
+            change: function change(calendar, calendarValue) {
+              self.dispatchEvent('calendar:change calendarChange', calendarValue);
+            }
+          }
+        }, calendarParams || {}));
+      }
+
+      if (type === 'colorpicker') {
+        self.f7ColorPicker = f7.colorPicker.create(Object.assign({
+          inputEl: inputEl,
+          value: value,
+          on: {
+            change: function change(colorPicker, colorPickerValue) {
+              self.dispatchEvent('colorpicker:change colorPickerChange', colorPickerValue);
+            }
+          }
+        }, colorPickerParams || {}));
+      }
+
       f7.input.checkEmptyState(inputEl);
 
       if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && (typeof value !== 'undefined' && value !== null && value !== '' || typeof defaultValue !== 'undefined' && defaultValue !== null && defaultValue !== '')) {
-        setTimeout(() => {
+        setTimeout(function () {
           self.validateInput(inputEl);
         }, 0);
       }
@@ -321,19 +374,17 @@ export default {
       }
     });
   },
-
-  updated() {
-    const self = this;
-    const {
-      validate,
-      validateOnBlur,
-      resizable
-    } = self.props;
-    const f7 = self.$f7;
+  updated: function updated() {
+    var self = this;
+    var _self$props2 = self.props,
+        validate = _self$props2.validate,
+        validateOnBlur = _self$props2.validateOnBlur,
+        resizable = _self$props2.resizable;
+    var f7 = self.$f7;
     if (!f7) return;
 
     if (self.updateInputOnDidUpdate) {
-      const inputEl = self.$refs.inputEl;
+      var inputEl = self.$refs.inputEl;
       if (!inputEl) return;
       self.updateInputOnDidUpdate = false;
       f7.input.checkEmptyState(inputEl);
@@ -347,16 +398,14 @@ export default {
       }
     }
   },
-
-  beforeDestroy() {
-    const self = this;
-    const {
-      type,
-      resizable,
-      clearButton
-    } = self.props;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
+    var _self$props3 = self.props,
+        type = _self$props3.type,
+        resizable = _self$props3.resizable,
+        clearButton = _self$props3.clearButton;
     if (type === 'range' || type === 'toggle') return;
-    const inputEl = self.$refs.inputEl;
+    var inputEl = self.$refs.inputEl;
     if (!inputEl) return;
     inputEl.removeEventListener('input:notempty', self.onInputNotEmpty, false);
 
@@ -368,32 +417,43 @@ export default {
       inputEl.removeEventListener('input:empty', self.onInputEmpty, false);
       inputEl.removeEventListener('input:clear', self.onInputClear, false);
     }
-  },
 
+    if (self.f7Calendar && self.f7Calendar.destroy) {
+      self.f7Calendar.destroy();
+    }
+
+    if (self.f7ColorPicker && self.f7ColorPicker.destroy) {
+      self.f7ColorPicker.destroy();
+    }
+
+    delete self.f7Calendar;
+    delete self.f7ColorPicker;
+  },
   methods: {
-    domValue() {
-      const self = this;
-      const {
-        inputEl
-      } = self.$refs;
+    domValue: function domValue() {
+      var self = this;
+      var inputEl = self.$refs.inputEl;
       if (!inputEl) return undefined;
       return inputEl.value;
     },
+    inputHasValue: function inputHasValue() {
+      var self = this;
+      var _self$props4 = self.props,
+          value = _self$props4.value,
+          type = _self$props4.type;
 
-    inputHasValue() {
-      const self = this;
-      const {
-        value
-      } = self.props;
-      const domValue = self.domValue();
+      if (type === 'datepicker' && Array.isArray(value) && value.length === 0) {
+        return false;
+      }
+
+      var domValue = self.domValue();
       return typeof value === 'undefined' ? domValue || domValue === 0 : value || value === 0;
     },
-
-    validateInput(inputEl) {
-      const self = this;
-      const f7 = self.$f7;
+    validateInput: function validateInput(inputEl) {
+      var self = this;
+      var f7 = self.$f7;
       if (!f7 || !inputEl) return;
-      const validity = inputEl.validity;
+      var validity = inputEl.validity;
       if (!validity) return;
 
       if (!validity.valid) {
@@ -408,50 +468,55 @@ export default {
         });
       }
     },
-
-    onTextareaResize(event) {
+    onTextareaResize: function onTextareaResize(event) {
       this.dispatchEvent('textarea:resize textareaResize', event);
     },
-
-    onInputNotEmpty(event) {
+    onInputNotEmpty: function onInputNotEmpty(event) {
       this.dispatchEvent('input:notempty inputNotEmpty', event);
     },
-
-    onInputEmpty(event) {
+    onInputEmpty: function onInputEmpty(event) {
       this.dispatchEvent('input:empty inputEmpty', event);
     },
-
-    onInputClear(event) {
+    onInputClear: function onInputClear(event) {
       this.dispatchEvent('input:clear inputClear', event);
     },
+    onInput: function onInput() {
+      var self = this;
+      var _self$props5 = self.props,
+          validate = _self$props5.validate,
+          validateOnBlur = _self$props5.validateOnBlur;
 
-    onInput(event) {
-      const self = this;
-      const {
-        validate,
-        validateOnBlur
-      } = self.props;
-      self.dispatchEvent('input', event);
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      self.dispatchEvent.apply(self, ['input'].concat(args));
 
       if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && self.$refs && self.$refs.inputEl) {
         self.validateInput(self.$refs.inputEl);
       }
     },
+    onFocus: function onFocus() {
+      for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
 
-    onFocus(event) {
-      this.dispatchEvent('focus', event);
+      this.dispatchEvent.apply(this, ['focus'].concat(args));
       this.setState({
         inputFocused: true
       });
     },
+    onBlur: function onBlur() {
+      var self = this;
+      var _self$props6 = self.props,
+          validate = _self$props6.validate,
+          validateOnBlur = _self$props6.validateOnBlur;
 
-    onBlur(event) {
-      const self = this;
-      const {
-        validate,
-        validateOnBlur
-      } = self.props;
-      self.dispatchEvent('blur', event);
+      for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+
+      self.dispatchEvent.apply(self, ['blur'].concat(args));
 
       if ((validate || validate === '' || validateOnBlur || validateOnBlur === '') && self.$refs && self.$refs.inputEl) {
         self.validateInput(self.$refs.inputEl);
@@ -461,24 +526,31 @@ export default {
         inputFocused: false
       });
     },
+    onChange: function onChange() {
+      for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        args[_key4] = arguments[_key4];
+      }
 
-    onChange(event) {
-      this.dispatchEvent('change', event);
+      this.dispatchEvent.apply(this, ['change'].concat(args));
+
+      if (this.props.type === 'texteditor') {
+        this.dispatchEvent('texteditor:change textEditorChange', args[1]);
+      }
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+        args[_key5 - 1] = arguments[_key5];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     },
-
-    setState(updater, callback) {
+    setState: function setState(updater, callback) {
       __vueComponentSetState(this, updater, callback);
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

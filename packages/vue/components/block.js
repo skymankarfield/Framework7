@@ -7,7 +7,11 @@ export default {
   props: Object.assign({
     id: [String, Number],
     inset: Boolean,
-    tabletInset: Boolean,
+    xsmallInset: Boolean,
+    smallInset: Boolean,
+    mediumInset: Boolean,
+    largeInset: Boolean,
+    xlargeInset: Boolean,
     strong: Boolean,
     tabs: Boolean,
     tab: Boolean,
@@ -18,52 +22,59 @@ export default {
     noHairlinesIos: Boolean,
     noHairlinesAurora: Boolean
   }, Mixins.colorProps),
-
-  created() {
+  created: function created() {
     Utils.bindMethods(this, ['onTabShow', 'onTabHide']);
   },
-
-  mounted() {
-    const el = this.$refs.el;
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
     if (!el) return;
-    el.addEventListener('tab:show', this.onTabShow);
-    el.addEventListener('tab:hide', this.onTabHide);
+    self.eventTargetEl = el;
+    self.$f7ready(function (f7) {
+      f7.on('tabShow', self.onTabShow);
+      f7.on('tabHide', self.onTabHide);
+    });
   },
-
-  beforeDestroy() {
-    const el = this.$refs.el;
-    if (!el) return;
-    el.removeEventListener('tab:show', this.onTabShow);
-    el.removeEventListener('tab:hide', this.onTabHide);
+  beforeDestroy: function beforeDestroy() {
+    var el = this.$refs.el;
+    if (!el || !this.$f7) return;
+    this.$f7.off('tabShow', this.onTabShow);
+    this.$f7.off('tabHide', this.onTabHide);
+    delete this.eventTargetEl;
   },
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      className,
-      inset,
-      strong,
-      accordionList,
-      tabletInset,
-      tabs,
-      tab,
-      tabActive,
-      noHairlines,
-      noHairlinesIos,
-      noHairlinesMd,
-      noHairlinesAurora,
-      id,
-      style
-    } = props;
-    const classes = Utils.classNames(className, 'block', {
-      inset,
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var className = props.className,
+        inset = props.inset,
+        xsmallInset = props.xsmallInset,
+        smallInset = props.smallInset,
+        mediumInset = props.mediumInset,
+        largeInset = props.largeInset,
+        xlargeInset = props.xlargeInset,
+        strong = props.strong,
+        accordionList = props.accordionList,
+        tabs = props.tabs,
+        tab = props.tab,
+        tabActive = props.tabActive,
+        noHairlines = props.noHairlines,
+        noHairlinesIos = props.noHairlinesIos,
+        noHairlinesMd = props.noHairlinesMd,
+        noHairlinesAurora = props.noHairlinesAurora,
+        id = props.id,
+        style = props.style;
+    var classes = Utils.classNames(className, 'block', {
+      inset: inset,
+      'xsmall-inset': xsmallInset,
+      'small-inset': smallInset,
+      'medium-inset': mediumInset,
+      'large-inset': largeInset,
+      'xlarge-inset': xlargeInset,
       'block-strong': strong,
       'accordion-list': accordionList,
-      'tablet-inset': tabletInset,
-      tabs,
-      tab,
+      tabs: tabs,
+      tab: tab,
       'tab-active': tabActive,
       'no-hairlines': noHairlines,
       'no-hairlines-md': noHairlinesMd,
@@ -79,25 +90,26 @@ export default {
       }
     }, [this.$slots['default']]);
   },
-
   methods: {
-    onTabShow(event) {
-      this.dispatchEvent('tabShow tab:show', event);
+    onTabShow: function onTabShow(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tabShow tab:show');
     },
-
-    onTabHide(event) {
-      this.dispatchEvent('tabHide tab:hide', event);
+    onTabHide: function onTabHide(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tabHide tab:hide');
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

@@ -1,5 +1,5 @@
 /**
- * Framework7 Vue 4.2.0
+ * Framework7 Vue 5.0.5
  * Build full featured iOS & Android apps using Framework7 & Vue
  * http://framework7.io/vue/
  *
@@ -7,7 +7,7 @@
  *
  * Released under the MIT License
  *
- * Released on: March 20, 2019
+ * Released on: October 16, 2019
  */
 
 import f7AccordionContent from './components/accordion-content';
@@ -86,7 +86,6 @@ import f7Segmented from './components/segmented';
 import f7Sheet from './components/sheet';
 import f7SkeletonBlock from './components/skeleton-block';
 import f7SkeletonText from './components/skeleton-text';
-import f7Statusbar from './components/statusbar';
 import f7Stepper from './components/stepper';
 import f7Subnavbar from './components/subnavbar';
 import f7SwipeoutActions from './components/swipeout-actions';
@@ -95,11 +94,14 @@ import f7SwiperSlide from './components/swiper-slide';
 import f7Swiper from './components/swiper';
 import f7Tab from './components/tab';
 import f7Tabs from './components/tabs';
+import f7TextEditor from './components/text-editor';
 import f7Toggle from './components/toggle';
 import f7Toolbar from './components/toolbar';
+import f7TreeviewItem from './components/treeview-item';
+import f7Treeview from './components/treeview';
 import f7View from './components/view';
 import f7Views from './components/views';
-import Framework7Vue from './utils/plugin';
+import Framework7Vue, { f7, f7ready, theme } from './utils/plugin';
 
 export {
   f7AccordionContent,
@@ -178,7 +180,6 @@ export {
   f7Sheet,
   f7SkeletonBlock,
   f7SkeletonText,
-  f7Statusbar,
   f7Stepper,
   f7Subnavbar,
   f7SwipeoutActions,
@@ -187,10 +188,15 @@ export {
   f7Swiper,
   f7Tab,
   f7Tabs,
+  f7TextEditor,
   f7Toggle,
   f7Toolbar,
+  f7TreeviewItem,
+  f7Treeview,
   f7View,
   f7Views
 };
+
+export { f7, f7ready, theme };
 
 export default Framework7Vue;

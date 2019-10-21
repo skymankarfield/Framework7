@@ -34,8 +34,6 @@ const Mixins = {
   linkIconProps: {
     icon: String,
     iconMaterial: String,
-    iconIon: String,
-    iconFa: String,
     iconF7: String,
     iconIos: String,
     iconMd: String,
@@ -63,6 +61,7 @@ const Mixins = {
     view: String,
     routeProps: Object,
     preventRouter: Boolean,
+    transition: String,
   },
   linkRouterAttrs(props) {
     const {
@@ -75,6 +74,7 @@ const Mixins = {
       ignoreCache,
       routeTabId,
       view,
+      transition,
     } = props;
 
     let dataAnimate;
@@ -97,6 +97,7 @@ const Mixins = {
       'data-ignore-cache': ignoreCache || undefined,
       'data-route-tab-id': routeTabId || undefined,
       'data-view': Utils.isStringProp(view) ? view : undefined,
+      'data-transition': Utils.isStringProp(transition) ? transition : undefined,
     };
   },
   linkRouterClasses(props) {

@@ -3,6 +3,7 @@ import Mixins from '../utils/mixins';
 import F7NavLeft from './nav-left';
 import F7NavTitle from './nav-title';
 import F7NavRight from './nav-right';
+import __vueComponentSetState from '../runtime-helpers/vue-component-set-state.js';
 import __vueComponentDispatchEvent from '../runtime-helpers/vue-component-dispatch-event.js';
 import __vueComponentProps from '../runtime-helpers/vue-component-props.js';
 export default {
@@ -25,105 +26,122 @@ export default {
     hidden: Boolean,
     noShadow: Boolean,
     noHairline: Boolean,
-    inner: {
-      type: Boolean,
-      default: true
-    },
     innerClass: String,
     innerClassName: String,
     large: Boolean,
+    largeTransparent: Boolean,
     titleLarge: String
   }, Mixins.colorProps),
+  data: function data() {
+    var _this = this;
 
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      backLink,
-      backLinkUrl,
-      backLinkForce,
-      backLinkShowText,
-      sliding,
-      title,
-      subtitle,
-      inner,
-      innerClass,
-      innerClassName,
-      className,
-      id,
-      style,
-      hidden,
-      noShadow,
-      noHairline,
-      large,
-      titleLarge
-    } = props;
-    let innerEl;
-    let leftEl;
-    let titleEl;
-    let rightEl;
-    let titleLargeEl;
-    const addLeftTitleClass = self.$theme && self.$theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
-    const addCenterTitleClass = self.$theme && self.$theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle || self.$theme && self.$theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle;
-    const slots = self.$slots;
+    var props = __vueComponentProps(this);
 
-    if (inner) {
-      if (backLink || slots['nav-left']) {
-        leftEl = _h(F7NavLeft, {
-          on: {
-            backClick: self.onBackClick
-          },
-          attrs: {
-            backLink: backLink,
-            backLinkUrl: backLinkUrl,
-            backLinkForce: backLinkForce,
-            backLinkShowText: backLinkShowText
-          }
-        }, [slots['nav-left']]);
+    var state = function () {
+      var self = _this;
+      var $f7 = self.$f7;
+
+      if (!$f7) {
+        self.$f7ready(function () {
+          self.setState({
+            _theme: self.$theme
+          });
+        });
       }
 
-      if (title || subtitle || slots.title) {
-        titleEl = _h(F7NavTitle, {
-          attrs: {
-            title: title,
-            subtitle: subtitle
-          }
-        }, [slots.title]);
-      }
+      return {
+        _theme: $f7 ? self.$theme : null
+      };
+    }();
 
-      if (slots['nav-right']) {
-        rightEl = _h(F7NavRight, [slots['nav-right']]);
-      }
+    return {
+      state: state
+    };
+  },
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var backLink = props.backLink,
+        backLinkUrl = props.backLinkUrl,
+        backLinkForce = props.backLinkForce,
+        backLinkShowText = props.backLinkShowText,
+        sliding = props.sliding,
+        title = props.title,
+        subtitle = props.subtitle,
+        innerClass = props.innerClass,
+        innerClassName = props.innerClassName,
+        className = props.className,
+        id = props.id,
+        style = props.style,
+        hidden = props.hidden,
+        noShadow = props.noShadow,
+        noHairline = props.noHairline,
+        large = props.large,
+        largeTransparent = props.largeTransparent,
+        titleLarge = props.titleLarge;
+    var theme = self.state.theme;
+    var leftEl;
+    var titleEl;
+    var rightEl;
+    var titleLargeEl;
+    var addLeftTitleClass = theme && theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
+    var addCenterTitleClass = theme && theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle || theme && theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle;
+    var slots = self.$slots;
+    var classes = Utils.classNames(className, 'navbar', {
+      'navbar-hidden': hidden,
+      'navbar-large': large,
+      'navbar-large-transparent': largeTransparent
+    }, Mixins.colorClasses(props));
 
-      let largeTitle = titleLarge;
-      if (!largeTitle && large && title) largeTitle = title;
-
-      if (largeTitle) {
-        titleLargeEl = _h('div', {
-          class: 'title-large'
-        }, [_h('div', {
-          class: 'title-large-text'
-        }, [largeTitle])]);
-      }
-
-      innerEl = _h('div', {
-        ref: 'inner',
-        class: Utils.classNames('navbar-inner', innerClass, innerClassName, {
-          sliding,
-          'navbar-inner-left-title': addLeftTitleClass,
-          'navbar-inner-centered-title': addCenterTitleClass,
-          'navbar-inner-large': large
-        })
-      }, [leftEl, titleEl, rightEl, titleLargeEl, this.$slots['default']]);
+    if (backLink || slots['nav-left'] || slots.left) {
+      leftEl = _h(F7NavLeft, {
+        on: {
+          backClick: self.onBackClick
+        },
+        attrs: {
+          backLink: backLink,
+          backLinkUrl: backLinkUrl,
+          backLinkForce: backLinkForce,
+          backLinkShowText: backLinkShowText
+        }
+      }, [slots['nav-left'], slots.left]);
     }
 
-    const classes = Utils.classNames(className, 'navbar', {
-      'navbar-hidden': hidden,
-      'no-shadow': noShadow,
-      'no-hairline': noHairline,
-      'navbar-large': large
-    }, Mixins.colorClasses(props));
+    if (title || subtitle || slots.title) {
+      titleEl = _h(F7NavTitle, {
+        attrs: {
+          title: title,
+          subtitle: subtitle
+        }
+      }, [slots.title]);
+    }
+
+    if (slots['nav-right'] || slots.right) {
+      rightEl = _h(F7NavRight, [slots['nav-right'], slots.right]);
+    }
+
+    var largeTitle = titleLarge;
+    if (!largeTitle && large && title) largeTitle = title;
+
+    if (largeTitle || slots['title-large']) {
+      titleLargeEl = _h('div', {
+        class: 'title-large'
+      }, [_h('div', {
+        class: 'title-large-text'
+      }, [largeTitle || '', this.$slots['title-large']])]);
+    }
+
+    var innerEl = _h('div', {
+      class: Utils.classNames('navbar-inner', innerClass, innerClassName, {
+        sliding: sliding,
+        'no-shadow': noShadow,
+        'no-hairline': noHairline,
+        'navbar-inner-left-title': addLeftTitleClass,
+        'navbar-inner-centered-title': addCenterTitleClass
+      })
+    }, [leftEl, titleEl, rightEl, titleLargeEl, this.$slots['default']]);
+
     return _h('div', {
       ref: 'el',
       style: style,
@@ -131,57 +149,92 @@ export default {
       attrs: {
         id: id
       }
-    }, [this.$slots['before-inner'], innerEl, this.$slots['after-inner']]);
+    }, [_h('div', {
+      class: 'navbar-bg'
+    }), this.$slots['before-inner'], innerEl, this.$slots['after-inner']]);
   },
-
-  created() {
-    Utils.bindMethods(this, ['onBackClick']);
+  created: function created() {
+    Utils.bindMethods(this, ['onBackClick', 'onHide', 'onShow', 'onExpand', 'onCollapse']);
   },
-
-  updated() {
-    const self = this;
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
+    if (!el) return;
+    self.$f7ready(function (f7) {
+      self.eventTargetEl = el;
+      f7.on('navbarShow', self.onShow);
+      f7.on('navbarHide', self.onHide);
+      f7.on('navbarCollapse', self.onCollapse);
+      f7.on('navbarExpand', self.onExpand);
+    });
+  },
+  updated: function updated() {
+    var self = this;
     if (!self.$f7) return;
-    const el = self.$refs.el;
-
-    if (el && el.children && el.children.length) {
-      self.$f7.navbar.size(el);
-    } else if (self.$refs.inner) {
-      self.$f7.navbar.size(self.$refs.inner);
-    }
+    var el = self.$refs.el;
+    self.$f7.navbar.size(el);
   },
-
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
+    var el = self.$refs.el;
+    if (!el || !self.$f7) return;
+    var f7 = self.$f7;
+    f7.off('navbarShow', self.onShow);
+    f7.off('navbarHide', self.onHide);
+    f7.off('navbarCollapse', self.onCollapse);
+    f7.off('navbarExpand', self.onExpand);
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
+  },
   methods: {
-    hide(animate) {
-      const self = this;
+    onHide: function onHide(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:hide navbarHide');
+    },
+    onShow: function onShow(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:show navbarShow');
+    },
+    onExpand: function onExpand(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:expand navbarExpand');
+    },
+    onCollapse: function onCollapse(navbarEl) {
+      if (this.eventTargetEl !== navbarEl) return;
+      this.dispatchEvent('navbar:collapse navbarCollapse');
+    },
+    hide: function hide(animate) {
+      var self = this;
       if (!self.$f7) return;
       self.$f7.navbar.hide(self.$refs.el, animate);
     },
-
-    show(animate) {
-      const self = this;
+    show: function show(animate) {
+      var self = this;
       if (!self.$f7) return;
       self.$f7.navbar.show(self.$refs.el, animate);
     },
-
-    size() {
-      const self = this;
+    size: function size() {
+      var self = this;
       if (!self.$f7) return;
       self.$f7.navbar.size(self.$refs.el);
     },
-
-    onBackClick(event) {
+    onBackClick: function onBackClick(event) {
       this.dispatchEvent('back-click backClick click:back clickBack', event);
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+    },
+    setState: function setState(updater, callback) {
+      __vueComponentSetState(this, updater, callback);
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

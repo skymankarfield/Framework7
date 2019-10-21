@@ -18,11 +18,10 @@ export default {
     id: [String, Number],
     className: String, // phenome-react-line
     style: Object, // phenome-react-line
-    noFastclick: Boolean,
-    noFastClick: Boolean,
     text: String,
     tabLink: [Boolean, String],
     tabLinkActive: Boolean,
+    type: String,
     href: {
       type: [String, Boolean],
       default: '#',
@@ -70,8 +69,6 @@ export default {
       text,
       icon,
       iconMaterial,
-      iconIon,
-      iconFa,
       iconF7,
       iconMd,
       iconIos,
@@ -80,17 +77,16 @@ export default {
       iconSize,
       id,
       style,
+      type,
     } = props;
 
     if (text) {
       textEl = (<span>{text}</span>);
     }
-    if (icon || iconMaterial || iconIon || iconFa || iconF7 || iconMd || iconIos || iconAurora) {
+    if (icon || iconMaterial || iconF7 || iconMd || iconIos || iconAurora) {
       iconEl = (
         <F7Icon
           material={iconMaterial}
-          ion={iconIon}
-          fa={iconFa}
           f7={iconF7}
           icon={icon}
           md={iconMd}
@@ -101,8 +97,9 @@ export default {
         />
       );
     }
+    const ButtonTag = type === 'submit' || type === 'reset' || type === 'button' ? 'button' : 'a';
     return (
-      <a
+      <ButtonTag
         ref="el"
         id={id}
         style={style}
@@ -112,14 +109,14 @@ export default {
         {iconEl}
         {textEl}
         <slot />
-      </a>
+      </ButtonTag>
     );
   },
   computed: {
     attrs() {
       const self = this;
       const props = self.props;
-      const { href, target, tabLink } = props;
+      const { href, target, tabLink, type } = props;
       let hrefComputed = href;
       if (href === true) hrefComputed = '#';
       if (href === false) hrefComputed = undefined; // no href attribute
@@ -127,6 +124,7 @@ export default {
         {
           href: hrefComputed,
           target,
+          type,
           'data-tab': (Utils.isStringProp(tabLink) && tabLink) || undefined,
         },
         Mixins.linkRouterAttrs(props),
@@ -137,8 +135,6 @@ export default {
       const self = this;
       const props = self.props;
       const {
-        noFastclick,
-        noFastClick,
         tabLink,
         tabLinkActive,
         round,
@@ -176,7 +172,6 @@ export default {
         {
           'tab-link': tabLink || tabLink === '',
           'tab-link-active': tabLinkActive,
-          'no-fastclick': noFastclick || noFastClick,
 
           'button-round': round,
           'button-round-ios': roundIos,
@@ -220,6 +215,19 @@ export default {
   watch: {
     'props.tooltip': function watchTooltip(newText) {
       const self = this;
+      if (!newText && self.f7Tooltip) {
+        self.f7Tooltip.destroy();
+        self.f7Tooltip = null;
+        delete self.f7Tooltip;
+        return;
+      }
+      if (newText && !self.f7Tooltip && self.$f7) {
+        self.f7Tooltip = self.$f7.tooltip.create({
+          targetEl: self.refs.el,
+          text: newText,
+        });
+        return;
+      }
       if (!newText || !self.f7Tooltip) return;
       self.f7Tooltip.setText(newText);
     },

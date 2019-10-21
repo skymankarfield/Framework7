@@ -36,6 +36,8 @@ export default {
       default: 1,
     },
     formatValue: Function,
+    name: String,
+    inputId: String,
     input: {
       type: Boolean,
       default: true,
@@ -101,7 +103,7 @@ export default {
     const self = this;
     const props = self.props;
     const {
-      input, buttonsOnly, inputType, value, inputReadonly, min, max, step, id, style,
+      input, buttonsOnly, inputType, value, inputReadonly, min, max, step, id, style, name, inputId,
     } = props;
 
     let inputWrapEl;
@@ -112,11 +114,14 @@ export default {
         inputEl = (
           <input
             ref="inputEl"
+            name={name}
+            id={inputId}
             type={inputType}
             min={inputType === 'number' ? min : undefined}
             max={inputType === 'number' ? max : undefined}
             step={inputType === 'number' ? step : undefined}
             onInput={self.onInput}
+            onChange={self.onChange}
             value={value}
             readOnly={inputReadonly}
           />
@@ -126,11 +131,14 @@ export default {
         inputEl = (
           <input
             ref="inputEl"
+            name={name}
+            id={inputId}
             type={inputType}
             min={inputType === 'number' ? min : undefined}
             max={inputType === 'number' ? max : undefined}
             step={inputType === 'number' ? step : undefined}
             onInput={self.onInput}
+            onChange={self.onChange}
             domProps={{
               readOnly: inputReadonly,
               value,
@@ -297,6 +305,10 @@ export default {
     onInput(event) {
       const stepper = this.f7Stepper;
       this.dispatchEvent('input', event, stepper);
+    },
+    onChange(event) {
+      const stepper = this.f7Stepper;
+      this.dispatchEvent('change', event, stepper);
     },
     onMinusClick(event) {
       const stepper = this.f7Stepper;

@@ -1,28 +1,25 @@
 import f7 from '../utils/f7';
-import events from '../utils/events';
 import __vueComponentSetState from '../runtime-helpers/vue-component-set-state.js';
 export default {
   name: 'f7-routable-modals',
-
-  data() {
-    const state = (() => {
+  data: function data() {
+    var state = function () {
       return {
         modals: []
       };
-    })();
+    }();
 
     return {
-      state
+      state: state
     };
   },
-
-  render() {
-    const _h = this.$createElement;
+  render: function render() {
+    var _h = this.$createElement;
     return _h('div', {
       ref: 'el',
       class: 'framework7-modals'
-    }, [this.state.modals.map(modal => {
-      const ModalComponent = modal.component;
+    }, [this.state.modals.map(function (modal) {
+      var ModalComponent = modal.component;
       {
         return _h(ModalComponent, {
           key: modal.id,
@@ -31,38 +28,36 @@ export default {
       }
     })]);
   },
-
-  updated() {
-    const self = this;
+  updated: function updated() {
+    var self = this;
     if (!self.routerData) return;
-    events.emit('modalsRouterDidUpdate', self.routerData);
+    f7.events.emit('modalsRouterDidUpdate', self.routerData);
   },
-
-  beforeDestroy() {
-    const self = this;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
     if (!self.routerData) return;
     f7.routers.modals = null;
     self.routerData = null;
     delete self.routerData;
   },
-
-  mounted() {
-    const self = this;
-    const el = self.$refs.el;
-    self.setState({
-      modals: []
-    });
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
     self.routerData = {
-      el,
-      component: self
+      modals: self.state.modals,
+      el: el,
+      component: self,
+      setModals: function setModals(modals) {
+        self.setState({
+          modals: modals
+        });
+      }
     };
     f7.routers.modals = self.routerData;
   },
-
   methods: {
-    setState(updater, callback) {
+    setState: function setState(updater, callback) {
       __vueComponentSetState(this, updater, callback);
     }
-
   }
 };

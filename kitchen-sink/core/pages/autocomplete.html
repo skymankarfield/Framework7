@@ -1,6 +1,7 @@
 <template>
   <div class="page">
     <div class="navbar">
+      <div class="navbar-bg"></div>
       <div class="navbar-inner sliding">
         <div class="left">
           <a href="#" class="link back">
@@ -216,6 +217,7 @@
           inputEl: '#autocomplete-dropdown',
           openIn: 'dropdown',
           source: function (query, render) {
+            console.log(query);
             var results = [];
             if (query.length === 0) {
               render(results);

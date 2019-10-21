@@ -5,10 +5,12 @@ import F7ListItemContent from './list-item-content';
 import Mixins from '../utils/mixins';
 
 /* phenome-dts-imports
+import { Tooltip as TooltipNamespace } from 'framework7/components/tooltip/tooltip';
 import { SmartSelect as SmartSelectNamespace } from 'framework7/components/smart-select/smart-select';
 */
 
 /* phenome-dts-instance
+f7Tooltip: TooltipNamespace.Tooltip
 f7SmartSelect: SmartSelectNamespace.SmartSelect
 */
 
@@ -26,11 +28,12 @@ export default {
     header: [String, Number],
     footer: [String, Number],
 
+    // Tooltip
+    tooltip: String,
+
     // Link Props
     link: [Boolean, String],
     target: String,
-    noFastclick: Boolean,
-    noFastClick: Boolean,
 
     after: [String, Number],
     badge: [String, Number],
@@ -42,7 +45,10 @@ export default {
     groupTitle: Boolean,
     swipeout: Boolean,
     swipeoutOpened: Boolean,
-    sortable: Boolean,
+    sortable: {
+      type: Boolean,
+      default: undefined,
+    },
     accordionItem: Boolean,
     accordionItemOpened: Boolean,
 
@@ -59,6 +65,7 @@ export default {
     radio: Boolean,
     checked: Boolean,
     defaultChecked: Boolean,
+    indeterminate: Boolean,
     name: String,
     value: [String, Number, Array],
     readonly: Boolean,
@@ -96,8 +103,6 @@ export default {
       link,
       href,
       target,
-      noFastclick,
-      noFastClick,
       after,
       badge,
       badgeColor,
@@ -113,6 +118,7 @@ export default {
       radio,
       checked,
       defaultChecked,
+      indeterminate,
       name,
       value,
       readonly,
@@ -147,6 +153,7 @@ export default {
           checkbox={checkbox}
           checked={checked}
           defaultChecked={defaultChecked}
+          indeterminate={indeterminate}
           radio={radio}
           name={name}
           value={value}
@@ -181,18 +188,15 @@ export default {
 
       // Link
       if (link || href || accordionItem || smartSelect) {
-        const linkAttrs = Utils.extend(
-          {
-            href: link === true || accordionItem || smartSelect ? '#' : link || href,
-            target,
-          },
-          Mixins.linkRouterAttrs(props),
-          Mixins.linkActionsAttrs(props),
-        );
+        const linkAttrs = {
+          href: link === true ? '' : link || href,
+          target,
+          ...Mixins.linkRouterAttrs(props),
+          ...Mixins.linkActionsAttrs(props),
+        };
         const linkClasses = Utils.classNames(
           {
             'item-link': true,
-            'no-fastclick': noFastclick || noFastClick,
             'smart-select': smartSelect,
           },
           Mixins.linkRouterClasses(props),
@@ -222,6 +226,7 @@ export default {
         disabled: disabled && !(radio || checkbox),
         'no-chevron': noChevron,
         'chevron-center': chevronCenter,
+        'disallow-sorting': sortable === false,
       },
       Mixins.colorClasses(props),
     );
@@ -253,7 +258,7 @@ export default {
           )
           : linkItemEl
         }
-        {isSortable && (<div className="sortable-handler" />)}
+        {isSortable && sortable !== false && (<div className="sortable-handler" />)}
         {(swipeout || accordionItem) && self.slots.default}
         <slot name="root" />
         <slot name="root-end" />
@@ -261,6 +266,24 @@ export default {
     );
   },
   watch: {
+    'props.tooltip': function watchTooltip(newText) {
+      const self = this;
+      if (!newText && self.f7Tooltip) {
+        self.f7Tooltip.destroy();
+        self.f7Tooltip = null;
+        delete self.f7Tooltip;
+        return;
+      }
+      if (newText && !self.f7Tooltip && self.$f7) {
+        self.f7Tooltip = self.$f7.tooltip.create({
+          targetEl: self.refs.el,
+          text: newText,
+        });
+        return;
+      }
+      if (!newText || !self.f7Tooltip) return;
+      self.f7Tooltip.setText(newText);
+    },
     'props.swipeoutOpened': function watchSwipeoutOpened(opened) {
       const self = this;
       if (!self.props.swipeout) return;
@@ -297,7 +320,9 @@ export default {
     const self = this;
     const { el, linkEl } = self.refs;
     if (!el) return;
-    const { link, href, smartSelect, swipeout, swipeoutOpened, accordionItem, smartSelectParams, routeProps } = self.props;
+    const {
+      link, href, smartSelect, swipeout, swipeoutOpened, accordionItem, smartSelectParams, routeProps, tooltip,
+    } = self.props;
     const needsEvents = !(link || href || accordionItem || smartSelect);
     if (!needsEvents && linkEl) {
       linkEl.addEventListener('click', self.onClick);
@@ -314,27 +339,28 @@ export default {
         isSortable: self.$listEl.hasClass('sortable'),
       });
     }
-    if (swipeout) {
-      el.addEventListener('swipeout:open', self.onSwipeoutOpen);
-      el.addEventListener('swipeout:opened', self.onSwipeoutOpened);
-      el.addEventListener('swipeout:close', self.onSwipeoutClose);
-      el.addEventListener('swipeout:closed', self.onSwipeoutClosed);
-      el.addEventListener('swipeout:delete', self.onSwipeoutDelete);
-      el.addEventListener('swipeout:deleted', self.onSwipeoutDeleted);
-      el.addEventListener('swipeout:overswipeenter', self.onSwipeoutOverswipeEnter);
-      el.addEventListener('swipeout:overswipeexit', self.onSwipeoutOverswipeExit);
-      el.addEventListener('swipeout', self.onSwipeout);
-    }
-    if (accordionItem) {
-      el.addEventListener('accordion:beforeopen', self.onAccBeforeOpen);
-      el.addEventListener('accordion:open', self.onAccOpen);
-      el.addEventListener('accordion:opened', self.onAccOpened);
-      el.addEventListener('accordion:beforeclose', self.onAccBeforeClose);
-      el.addEventListener('accordion:close', self.onAccClose);
-      el.addEventListener('accordion:closed', self.onAccClosed);
-    }
 
     self.$f7ready((f7) => {
+      self.eventTargetEl = el;
+      if (swipeout) {
+        f7.on('swipeoutOpen', self.onSwipeoutOpen);
+        f7.on('swipeoutOpened', self.onSwipeoutOpened);
+        f7.on('swipeoutClose', self.onSwipeoutClose);
+        f7.on('swipeoutClosed', self.onSwipeoutClosed);
+        f7.on('swipeoutDelete', self.onSwipeoutDelete);
+        f7.on('swipeoutDeleted', self.onSwipeoutDeleted);
+        f7.on('swipeoutOverswipeEnter', self.onSwipeoutOverswipeEnter);
+        f7.on('swipeoutOverswipeExit', self.onSwipeoutOverswipeExit);
+        f7.on('swipeout', self.onSwipeout);
+      }
+      if (accordionItem) {
+        f7.on('accordionBeforeOpen', self.onAccBeforeOpen);
+        f7.on('accordionOpen', self.onAccOpen);
+        f7.on('accordionOpened', self.onAccOpened);
+        f7.on('accordionBeforeClose', self.onAccBeforeClose);
+        f7.on('accordionClose', self.onAccClose);
+        f7.on('accordionClosed', self.onAccClosed);
+      }
       if (smartSelect) {
         const ssParams = Utils.extend(
           { el: el.querySelector('a.smart-select') },
@@ -344,6 +370,12 @@ export default {
       }
       if (swipeoutOpened) {
         f7.swipeout.open(el);
+      }
+      if (tooltip) {
+        self.f7Tooltip = f7.tooltip.create({
+          targetEl: el,
+          text: tooltip,
+        });
       }
     });
   },
@@ -371,7 +403,7 @@ export default {
   },
   componentWillUnmount() {
     const self = this;
-    const { el, linkEl } = self.refs;
+    const { linkEl } = self.refs;
     const { link, href, smartSelect, swipeout, accordionItem } = self.props;
     const needsEvents = !(link || href || accordionItem || smartSelect);
     if (linkEl) {
@@ -380,30 +412,38 @@ export default {
       }
       delete linkEl.f7RouteProps;
     }
-    if (el) {
+    if (self.$f7) {
+      const f7 = self.$f7;
       if (swipeout) {
-        el.removeEventListener('swipeout:open', self.onSwipeoutOpen);
-        el.removeEventListener('swipeout:opened', self.onSwipeoutOpened);
-        el.removeEventListener('swipeout:close', self.onSwipeoutClose);
-        el.removeEventListener('swipeout:closed', self.onSwipeoutClosed);
-        el.removeEventListener('swipeout:delete', self.onSwipeoutDelete);
-        el.removeEventListener('swipeout:deleted', self.onSwipeoutDeleted);
-        el.removeEventListener('swipeout:overswipeenter', self.onSwipeoutOverswipeEnter);
-        el.removeEventListener('swipeout:overswipeexit', self.onSwipeoutOverswipeExit);
-        el.removeEventListener('swipeout', self.onSwipeout);
+        f7.off('swipeoutOpen', self.onSwipeoutOpen);
+        f7.off('swipeoutOpened', self.onSwipeoutOpened);
+        f7.off('swipeoutClose', self.onSwipeoutClose);
+        f7.off('swipeoutClosed', self.onSwipeoutClosed);
+        f7.off('swipeoutDelete', self.onSwipeoutDelete);
+        f7.off('swipeoutDeleted', self.onSwipeoutDeleted);
+        f7.off('swipeoutOverswipeEnter', self.onSwipeoutOverswipeEnter);
+        f7.off('swipeoutOverswipeExit', self.onSwipeoutOverswipeExit);
+        f7.off('swipeout', self.onSwipeout);
       }
       if (accordionItem) {
-        el.removeEventListener('accordion:beforeopen', self.onAccBeforeOpen);
-        el.removeEventListener('accordion:open', self.onAccOpen);
-        el.removeEventListener('accordion:opened', self.onAccOpened);
-        el.removeEventListener('accordion:beforeclose', self.onAccBeforeClose);
-        el.removeEventListener('accordion:close', self.onAccClose);
-        el.removeEventListener('accordion:closed', self.onAccClosed);
+        f7.off('accordionBeforeOpen', self.onAccBeforeOpen);
+        f7.off('accordionOpen', self.onAccOpen);
+        f7.off('accordionOpened', self.onAccOpened);
+        f7.off('accordionBeforeClose', self.onAccBeforeClose);
+        f7.off('accordionClose', self.onAccClose);
+        f7.off('accordionClosed', self.onAccClosed);
       }
     }
     if (smartSelect && self.f7SmartSelect) {
       self.f7SmartSelect.destroy();
     }
+    if (self.f7Tooltip && self.f7Tooltip.destroy) {
+      self.f7Tooltip.destroy();
+      self.f7Tooltip = null;
+      delete self.f7Tooltip;
+    }
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
   },
   methods: {
     onClick(event) {
@@ -412,50 +452,65 @@ export default {
         self.dispatchEvent('click', event);
       }
     },
-    onSwipeoutOverswipeEnter(event) {
-      this.dispatchEvent('swipeout:overswipeenter swipeoutOverswipeEnter', event);
+    onSwipeoutOverswipeEnter(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:overswipeenter swipeoutOverswipeEnter');
     },
-    onSwipeoutOverswipeExit(event) {
-      this.dispatchEvent('swipeout:overswipeexit swipeoutOverswipeExit', event);
+    onSwipeoutOverswipeExit(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:overswipeexit swipeoutOverswipeExit');
     },
-    onSwipeoutDeleted(event) {
-      this.dispatchEvent('swipeout:deleted swipeoutDeleted', event);
+    onSwipeoutDeleted(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:deleted swipeoutDeleted');
     },
-    onSwipeoutDelete(event) {
-      this.dispatchEvent('swipeout:delete swipeoutDelete', event);
+    onSwipeoutDelete(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:delete swipeoutDelete');
     },
-    onSwipeoutClose(event) {
-      this.dispatchEvent('swipeout:close swipeoutClose', event);
+    onSwipeoutClose(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:close swipeoutClose');
     },
-    onSwipeoutClosed(event) {
-      this.dispatchEvent('swipeout:closed swipeoutClosed', event);
+    onSwipeoutClosed(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:closed swipeoutClosed');
     },
-    onSwipeoutOpen(event) {
-      this.dispatchEvent('swipeout:open swipeoutOpen', event);
+    onSwipeoutOpen(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:open swipeoutOpen');
     },
-    onSwipeoutOpened(event) {
-      this.dispatchEvent('swipeout:opened swipeoutOpened', event);
+    onSwipeoutOpened(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout:opened swipeoutOpened');
     },
-    onSwipeout(event) {
-      this.dispatchEvent('swipeout', event);
+    onSwipeout(el, progress) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('swipeout', progress);
     },
-    onAccBeforeClose(event) {
-      this.dispatchEvent('accordion:beforeclose accordionBeforeClose', event, event.detail.prevent);
+    onAccBeforeClose(el, prevent) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:beforeclose accordionBeforeClose', prevent);
     },
-    onAccClose(event) {
-      this.dispatchEvent('accordion:close accordionClose', event);
+    onAccClose(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:close accordionClose');
     },
-    onAccClosed(event) {
-      this.dispatchEvent('accordion:closed accordionClosed', event);
+    onAccClosed(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:closed accordionClosed');
     },
-    onAccBeforeOpen(event) {
-      this.dispatchEvent('accordion:beforeopen accordionBeforeOpen', event, event.detail.prevent);
+    onAccBeforeOpen(el, prevent) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:beforeopen accordionBeforeOpen', prevent);
     },
-    onAccOpen(event) {
-      this.dispatchEvent('accordion:open accordionOpen', event);
+    onAccOpen(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:open accordionOpen');
     },
-    onAccOpened(event) {
-      this.dispatchEvent('accordion:opened accordionOpened', event);
+    onAccOpened(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('accordion:opened accordionOpened');
     },
     onChange(event) {
       this.dispatchEvent('change', event);

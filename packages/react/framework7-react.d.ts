@@ -83,7 +83,6 @@ import F7Segmented from './components/segmented';
 import F7Sheet from './components/sheet';
 import F7SkeletonBlock from './components/skeleton-block';
 import F7SkeletonText from './components/skeleton-text';
-import F7Statusbar from './components/statusbar';
 import F7Stepper from './components/stepper';
 import F7Subnavbar from './components/subnavbar';
 import F7SwipeoutActions from './components/swipeout-actions';
@@ -92,10 +91,19 @@ import F7SwiperSlide from './components/swiper-slide';
 import F7Swiper from './components/swiper';
 import F7Tab from './components/tab';
 import F7Tabs from './components/tabs';
+import F7TextEditor from './components/text-editor';
 import F7Toggle from './components/toggle';
 import F7Toolbar from './components/toolbar';
+import F7TreeviewItem from './components/treeview-item';
+import F7Treeview from './components/treeview';
 import F7View from './components/view';
 import F7Views from './components/views';
+
+export interface Framework7Theme {
+  ios: boolean
+  md: boolean
+  aurora: boolean
+}
 
 export interface Framework7Extensions {
   /** Main Framework7's initialized instance. It allows you to use any of Framework7 APIs */
@@ -117,12 +125,15 @@ export interface Framework7Extensions {
   /** Access to Utils object with few useful utilities */
   $utils: Utils
   /** Object with boolean properties with information about currently used theme (iOS or MD) */
-  $theme: {
-    ios: boolean
-    md: boolean
-    aurora: boolean
-  }
+  $theme: Framework7Theme
 }
+
+/** Object with boolean properties with information about currently used theme (iOS or MD) */
+declare const theme : Framework7Theme;
+/** Main Framework7's initialized instance. It allows you to use any of Framework7 APIs */
+declare const f7 : Framework7;
+/** Callback function that will be executed when Framework7 fully intialized. Useful to use in components when you need to access Framework7 API and to be sure it is ready. So it is safe to put all Framework7 related logic into this callback. As an argument it receives initialized Framework7 instance */
+declare const f7ready: (onF7Ready: (f7: Framework7) => void) => void;
 
 declare module 'react' {
   interface Component extends Partial<Framework7Extensions> {}
@@ -281,8 +292,6 @@ export {
   F7SkeletonBlock as SkeletonBlock,
   F7SkeletonText,
   F7SkeletonText as SkeletonText,
-  F7Statusbar,
-  F7Statusbar as Statusbar,
   F7Stepper,
   F7Stepper as Stepper,
   F7Subnavbar,
@@ -299,14 +308,29 @@ export {
   F7Tab as Tab,
   F7Tabs,
   F7Tabs as Tabs,
+  F7TextEditor,
+  F7TextEditor as TextEditor,
   F7Toggle,
   F7Toggle as Toggle,
   F7Toolbar,
   F7Toolbar as Toolbar,
+  F7TreeviewItem,
+  F7TreeviewItem as TreeviewItem,
+  F7Treeview,
+  F7Treeview as Treeview,
   F7View,
   F7View as View,
   F7Views,
   F7Views as Views
+}
+
+export {
+  theme,
+  theme as $theme,
+  f7,
+  f7 as $f7,
+  f7ready,
+  f7ready as $f7ready,
 }
 
 declare const Framework7React: Framework7Plugin;

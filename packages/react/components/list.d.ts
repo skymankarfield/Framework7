@@ -8,10 +8,16 @@ declare namespace F7List {
     className? : string
     style? : React.CSSProperties
     inset? : boolean
-    tabletInset? : boolean
+    xsmallInset? : boolean
+    smallInset? : boolean
+    mediumInset? : boolean
+    largeInset? : boolean
+    xlargeInset? : boolean
     mediaList? : boolean
     sortable? : boolean
+    sortableTapHold? : boolean
     sortableEnabled? : boolean
+    sortableMoveElements? : boolean
     accordionList? : boolean
     contactsList? : boolean
     simpleList? : boolean
@@ -44,19 +50,21 @@ declare namespace F7List {
     onVirtualBeforeClear? : (vl?: any, fragment?: any) => void
     onVirtualItemsBeforeInsert? : (vl?: any, fragment?: any) => void
     onVirtualItemsAfterInsert? : (vl?: any, fragment?: any) => void
-    onSortableEnable? : (event?: any) => void
-    onSortableDisable? : (event?: any) => void
-    onSortableSort? : (event?: any, sortData?: any) => void
-    onTabShow? : (event?: any) => void
-    onTabHide? : (event?: any) => void
+    onSubmit? : (event?: any) => void
+    onSortableEnable? : (...args: any[]) => void
+    onSortableDisable? : (...args: any[]) => void
+    onSortableSort? : (sortData?: any) => void
+    onTabShow? : (...args: any[]) => void
+    onTabHide? : (...args: any[]) => void
   }
 }
 declare class F7List extends React.Component<F7List.Props, {}> {
-  onSortableEnable(event? : any) : unknown
-  onSortableDisable(event? : any) : unknown
-  onSortableSort(event? : any) : unknown
-  onTabShow(event? : any) : unknown
-  onTabHide(event? : any) : unknown
+  onSubmit(event? : any) : unknown
+  onSortableEnable(el? : any) : unknown
+  onSortableDisable(el? : any) : unknown
+  onSortableSort(el? : any, sortData? : any, listEl? : any) : unknown
+  onTabShow(el? : any) : unknown
+  onTabHide(el? : any) : unknown
   f7VirtualList: VirtualListNamespace.VirtualList
 }
 export default F7List;

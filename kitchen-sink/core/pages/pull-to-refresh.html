@@ -1,6 +1,7 @@
 <template>
   <div class="page">
     <div class="navbar">
+      <div class="navbar-bg"></div>
       <div class="navbar-inner sliding">
         <div class="left">
           <a href="#" class="link back">
@@ -70,7 +71,7 @@
         setTimeout(function () {
           // Add new item
           self.items.push({
-            picURL: 'https://cdn.framework7.io/placeholder/abstract-88x88-' + Math.round(Math.random() * 10) + '.jpg',
+            picURL: 'https://cdn.framework7.io/placeholder/abstract-88x88-' + (Math.floor(Math.random() * 10) + 1) + '.jpg',
             song: self.songs[Math.floor(Math.random() * self.songs.length)],
             author: self.authors[Math.floor(Math.random() * self.authors.length)],
           })

@@ -12,46 +12,104 @@
 
 <h2 align="center">Supporting Framework7</h2>
 
-Framework7 is an MIT-licensed open source project with its ongoing development made possible entirely by the support of these awesome [backers](https://github.com/framework7io/framework7/blob/master/BACKERS.md). If you'd like to join them, please consider:
-
-* [Become a backer or sponsor on Patreon.](https://www.patreon.com/vladimirkharlampidi)
+Framework7 is an MIT-licensed open source project with its ongoing development made possible entirely by the support of these awesome [backers](https://github.com/framework7io/framework7/blob/master/BACKERS.md). If you'd like to join them, please consider [becoming a backer or sponsor on Patreon.](https://www.patreon.com/vladimirkharlampidi)
 
 <h3 align="center">Sponsors</h3>
 
 <table>
   <tr>
     <td align="center" valign="middle">
-      <a href="https://yakaz.com/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/yakaz.png">
+      <a href="https://www.sparheld.de/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/sparheld.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://www.activewaiter.com/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/activewaiter.png">
+      <a href="https://www.thoriumbuilder.com/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/thorium.png">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://wappler.io/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/wappler.png">
+      <a href="https://app-valley.vip/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/appvalley.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://appvalley.vip/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/appvalley.jpg">
+      <a href="http://mytommy.com" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/tommy.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.securcom.me/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/securcom.png">
       </a>
     </td>
   </tr>
   <tr>
     <td align="center" valign="middle">
-      <a href="https://www.securcom.me/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/securcom.png">
+      <a href="https://writersperhour.com/write-my-paper" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/writersperhour.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="http://mytommy.com" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/tommy.png">
+      <a href="https://monovm.com/linux-vps/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/monovm.jpg">
       </a>
     </td>
+    <td align="center" valign="middle">
+      <a href="https://staffaugmentation.ro" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/staffaugmentation.jpg">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.colognewebdesign.de/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/colognewebdesign.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://rise.co" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/rise.png">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+      <a href="https://usave.co.uk/utilities/broadband" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/usave.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://bid4papers.com/write-my-essay.html" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/bid4papers.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://kidoverse.app" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/kidoverse.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.cyberbrain.nl/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/cyberbrain.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://hicapps.cl/web/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/hicapps.png">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+      <a href="https://blokt.com/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/blokt.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://wappler.io/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/wappler.png">
+      </a>
+    </td>
+    <td></td>
     <td></td>
     <td></td>
   </tr>
@@ -132,26 +190,27 @@ Framework7 uses LESS for CSS compilations, and ES modules JS files.
 
 The project uses [.editorconfig](http://editorconfig.org/) and [ESLint](https://eslint.org/) to define and lint the coding style of each file. We recommend that you install the Editor Config and ESLint extension for your preferred IDE.
 
-If you want to help in Framework7 development and make it event better visit this page: http://framework7.io/contribute/
+If you want to help in Framework7 development and make it event better visit this page: https://framework7.io/contribute/
 
 ## Forum
 
-If you have questions about Framework7 or want to help others you are welcome to special forum at http://forum.framework7.io/
+If you have questions about Framework7 or want to help others you are welcome to special forum at https://forum.framework7.io/
 
 ## Docs
 
-Documentation available at http://framework7.io/docs/
+Documentation available at https://framework7.io/docs/
 
 ## Tutorials
 
-Tutorials available at http://framework7.io/tutorials/
+Tutorials available at https://framework7.io/tutorials/
 
 ## Showcase
 
-Appstore apps made with Framework7: http://framework7.io/showcase/
+Appstore apps made with Framework7: https://framework7.io/showcase/
 
 ## Previous Versions
 
+* [v4 branch](https://github.com/framework7io/Framework7/tree/v4)
 * [v3 branch](https://github.com/framework7io/Framework7/tree/v3)
 * [v2 branch](https://github.com/framework7io/Framework7/tree/v2)
 * [v1 branch](https://github.com/framework7io/Framework7/tree/v1)

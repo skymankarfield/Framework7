@@ -5,7 +5,6 @@
 const fsNative = require('fs');
 const path = require('path');
 const glob = require('glob');
-const getConfig = require('./get-core-config.js');
 const getOutput = require('./get-output.js');
 const fs = require('./utils/fs-extra');
 
@@ -17,9 +16,7 @@ function base64Encode(file) {
 }
 
 function build(cb) {
-  const config = getConfig();
   const env = process.env.NODE_ENV || 'development';
-  const target = process.env.TARGET || config.target || 'universal';
   const format = 'es';
   const output = `${getOutput()}/core`;
   glob('**/*.*', { cwd: path.resolve(__dirname, '../src/core') }, (err, files) => {
@@ -32,7 +29,6 @@ function build(cb) {
       if (file.indexOf('.js') >= 0) {
         fileContent = fileContent
           .replace('process.env.NODE_ENV', JSON.stringify(env))
-          .replace('process.env.TARGET', JSON.stringify(target))
           .replace('process.env.FORMAT', JSON.stringify(format));
       }
       if (file.indexOf('app.less') >= 0) {

@@ -21,8 +21,6 @@ declare namespace F7MenuItem {
     themeDark? : boolean
     icon? : string
     iconMaterial? : string
-    iconIon? : string
-    iconFa? : string
     iconF7? : string
     iconIos? : string
     iconMd? : string
@@ -42,6 +40,7 @@ declare namespace F7MenuItem {
     view? : string
     routeProps? : Object
     preventRouter? : boolean
+    transition? : string
     searchbarEnable? : boolean | string
     searchbarDisable? : boolean | string
     searchbarClear? : boolean | string
@@ -67,13 +66,13 @@ declare namespace F7MenuItem {
     cardClose? : boolean | string
     menuClose? : boolean | string
     onClick? : (e?: any) => void
-    onMenuOpened? : (e?: any) => void
-    onMenuClosed? : (e?: any) => void
+    onMenuOpened? : (el?: any) => void
+    onMenuClosed? : (el?: any) => void
   }
 }
 declare class F7MenuItem extends React.Component<F7MenuItem.Props, {}> {
   onClick(e? : any) : unknown
-  onOpened(e? : any) : unknown
-  onClosed(e? : any) : unknown
+  onOpened(el? : any) : unknown
+  onClosed(el? : any) : unknown
 }
 export default F7MenuItem;

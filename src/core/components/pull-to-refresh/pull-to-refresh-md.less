@@ -1,14 +1,22 @@
 .md {
   --f7-ptr-top: -4px;
   .ptr-preloader {
-    left: 50%;
+
     width: var(--f7-ptr-size);
     border-radius: 50%;
     background: #fff;
-    margin-left: calc(-1 * var(--f7-ptr-size) / 2);
+
     margin-top: calc(-1 * var(--f7-ptr-size));
     z-index: 100;
     box-shadow: var(--f7-elevation-1);
+    .ltr({
+      left: 50%;
+      margin-left: calc(-1 * var(--f7-ptr-size) / 2);
+    });
+    .rtl({
+      right: 50%;
+      margin-right: calc(-1 * var(--f7-ptr-size) / 2);
+    });
     .preloader {
       .preloader-inner-gap,
       .preloader-inner-half-circle {
@@ -82,7 +90,7 @@
   .ptr-refreshing {
     .ptr-preloader {
       transition-duration: 300ms;
-      transition-property: transform;
+      transition-property: transform, opacity;
     }
   }
 
@@ -94,6 +102,24 @@
     &.ptr-refreshing {
       .ptr-preloader {
         transform: translate3d(0, -66px, 0);
+      }
+    }
+  }
+  .ptr-with-navbar-large-transparent {
+    .ptr-preloader {
+      opacity: 0;
+    }
+    &.ptr-pull-down,
+    &.ptr-pull-up,
+    &.ptr-refreshing {
+      .ptr-preloader {
+        opacity: 1;
+      }
+    }
+    &.ptr-closing {
+      .ptr-preloader {
+        opacity: 0;
+        transition-duration: 300ms;
       }
     }
   }

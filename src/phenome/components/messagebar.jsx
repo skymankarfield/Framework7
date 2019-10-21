@@ -63,8 +63,8 @@ export default {
       'onFocus',
       'onBlur',
       'onClick',
-      'onDeleteAttachment',
-      'onClickAttachment',
+      'onAttachmentDelete',
+      'onAttachmentClick,',
       'onResizePage',
     ]);
   },
@@ -116,6 +116,9 @@ export default {
       });
     }
 
+    const valueProps = {};
+    if ('value' in self.props) valueProps.value = value;
+
     return (
       <div ref="el" id={id} style={style} className={self.classes}>
         {slotsBeforeInner}
@@ -133,11 +136,11 @@ export default {
               name={name}
               readonly={readonly}
               resizable={resizable}
-              value={value}
               onInput={self.onInput}
               onChange={self.onChange}
               onFocus={self.onFocus}
               onBlur={self.onBlur}
+              {...valueProps}
             />
             {slotsAfterArea}
           </div>
@@ -206,10 +209,6 @@ export default {
     const el = self.refs.el;
     if (!el) return;
 
-    el.addEventListener('messagebar:attachmentdelete', self.onDeleteAttachment);
-    el.addEventListener('messagebar:attachmentclick', self.onClickAttachment);
-    el.addEventListener('messagebar:resizepage', self.onResizePage);
-
     const params = Utils.noUndefinedProps({
       el,
       top,
@@ -217,6 +216,11 @@ export default {
       bottomOffset,
       topOffset,
       maxHeight,
+      on: {
+        attachmentDelete: self.onAttachmentDelete,
+        attachmentClick: self.onAttachmentClick,
+        resizePage: self.onResizePage,
+      },
     });
 
     self.$f7ready(() => {
@@ -241,13 +245,6 @@ export default {
   componentWillUnmount() {
     const self = this;
     if (self.f7Messagebar && self.f7Messagebar.destroy) self.f7Messagebar.destroy();
-
-    const el = self.refs.el;
-    if (!el) return;
-
-    el.removeEventListener('messagebar:attachmentdelete', self.onDeleteAttachment);
-    el.removeEventListener('messagebar:attachmentclick', self.onClickAttachment);
-    el.removeEventListener('messagebar:resizepage', self.onResizePage);
   },
   methods: {
     clear(...args) {
@@ -331,14 +328,14 @@ export default {
       this.dispatchEvent('send', value, clear);
       this.dispatchEvent('click', event);
     },
-    onDeleteAttachment(event) {
-      this.dispatchEvent('messagebar:attachmentdelete messagebarAttachmentDelete', event);
+    onAttachmentDelete(instance, attachmentEl, attachmentElIndex) {
+      this.dispatchEvent('messagebar:attachmentdelete messagebarAttachmentDelete', instance, attachmentEl, attachmentElIndex);
     },
-    onClickAttachment(event) {
-      this.dispatchEvent('messagebar:attachmentclick messagebarAttachmentClick', event);
+    onAttachmentClick(instance, attachmentEl, attachmentElIndex) {
+      this.dispatchEvent('messagebar:attachmentclick messagebarAttachmentClick', instance, attachmentEl, attachmentElIndex);
     },
-    onResizePage(event) {
-      this.dispatchEvent('messagebar:resizepage messagebarResizePage', event);
+    onResizePage(instance) {
+      this.dispatchEvent('messagebar:resizepage messagebarResizePage', instance);
     },
   },
 };

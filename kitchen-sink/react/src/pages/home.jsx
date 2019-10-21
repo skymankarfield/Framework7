@@ -7,8 +7,8 @@ export default class extends React.Component {
   }
   render() {
     return (
-      <Page>
-        <Navbar large sliding={false}>
+      <Page className="page-home">
+        <Navbar large largeTransparent sliding={false}>
           <NavLeft>
             <Link panelOpen="left" iconIos="f7:menu" iconAurora="f7:menu" iconMd="material:menu"></Link>
           </NavLeft>
@@ -32,7 +32,7 @@ export default class extends React.Component {
           </ListItem>
         </List>
 
-        <BlockTitle className="searchbar-found">Components</BlockTitle>
+        <BlockTitle medium className="searchbar-found">Components</BlockTitle>
         <List className="components-list searchbar-found">
           <ListItem link="/accordion/" title="Accordion">
             <Icon slot="media" icon="icon-f7" />
@@ -65,6 +65,9 @@ export default class extends React.Component {
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/chips/" title="Chips/Tags">
+            <Icon slot="media" icon="icon-f7" />
+          </ListItem>
+          <ListItem link="/color-picker/" title="Color Picker">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/contacts-list/" title="Contacts List">
@@ -133,16 +136,16 @@ export default class extends React.Component {
           <ListItem link="/panel/" title="Panel / Side Panels">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
-          <ListItem link="/picker/" title="Picker">
-            <Icon slot="media" icon="icon-f7" />
-          </ListItem>
           <ListItem link="/photo-browser/" title="Photo Browser">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
-          <ListItem link="/popup/" title="Popup">
+          <ListItem link="/picker/" title="Picker">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/popover/" title="Popover">
+            <Icon slot="media" icon="icon-f7" />
+          </ListItem>
+          <ListItem link="/popup/" title="Popup">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/preloader/" title="Preloader">
@@ -178,9 +181,6 @@ export default class extends React.Component {
           <ListItem link="/sortable/" title="Sortable List">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
-          <ListItem link="/statusbar/" title="Statusbar">
-            <Icon slot="media" icon="icon-f7" />
-          </ListItem>
           <ListItem link="/stepper/" title="Stepper">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
@@ -194,6 +194,9 @@ export default class extends React.Component {
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/tabs/" title="Tabs">
+            <Icon slot="media" icon="icon-f7" />
+          </ListItem>
+          <ListItem link="/text-editor/" title="Text Editor">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
           <ListItem link="/timeline/" title="Timeline">
@@ -211,6 +214,9 @@ export default class extends React.Component {
           <ListItem link="/tooltip/" title="Tooltip">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
+          <ListItem link="/treeview/" title="Treeview">
+            <Icon slot="media" icon="icon-f7" />
+          </ListItem>
           <ListItem link="/virtual-list/" title="Virtual List">
             <Icon slot="media" icon="icon-f7" />
           </ListItem>
@@ -218,15 +224,16 @@ export default class extends React.Component {
         <List className="searchbar-not-found">
           <ListItem title="Nothing found"></ListItem>
         </List>
-        <BlockTitle className="searchbar-hide-on-search">Themes</BlockTitle>
+        <BlockTitle medium className="searchbar-hide-on-search">Themes</BlockTitle>
         <List className="searchbar-hide-on-search">
           <ListItem title="iOS Theme" external link="./index.html?theme=ios"></ListItem>
           <ListItem title="Material (MD) Theme" external link="./index.html?theme=md"></ListItem>
           <ListItem title="Aurora Desktop Theme" external link="./index.html?theme=aurora"></ListItem>
           <ListItem title="Color Themes" link="/color-themes/"></ListItem>
         </List>
-        <BlockTitle className="searchbar-hide-on-search">Page Loaders & Router</BlockTitle>
+        <BlockTitle medium className="searchbar-hide-on-search">Page Loaders & Router</BlockTitle>
         <List className="searchbar-hide-on-search">
+          <ListItem title="Page Transitions" link="/page-transitions/"></ListItem>
           <ListItem title="Routable Modals" link="/routable-modals/"></ListItem>
           <ListItem title="Default Route (404)" link="/load-something-that-doesnt-exist/"></ListItem>
           <ListItem title="Master-Detail (Split View)" link="/master-detail/"></ListItem>

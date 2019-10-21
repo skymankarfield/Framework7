@@ -3,13 +3,18 @@
 import Utils from '../utils/utils';
 import Mixins from '../utils/mixins';
 
+import F7TextEditor from './text-editor';
+
 export default {
   name: 'f7-list-input',
   props: {
     id: [String, Number],
     style: Object, // phenome-react-line
     className: String, // phenome-react-line
-    sortable: Boolean,
+    sortable: {
+      type: Boolean,
+      default: undefined,
+    },
     media: String,
     dropdown: {
       type: [String, Boolean],
@@ -30,7 +35,7 @@ export default {
       default: 'text',
     },
     name: String,
-    value: [String, Number, Array],
+    value: [String, Number, Array, Date, Object],
     defaultValue: [String, Number, Array],
     readonly: Boolean,
     required: Boolean,
@@ -80,6 +85,14 @@ export default {
     label: [String, Number],
     inlineLabel: Boolean,
     floatingLabel: Boolean,
+
+    // Datepicker
+    calendarParams: Object,
+    // Colorpicker
+    colorPickerParams: Object,
+    // Text editor
+    textEditorParams: Object,
+
     // Colors
     ...Mixins.colorProps,
   },
@@ -148,6 +161,7 @@ export default {
       label,
       inlineLabel,
       floatingLabel,
+      textEditorParams,
     } = props;
 
     const domValue = self.domValue();
@@ -156,11 +170,15 @@ export default {
     const isSortable = sortable || self.state.isSortable;
 
     const createInput = (InputTag, children) => {
-      const needsValue = type !== 'file';
+      const needsValue = type !== 'file' && type !== 'datepicker' && type !== 'colorpicker';
       const needsType = InputTag === 'input';
+      let inputType = type;
+      if (inputType === 'datepicker' || inputType === 'colorpicker') {
+        inputType = 'text';
+      }
       const inputClassName = Utils.classNames(
         {
-          resizable: type === 'textarea' && resizable,
+          resizable: inputType === 'textarea' && resizable,
           'no-store-data': (noFormStoreData || noStoreData || ignoreStoreData),
           'input-invalid': (errorMessage && errorMessageForce) || inputInvalid,
           'input-with-value': inputHasValue,
@@ -174,15 +192,18 @@ export default {
         else inputValue = domValue;
       }
       const valueProps = {};
-      if ('value' in props) valueProps.value = inputValue;
-      if ('defaultValue' in props) valueProps.defaultValue = defaultValue;
+      if (type !== 'datepicker' && type !== 'colorpicker') {
+        if ('value' in props) valueProps.value = inputValue;
+        if ('defaultValue' in props) valueProps.defaultValue = defaultValue;
+      }
+
       if (process.env.COMPILER === 'react') {
         input = (
           <InputTag
             ref="inputEl"
             style={inputStyle}
             name={name}
-            type={needsType ? type : undefined}
+            type={needsType ? inputType : undefined}
             placeholder={placeholder}
             id={inputId}
             size={size}
@@ -225,7 +246,7 @@ export default {
             ref="inputEl"
             style={inputStyle}
             name={name}
-            type={needsType ? type : undefined}
+            type={needsType ? inputType : undefined}
             placeholder={placeholder}
             id={inputId}
             size={size}
@@ -277,6 +298,19 @@ export default {
         } else {
           inputEl = createInput('textarea');
         }
+      } else if (type === 'texteditor') {
+        inputEl = (
+          <F7TextEditor
+            value={value}
+            resizable={resizable}
+            placeholder={placeholder}
+            onTextEditorFocus={self.onFocus}
+            onTextEditorBlur={self.onBlur}
+            onTextEditorInput={self.onInput}
+            onTextEditorChange={self.onChange}
+            {...textEditorParams}
+          />
+        );
       } else {
         inputEl = createInput('input');
       }
@@ -366,6 +400,12 @@ export default {
       const self = this;
       if (!self.$f7) return;
       self.updateInputOnDidUpdate = true;
+      if (self.f7Calendar) {
+        self.f7Calendar.setValue(self.props.value);
+      }
+      if (self.f7ColorPicker) {
+        self.f7ColorPicker.setValue(self.props.value);
+      }
     },
   },
   componentDidCreate() {
@@ -378,7 +418,7 @@ export default {
     if (!el && !itemContentEl) return;
 
     self.$f7ready((f7) => {
-      const { validate, validateOnBlur, resizable, value, defaultValue, type } = self.props;
+      const { validate, validateOnBlur, resizable, value, defaultValue, type, calendarParams, colorPickerParams } = self.props;
 
       const inputEl = self.refs.inputEl;
       if (!inputEl) return;
@@ -387,7 +427,30 @@ export default {
       inputEl.addEventListener('textarea:resize', self.onTextareaResize, false);
       inputEl.addEventListener('input:empty', self.onInputEmpty, false);
       inputEl.addEventListener('input:clear', self.onInputClear, false);
-
+      if (type === 'datepicker') {
+        self.f7Calendar = f7.calendar.create({
+          inputEl,
+          value,
+          on: {
+            change(calendar, calendarValue) {
+              self.dispatchEvent('calendar:change calendarChange', calendarValue);
+            },
+          },
+          ...(calendarParams || {}),
+        });
+      }
+      if (type === 'colorpicker') {
+        self.f7ColorPicker = f7.colorPicker.create({
+          inputEl,
+          value,
+          on: {
+            change(colorPicker, colorPickerValue) {
+              self.dispatchEvent('colorpicker:change colorPickerChange', colorPickerValue);
+            },
+          },
+          ...(colorPickerParams || {}),
+        });
+      }
       if (
         !(validateOnBlur || validateOnBlur === '')
         && (validate || validate === '')
@@ -444,6 +507,14 @@ export default {
     inputEl.removeEventListener('textarea:resize', self.onTextareaResize, false);
     inputEl.removeEventListener('input:empty', self.onInputEmpty, false);
     inputEl.removeEventListener('input:clear', self.onInputClear, false);
+    if (self.f7Calendar && self.f7Calendar.destroy) {
+      self.f7Calendar.destroy();
+    }
+    if (self.f7ColorPicker && self.f7ColorPicker.destroy) {
+      self.f7ColorPicker.destroy();
+    }
+    delete self.f7Calendar;
+    delete self.f7ColorPicker;
   },
   methods: {
     domValue() {
@@ -454,7 +525,10 @@ export default {
     },
     inputHasValue() {
       const self = this;
-      const { value } = self.props;
+      const { value, type } = self.props;
+      if (type === 'datepicker' && Array.isArray(value) && value.length === 0) {
+        return false;
+      }
       const domValue = self.domValue();
       return typeof value === 'undefined'
         ? (domValue || domValue === 0)
@@ -487,29 +561,32 @@ export default {
     onInputClear(event) {
       this.dispatchEvent('input:clear inputClear', event);
     },
-    onInput(event) {
+    onInput(...args) {
       const self = this;
       const { validate, validateOnBlur } = self.props;
-      self.dispatchEvent('input', event);
+      self.dispatchEvent('input', ...args);
       if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && self.refs && self.refs.inputEl) {
         self.validateInput(self.refs.inputEl);
       }
     },
-    onFocus(event) {
-      this.dispatchEvent('focus', event);
+    onFocus(...args) {
+      this.dispatchEvent('focus', ...args);
       this.setState({ inputFocused: true });
     },
-    onBlur(event) {
+    onBlur(...args) {
       const self = this;
       const { validate, validateOnBlur } = self.props;
-      self.dispatchEvent('blur', event);
+      self.dispatchEvent('blur', ...args);
       if ((validate || validate === '' || validateOnBlur || validateOnBlur === '') && self.refs && self.refs.inputEl) {
         self.validateInput(self.refs.inputEl);
       }
       self.setState({ inputFocused: false });
     },
-    onChange(event) {
-      this.dispatchEvent('change', event);
+    onChange(...args) {
+      this.dispatchEvent('change', ...args);
+      if (this.props.type === 'texteditor') {
+        this.dispatchEvent('texteditor:change textEditorChange', args[0]);
+      }
     },
   },
 };

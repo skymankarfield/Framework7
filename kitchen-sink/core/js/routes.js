@@ -17,6 +17,7 @@ var routes = [
     content: '\
       <div class="page">\
         <div class="navbar">\
+          <div class="navbar-bg"></div>\
           <div class="navbar-inner sliding">\
             <div class="left">\
               <a href="#" class="link back">\
@@ -41,6 +42,7 @@ var routes = [
     content: '\
       <div class="page">\
         <div class="navbar">\
+          <div class="navbar-bg"></div>\
           <div class="navbar-inner sliding">\
             <div class="left">\
               <a href="#" class="link back">\
@@ -104,11 +106,15 @@ var routes = [
   },
   {
     path: '/checkbox/',
-    url: './pages/checkbox.html',
+    componentUrl: './pages/checkbox.html',
   },
   {
     path: '/chips/',
     componentUrl: './pages/chips.html',
+  },
+  {
+    path: '/color-picker/',
+    componentUrl: './pages/color-picker.html',
   },
   {
     path: '/contacts-list/',
@@ -267,10 +273,6 @@ var routes = [
     url: './pages/sortable.html',
   },
   {
-    path: '/statusbar/',
-    componentUrl: './pages/statusbar.html',
-  },
-  {
     path: '/stepper/',
     componentUrl: './pages/stepper.html',
   },
@@ -423,6 +425,10 @@ var routes = [
     ],
   },
   {
+    path: '/text-editor/',
+    componentUrl: './pages/text-editor.html'
+  },
+  {
     path: '/toast/',
     componentUrl: './pages/toast.html',
   },
@@ -457,6 +463,10 @@ var routes = [
     componentUrl: './pages/tooltip.html',
   },
   {
+    path: '/treeview/',
+    componentUrl: './pages/treeview.html',
+  },
+  {
     path: '/timeline/',
     url: './pages/timeline.html',
   },
@@ -489,6 +499,16 @@ var routes = [
   {
     path: '/color-themes/',
     componentUrl: './pages/color-themes.html',
+  },
+
+  // Effects
+  {
+    path: '/page-transitions/',
+    componentUrl: './pages/page-transitions.html',
+  },
+  {
+    path: '/page-transitions/:effect',
+    componentUrl: './pages/page-transitions-effect.html',
   },
 
   // Page Loaders

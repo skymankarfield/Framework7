@@ -7,10 +7,19 @@ export default {
   props: Object.assign({
     id: [String, Number],
     inset: Boolean,
-    tabletInset: Boolean,
+    xsmallInset: Boolean,
+    smallInset: Boolean,
+    mediumInset: Boolean,
+    largeInset: Boolean,
+    xlargeInset: Boolean,
     mediaList: Boolean,
     sortable: Boolean,
+    sortableTapHold: Boolean,
     sortableEnabled: Boolean,
+    sortableMoveElements: {
+      type: Boolean,
+      default: undefined
+    },
     accordionList: Boolean,
     contactsList: Boolean,
     simpleList: Boolean,
@@ -33,28 +42,25 @@ export default {
     virtualList: Boolean,
     virtualListParams: Object
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      id,
-      style,
-      form
-    } = props;
-    const {
-      list: slotsList,
-      default: slotsDefault
-    } = self.$slots;
-    const rootChildrenBeforeList = [];
-    const rootChildrenAfterList = [];
-    const ulChildren = slotsList || [];
-    const flattenSlots = Utils.flattenArray(slotsDefault);
-    let wasUlChild = false;
-    flattenSlots.forEach(child => {
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var id = props.id,
+        style = props.style,
+        form = props.form,
+        sortableMoveElements = props.sortableMoveElements;
+    var _self$$slots = self.$slots,
+        slotsList = _self$$slots.list,
+        slotsDefault = _self$$slots.default;
+    var rootChildrenBeforeList = [];
+    var rootChildrenAfterList = [];
+    var ulChildren = slotsList || [];
+    var flattenSlots = Utils.flattenArray(slotsDefault);
+    var wasUlChild = false;
+    flattenSlots.forEach(function (child) {
       if (typeof child === 'undefined') return;
-      let tag;
+      var tag;
       {
         tag = child.tag;
       }
@@ -66,7 +72,7 @@ export default {
         ulChildren.push(child);
       }
     });
-    const ListTag = form ? 'form' : 'div';
+    var ListTag = form ? 'form' : 'div';
 
     if (ulChildren.length > 0) {
       return _h(ListTag, {
@@ -74,7 +80,8 @@ export default {
         style: style,
         class: self.classes,
         attrs: {
-          id: id
+          id: id,
+          'data-sortable-move-elements': typeof sortableMoveElements !== 'undefined' ? sortableMoveElements.toString() : undefined
         }
       }, [self.$slots['before-list'], rootChildrenBeforeList, _h('ul', [ulChildren]), self.$slots['after-list'], rootChildrenAfterList]);
     } else {
@@ -83,63 +90,71 @@ export default {
         style: style,
         class: self.classes,
         attrs: {
-          id: id
+          id: id,
+          'data-sortable-move-elements': typeof sortableMoveElements !== 'undefined' ? sortableMoveElements.toString() : undefined
         }
       }, [self.$slots['before-list'], rootChildrenBeforeList, self.$slots['after-list'], rootChildrenAfterList]);
     }
   },
-
   computed: {
-    classes() {
-      const self = this;
-      const props = self.props;
-      const {
-        inset,
-        tabletInset,
-        mediaList,
-        simpleList,
-        linksList,
-        sortable,
-        accordionList,
-        contactsList,
-        virtualList,
-        sortableEnabled,
-        tab,
-        tabActive,
-        noHairlines,
-        noHairlinesIos,
-        noHairlinesMd,
-        noHairlinesAurora,
-        noHairlinesBetween,
-        noHairlinesBetweenIos,
-        noHairlinesBetweenMd,
-        noHairlinesBetweenAurora,
-        formStoreData,
-        inlineLabels,
-        className,
-        noChevron,
-        chevronCenter
-      } = props;
+    classes: function classes() {
+      var self = this;
+      var props = self.props;
+      var inset = props.inset,
+          xsmallInset = props.xsmallInset,
+          smallInset = props.smallInset,
+          mediumInset = props.mediumInset,
+          largeInset = props.largeInset,
+          xlargeInset = props.xlargeInset,
+          mediaList = props.mediaList,
+          simpleList = props.simpleList,
+          linksList = props.linksList,
+          sortable = props.sortable,
+          sortableTapHold = props.sortableTapHold,
+          sortableEnabled = props.sortableEnabled,
+          accordionList = props.accordionList,
+          contactsList = props.contactsList,
+          virtualList = props.virtualList,
+          tab = props.tab,
+          tabActive = props.tabActive,
+          noHairlines = props.noHairlines,
+          noHairlinesIos = props.noHairlinesIos,
+          noHairlinesMd = props.noHairlinesMd,
+          noHairlinesAurora = props.noHairlinesAurora,
+          noHairlinesBetween = props.noHairlinesBetween,
+          noHairlinesBetweenIos = props.noHairlinesBetweenIos,
+          noHairlinesBetweenMd = props.noHairlinesBetweenMd,
+          noHairlinesBetweenAurora = props.noHairlinesBetweenAurora,
+          formStoreData = props.formStoreData,
+          inlineLabels = props.inlineLabels,
+          className = props.className,
+          noChevron = props.noChevron,
+          chevronCenter = props.chevronCenter;
       return Utils.classNames(className, 'list', {
-        inset,
-        'tablet-inset': tabletInset,
+        inset: inset,
+        'xsmall-inset': xsmallInset,
+        'small-inset': smallInset,
+        'medium-inset': mediumInset,
+        'large-inset': largeInset,
+        'xlarge-inset': xlargeInset,
         'media-list': mediaList,
         'simple-list': simpleList,
         'links-list': linksList,
-        sortable,
+        sortable: sortable,
+        'sortable-tap-hold': sortableTapHold,
+        'sortable-enabled': sortableEnabled,
         'accordion-list': accordionList,
         'contacts-list': contactsList,
         'virtual-list': virtualList,
-        'sortable-enabled': sortableEnabled,
-        tab,
+        tab: tab,
         'tab-active': tabActive,
         'no-hairlines': noHairlines,
-        'no-hairlines-between': noHairlinesBetween,
         'no-hairlines-md': noHairlinesMd,
-        'no-hairlines-between-md': noHairlinesBetweenMd,
         'no-hairlines-ios': noHairlinesIos,
-        'no-hairlines-between-ios': noHairlinesBetweenIos,
         'no-hairlines-aurora': noHairlinesAurora,
+        'no-hairlines-between': noHairlinesBetween,
+        'no-hairlines-between-md': noHairlinesBetweenMd,
+        'no-hairlines-between-ios': noHairlinesBetweenIos,
         'no-hairlines-between-aurora': noHairlinesBetweenAurora,
         'form-store-data': formStoreData,
         'inline-labels': inlineLabels,
@@ -147,118 +162,104 @@ export default {
         'chevron-center': chevronCenter
       }, Mixins.colorClasses(props));
     },
-
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   },
-
-  created() {
-    Utils.bindMethods(this, ['onSortableEnable', 'onSortableDisable', 'onSortableSort', 'onTabShow', 'onTabHide']);
+  created: function created() {
+    Utils.bindMethods(this, ['onSortableEnable', 'onSortableDisable', 'onSortableSort', 'onTabShow', 'onTabHide', 'onSubmit']);
   },
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
+    var _self$props = self.props,
+        virtualList = _self$props.virtualList,
+        virtualListParams = _self$props.virtualListParams,
+        form = _self$props.form;
+    self.$f7ready(function (f7) {
+      self.eventTargetEl = el;
+      f7.on('sortableEnable', self.onSortableEnable);
+      f7.on('sortableDisable', self.onSortableDisable);
+      f7.on('sortableSort', self.onSortableSort);
+      f7.on('tabShow', self.onTabShow);
+      f7.on('tabHide', self.onTabHide);
 
-  mounted() {
-    const self = this;
-    const el = self.$refs.el;
-    const {
-      virtualList,
-      virtualListParams
-    } = self.props;
-
-    if (el) {
-      el.addEventListener('sortable:enable', self.onSortableEnable);
-      el.addEventListener('sortable:disable', self.onSortableDisable);
-      el.addEventListener('sortable:sort', self.onSortableSort);
-      el.addEventListener('tab:show', self.onTabShow);
-      el.addEventListener('tab:hide', self.onTabHide);
-    }
-
-    if (!virtualList) return;
-    self.$f7ready(f7 => {
-      const $$ = self.$$;
-      const $el = $$(el);
-      const templateScript = $el.find('script');
-      let template = templateScript.html();
-
-      if (!template && templateScript.length > 0) {
-        template = templateScript[0].outerHTML;
-        template = /\<script type="text\/template7"\>(.*)<\/script>/.exec(template)[1];
+      if (form) {
+        el.addEventListener('submit', self.onSubmit);
       }
 
-      const vlParams = virtualListParams || {};
-      if (!template && !vlParams.renderItem && !vlParams.itemTemplate && !vlParams.renderExternal) return;
-      if (template) template = self.$t7.compile(template);
+      if (!virtualList) return;
+      var vlParams = virtualListParams || {};
+      if (!vlParams.renderItem && !vlParams.itemTemplate && !vlParams.renderExternal) return;
       self.f7VirtualList = f7.virtualList.create(Utils.extend({
-        el,
-        itemTemplate: template,
+        el: el,
         on: {
-          itemBeforeInsert(itemEl, item) {
-            const vl = this;
+          itemBeforeInsert: function itemBeforeInsert(itemEl, item) {
+            var vl = this;
             self.dispatchEvent('virtual:itembeforeinsert virtualItemBeforeInsert', vl, itemEl, item);
           },
-
-          beforeClear(fragment) {
-            const vl = this;
+          beforeClear: function beforeClear(fragment) {
+            var vl = this;
             self.dispatchEvent('virtual:beforeclear virtualBeforeClear', vl, fragment);
           },
-
-          itemsBeforeInsert(fragment) {
-            const vl = this;
+          itemsBeforeInsert: function itemsBeforeInsert(fragment) {
+            var vl = this;
             self.dispatchEvent('virtual:itemsbeforeinsert virtualItemsBeforeInsert', vl, fragment);
           },
-
-          itemsAfterInsert(fragment) {
-            const vl = this;
+          itemsAfterInsert: function itemsAfterInsert(fragment) {
+            var vl = this;
             self.dispatchEvent('virtual:itemsafterinsert virtualItemsAfterInsert', vl, fragment);
           }
-
         }
       }, vlParams));
     });
   },
-
-  beforeDestroy() {
-    const self = this;
-    const el = self.$refs.el;
-
-    if (el) {
-      el.removeEventListener('sortable:enable', self.onSortableEnable);
-      el.removeEventListener('sortable:disable', self.onSortableDisable);
-      el.removeEventListener('sortable:sort', self.onSortableSort);
-      el.removeEventListener('tab:show', self.onTabShow);
-      el.removeEventListener('tab:hide', self.onTabHide);
-    }
-
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
+    var el = self.$refs.el;
+    var f7 = self.$f7;
+    if (!el || !f7) return;
+    f7.off('sortableEnable', self.onSortableEnable);
+    f7.off('sortableDisable', self.onSortableDisable);
+    f7.off('sortableSort', self.onSortableSort);
+    f7.off('tabShow', self.onTabShow);
+    f7.off('tabHide', self.onTabHide);
+    el.removeEventListener('submit', self.onSubmit);
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
     if (!(self.virtualList && self.f7VirtualList)) return;
     if (self.f7VirtualList.destroy) self.f7VirtualList.destroy();
   },
-
   methods: {
-    onSortableEnable(event) {
-      this.dispatchEvent('sortable:enable sortableEnable', event);
+    onSubmit: function onSubmit(event) {
+      this.dispatchEvent('submit', event);
     },
-
-    onSortableDisable(event) {
-      this.dispatchEvent('sortable:disable sortableDisable', event);
+    onSortableEnable: function onSortableEnable(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('sortable:enable sortableEnable');
     },
-
-    onSortableSort(event) {
-      const sortData = event.detail;
-      this.dispatchEvent('sortable:sort sortableSort', event, sortData);
+    onSortableDisable: function onSortableDisable(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('sortable:disable sortableDisable');
     },
-
-    onTabShow(event) {
-      this.dispatchEvent('tab:show tabShow', event);
+    onSortableSort: function onSortableSort(el, sortData, listEl) {
+      if (this.eventTargetEl !== listEl) return;
+      this.dispatchEvent('sortable:sort sortableSort', sortData);
     },
-
-    onTabHide(event) {
-      this.dispatchEvent('tab:hide tabHide', event);
+    onTabShow: function onTabShow(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tab:show tabShow');
     },
+    onTabHide: function onTabHide(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('tab:hide tabHide');
+    },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   }
 };

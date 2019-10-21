@@ -16,6 +16,38 @@ export default {
     expandable: Boolean,
     expandableAnimateWidth: Boolean,
     expandableOpened: Boolean,
+    animate: {
+      type: Boolean,
+      default: undefined
+    },
+    hideNavbarOnOpen: {
+      type: Boolean,
+      default: undefined
+    },
+    hideToolbarOnOpen: {
+      type: Boolean,
+      default: undefined
+    },
+    hideStatusbarOnOpen: {
+      type: Boolean,
+      default: undefined
+    },
+    swipeToClose: {
+      type: Boolean,
+      default: undefined
+    },
+    closeByBackdropClick: {
+      type: Boolean,
+      default: undefined
+    },
+    backdrop: {
+      type: Boolean,
+      default: undefined
+    },
+    backdropEl: {
+      type: String,
+      default: undefined
+    },
     noShadow: Boolean,
     noBorder: Boolean,
     padding: {
@@ -25,7 +57,7 @@ export default {
   }, Mixins.colorProps),
   watch: {
     'props.expandableOpened': function watchOpened(expandableOpened) {
-      const self = this;
+      var self = this;
 
       if (expandableOpened) {
         self.open();
@@ -34,63 +66,68 @@ export default {
       }
     }
   },
-
-  created() {
+  created: function created() {
     Utils.bindMethods(this, 'onBeforeOpen onOpen onOpened onClose onClosed'.split(' '));
   },
-
-  mounted() {
-    const self = this;
+  mounted: function mounted() {
+    var self = this;
     if (!self.props.expandable) return;
-    const el = self.$refs.el;
+    var el = self.$refs.el;
     if (!el) return;
-    el.addEventListener('card:beforeopen', self.onBeforeOpen);
-    el.addEventListener('card:open', self.onOpen);
-    el.addEventListener('card:opened', self.onOpened);
-    el.addEventListener('card:close', self.onClose);
-    el.addEventListener('card:closed', self.onClosed);
+    self.eventTargetEl = el;
+    self.$f7ready(function (f7) {
+      f7.on('cardBeforeOpen', self.onBeforeOpen);
+      f7.on('cardOpen', self.onOpen);
+      f7.on('cardOpened', self.onOpened);
+      f7.on('cardClose', self.onClose);
+      f7.on('cardClosed', self.onClosed);
 
-    if (self.props.expandable && self.props.expandableOpened) {
-      self.$f7ready(() => {
+      if (self.props.expandable && self.props.expandableOpened) {
         self.$f7.card.open(el, false);
-      });
-    }
+      }
+    });
   },
-
-  beforeDestroy() {
-    const self = this;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
     if (!self.props.expandable) return;
-    const el = self.$refs.el;
-    if (!el) return;
-    el.removeEventListener('card:beforeopen', self.onBeforeOpen);
-    el.removeEventListener('card:open', self.onOpen);
-    el.removeEventListener('card:opened', self.onOpened);
-    el.removeEventListener('card:close', self.onClose);
-    el.removeEventListener('card:closed', self.onClosed);
+    var el = self.$refs.el;
+    if (!el || !self.$f7) return;
+    self.$f7.off('cardBeforeOpen', self.onBeforeOpen);
+    self.$f7.off('cardOpen', self.onOpen);
+    self.$f7.off('cardOpened', self.onOpened);
+    self.$f7.off('cardClose', self.onClose);
+    self.$f7.off('cardClosed', self.onClosed);
+    self.eventTargetEl = null;
+    delete self.eventTargetEl;
   },
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      className,
-      id,
-      style,
-      title,
-      content,
-      footer,
-      padding,
-      outline,
-      expandable,
-      expandableAnimateWidth,
-      noShadow,
-      noBorder
-    } = props;
-    let headerEl;
-    let contentEl;
-    let footerEl;
-    const classes = Utils.classNames(className, 'card', {
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var className = props.className,
+        id = props.id,
+        style = props.style,
+        title = props.title,
+        content = props.content,
+        footer = props.footer,
+        padding = props.padding,
+        outline = props.outline,
+        expandable = props.expandable,
+        expandableAnimateWidth = props.expandableAnimateWidth,
+        animate = props.animate,
+        hideNavbarOnOpen = props.hideNavbarOnOpen,
+        hideToolbarOnOpen = props.hideToolbarOnOpen,
+        hideStatusbarOnOpen = props.hideStatusbarOnOpen,
+        swipeToClose = props.swipeToClose,
+        closeByBackdropClick = props.closeByBackdropClick,
+        backdrop = props.backdrop,
+        backdropEl = props.backdropEl,
+        noShadow = props.noShadow,
+        noBorder = props.noBorder;
+    var headerEl;
+    var contentEl;
+    var footerEl;
+    var classes = Utils.classNames(className, 'card', {
       'card-outline': outline,
       'card-expandable': expandable,
       'card-expandable-animate-width': expandableAnimateWidth,
@@ -119,53 +156,60 @@ export default {
       class: classes,
       ref: 'el',
       attrs: {
-        id: id
+        id: id,
+        'data-animate': typeof animate === 'undefined' ? animate : animate.toString(),
+        'data-hide-navbar-on-open': typeof hideNavbarOnOpen === 'undefined' ? hideNavbarOnOpen : hideNavbarOnOpen.toString(),
+        'data-hide-toolbar-on-open': typeof hideToolbarOnOpen === 'undefined' ? hideToolbarOnOpen : hideToolbarOnOpen.toString(),
+        'data-hide-statusbar-on-open': typeof hideStatusbarOnOpen === 'undefined' ? hideStatusbarOnOpen : hideStatusbarOnOpen.toString(),
+        'data-swipe-to-close': typeof swipeToClose === 'undefined' ? swipeToClose : swipeToClose.toString(),
+        'data-close-by-backdrop-click': typeof closeByBackdropClick === 'undefined' ? closeByBackdropClick : closeByBackdropClick.toString(),
+        'data-backdrop': typeof backdrop === 'undefined' ? backdrop : backdrop.toString(),
+        'data-backdrop-el': backdropEl
       }
     }, [headerEl, contentEl, footerEl, this.$slots['default']]);
   },
-
   methods: {
-    open() {
-      const self = this;
+    open: function open() {
+      var self = this;
       if (!self.$refs.el) return;
       self.$f7.card.open(self.$refs.el);
     },
-
-    close() {
-      const self = this;
+    close: function close() {
+      var self = this;
       if (!self.$refs.el) return;
       self.$f7.card.close(self.$refs.el);
     },
-
-    onBeforeOpen(e) {
-      this.dispatchEvent('cardBeforeOpen card:beforeopen', e, e.detail.prevent);
+    onBeforeOpen: function onBeforeOpen(el, prevent) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('cardBeforeOpen card:beforeopen', el, prevent);
     },
-
-    onOpen(e) {
-      this.dispatchEvent('cardOpen card:open', e);
+    onOpen: function onOpen(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('cardOpen card:open', el);
     },
-
-    onOpened(e) {
-      this.dispatchEvent('cardOpened card:opened', e);
+    onOpened: function onOpened(el, pageEl) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('cardOpened card:opened', el, pageEl);
     },
-
-    onClose(e) {
-      this.dispatchEvent('cardClose card:close', e);
+    onClose: function onClose(el) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('cardClose card:close', el);
     },
-
-    onClosed(e) {
-      this.dispatchEvent('cardClosed card:closed', e);
+    onClosed: function onClosed(el, pageEl) {
+      if (this.eventTargetEl !== el) return;
+      this.dispatchEvent('cardClosed card:closed', el, pageEl);
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

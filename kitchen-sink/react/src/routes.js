@@ -14,6 +14,7 @@ import Cards from './pages/cards.jsx';
 import CardsExpandable from './pages/cards-expandable.jsx';
 import Checkbox from './pages/checkbox.jsx';
 import Chips from './pages/chips.jsx';
+import ColorPicker from './pages/color-picker.jsx';
 import ContactsList from './pages/contacts-list.jsx';
 import ContentBlock from './pages/content-block.jsx';
 import DataTable from './pages/data-table.jsx';
@@ -53,7 +54,6 @@ import SheetModal from './pages/sheet-modal.jsx';
 import Skeleton from './pages/skeleton.jsx';
 import SmartSelect from './pages/smart-select.jsx';
 import Sortable from './pages/sortable.jsx';
-import Statusbar from './pages/statusbar.jsx';
 import Stepper from './pages/stepper.jsx';
 import Subnavbar from './pages/subnavbar.jsx';
 import SubnavbarTitle from './pages/subnavbar-title.jsx';
@@ -82,6 +82,7 @@ import TabsStatic from './pages/tabs-static.jsx';
 import TabsAnimated from './pages/tabs-animated.jsx';
 import TabsSwipeable from './pages/tabs-swipeable.jsx';
 import TabsRoutable from './pages/tabs-routable.jsx';
+import TextEditor from './pages/text-editor.jsx';
 import Toast from './pages/toast.jsx';
 import Toggle from './pages/toggle.jsx';
 import ToolbarTabbar from './pages/toolbar-tabbar.jsx';
@@ -94,8 +95,12 @@ import Timeline from './pages/timeline.jsx';
 import TimelineVertical from './pages/timeline-vertical.jsx';
 import TimelineHorizontal from './pages/timeline-horizontal.jsx';
 import TimelineHorizontalCalendar from './pages/timeline-horizontal-calendar.jsx';
+import Treeview from './pages/treeview.jsx';
 import VirtualList from './pages/virtual-list.jsx';
 import ColorThemes from './pages/color-themes.jsx';
+
+import PageTransitions from './pages/page-transitions.jsx';
+import PageTransitionsEffect from './pages/page-transitions-effect.jsx';
 
 import RoutableModals from './pages/routable-modals.jsx';
 import RoutablePopup from './pages/routable-popup.jsx';
@@ -135,6 +140,7 @@ export default [
     content: `
       <div class="page">
         <div class="navbar">
+          <div class="navbar-bg"></div>
           <div class="navbar-inner sliding">
             <div class="left">
               <a href="#" class="link back">
@@ -159,6 +165,7 @@ export default [
     content: `
       <div class="page">
         <div class="navbar">
+          <div class="navbar-bg"></div>
           <div class="navbar-inner sliding">
             <div class="left">
               <a href="#" class="link back">
@@ -226,6 +233,10 @@ export default [
   {
     path: '/chips/',
     component: Chips,
+  },
+  {
+    path: '/color-picker/',
+    component: ColorPicker,
   },
   {
     path: '/contacts-list/',
@@ -384,10 +395,6 @@ export default [
     component: Sortable,
   },
   {
-    path: '/statusbar/',
-    component: Statusbar,
-  },
-  {
     path: '/stepper/',
     component: Stepper,
   },
@@ -540,6 +547,10 @@ export default [
     ],
   },
   {
+    path: '/text-editor/',
+    component: TextEditor,
+  },
+  {
     path: '/toast/',
     component: Toast,
   },
@@ -590,6 +601,10 @@ export default [
     component: TimelineHorizontalCalendar,
   },
   {
+    path: '/treeview/',
+    component: Treeview,
+  },
+  {
     path: '/virtual-list/',
     component: VirtualList,
   },
@@ -598,6 +613,16 @@ export default [
   {
     path: '/color-themes/',
     component: ColorThemes,
+  },
+
+  // Page Transitions
+  {
+    path: '/page-transitions/',
+    component: PageTransitions,
+  },
+  {
+    path: '/page-transitions/:effect/',
+    component: PageTransitionsEffect,
   },
 
   // Routable Modals

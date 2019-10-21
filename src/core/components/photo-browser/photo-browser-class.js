@@ -73,8 +73,10 @@ class PhotoBrowser extends Framework7Class {
         $totalEl = $(navbarEl).find('.photo-browser-total');
       }
     }
-    $currentEl.text(current);
-    $totalEl.text(total);
+    if ($currentEl.length && $totalEl.length) {
+      $currentEl.text(current);
+      $totalEl.text(total);
+    }
 
     // Update captions
     if (pb.captions.length > 0) {
@@ -115,10 +117,7 @@ class PhotoBrowser extends Framework7Class {
     e.preventDefault();
     swipeToClose.current = e.type === 'touchmove' ? e.targetTouches[0].pageY : e.pageY;
     swipeToClose.diff = swipeToClose.start - swipeToClose.current;
-    const opacity = 1 - (Math.abs(swipeToClose.diff) / 300);
-    const color = pb.exposed || pb.params.theme === 'dark' ? 0 : 255;
-    swipeToClose.activeSlide.transform(`translate3d(0,${-swipeToClose.diff}px,0)`);
-    pb.swiper.$el.css('background-color', `rgba(${color}, ${color}, ${color}, ${opacity})`).transition(0);
+    pb.$el.transition(0).transform(`translate3d(0,${-swipeToClose.diff}px,0)`);
   }
 
   onTouchEnd() {
@@ -140,21 +139,23 @@ class PhotoBrowser extends Framework7Class {
           else pb.$el.addClass('swipe-close-to-top');
         }
         pb.emit('local::swipeToClose', pb);
+        pb.$el.transform('').transition('');
         pb.close();
         swipeToClose.allow = true;
       });
       return;
     }
     if (diff !== 0) {
-      swipeToClose.activeSlide.addClass('photo-browser-transitioning').transitionEnd(() => {
+      pb.$el.addClass('photo-browser-transitioning').transitionEnd(() => {
         swipeToClose.allow = true;
-        swipeToClose.activeSlide.removeClass('photo-browser-transitioning');
+        pb.$el.removeClass('photo-browser-transitioning');
       });
     } else {
       swipeToClose.allow = true;
     }
-    pb.swiper.$el.transition('').css('background-color', '');
-    swipeToClose.activeSlide.transform('');
+    Utils.nextTick(() => {
+      pb.$el.transform('').transition('');
+    });
   }
 
   // Render Functions
@@ -165,24 +166,37 @@ class PhotoBrowser extends Framework7Class {
     let iconsColor = pb.params.iconsColor;
     if (!pb.params.iconsColor && pb.params.theme === 'dark') iconsColor = 'white';
 
-    const backLinkText = (pb.app.theme === 'ios' || pb.app.theme === 'aurora') && pb.params.backLinkText ? pb.params.backLinkText : '';
+    const pageBackLinkText = (pb.app.theme === 'ios' || pb.app.theme === 'aurora') && pb.params.pageBackLinkText ? pb.params.pageBackLinkText : '';
+
+    const renderNavbarCount = typeof pb.params.navbarShowCount === 'undefined' ? pb.params.photos.length > 1 : pb.params.navbarShowCount;
 
     const isPopup = pb.params.type !== 'page';
     const navbarHtml = `
-      <div class="navbar">
-        <div class="navbar-inner sliding">
+      <div class="navbar navbar-photo-browser ${pb.params.theme === 'dark' ? 'navbar-photo-browser-dark' : ''}">
+        <div class="navbar-bg"></div>
+        <div class="navbar-inner navbar-inner-centered-title sliding">
+          ${!isPopup ? `
           <div class="left">
-            <a href="#" class="link ${isPopup ? 'popup-close' : ''} ${!backLinkText ? 'icon-only' : ''} ${!isPopup ? 'back' : ''}" ${isPopup ? 'data-popup=".photo-browser-popup"' : ''}>
+            <a class="link ${!pageBackLinkText ? 'icon-only' : ''} back">
               <i class="icon icon-back ${iconsColor ? `color-${iconsColor}` : ''}"></i>
-              ${backLinkText ? `<span>${backLinkText}</span>` : ''}
+              ${pageBackLinkText ? `<span>${pageBackLinkText}</span>` : ''}
             </a>
           </div>
+          ` : ''}
+          ${renderNavbarCount ? `
           <div class="title">
             <span class="photo-browser-current"></span>
             <span class="photo-browser-of">${pb.params.navbarOfText}</span>
             <span class="photo-browser-total"></span>
           </div>
-          <div class="right"></div>
+          ` : ''}
+          ${isPopup ? `
+          <div class="right">
+            <a class="link popup-close" data-popup=".photo-browser-popup">
+              <span>${pb.params.popupCloseLinkText}</span>
+            </a>
+          </div>
+          ` : ''}
         </div>
       </div>
     `.trim();
@@ -199,10 +213,10 @@ class PhotoBrowser extends Framework7Class {
     const toolbarHtml = `
       <div class="toolbar toolbar-bottom tabbar">
         <div class="toolbar-inner">
-          <a href="#" class="link photo-browser-prev">
+          <a class="link photo-browser-prev">
             <i class="icon icon-back ${iconsColor ? `color-${iconsColor}` : ''}"></i>
           </a>
-          <a href="#" class="link photo-browser-next">
+          <a class="link photo-browser-next">
             <i class="icon icon-forward ${iconsColor ? `color-${iconsColor}` : ''}"></i>
           </a>
         </div>
@@ -236,7 +250,7 @@ class PhotoBrowser extends Framework7Class {
     if (pb.params.renderLazyPhoto) return pb.params.renderLazyPhoto.call(pb, photo, index);
     const photoHtml = `
       <div class="photo-browser-slide photo-browser-slide-lazy swiper-slide" data-swiper-slide-index="${index}">
-          <div class="preloader swiper-lazy-preloader ${pb.params.theme === 'dark' ? 'color-white' : ''}">${Utils[`${pb.app.theme}PreloaderContent`] || ''}</div>
+          <div class="swiper-lazy-preloader"></div>
           <span class="swiper-zoom-container">
               <img data-src="${photo.url ? photo.url : photo}" class="swiper-lazy">
           </span>
@@ -336,20 +350,26 @@ class PhotoBrowser extends Framework7Class {
     pb.captions = pb.$el.find('.photo-browser-caption');
 
     // Init Swiper
+    let clickTimeout;
+
     const swiperParams = Utils.extend({}, pb.params.swiper, {
       initialSlide: pb.activeIndex,
       on: {
-        tap(e) {
-          pb.emit('local::tap', e);
-        },
         click(e) {
+          clearTimeout(clickTimeout);
+
           if (pb.params.exposition) {
-            pb.expositionToggle();
+            clickTimeout = setTimeout(() => {
+              pb.expositionToggle();
+            }, 350);
           }
+          pb.emit('local::tap', e);
           pb.emit('local::click', e);
         },
-        doubleTap(e) {
+        doubleClick(e) {
+          clearTimeout(clickTimeout);
           pb.emit('local::doubleTap', e);
+          pb.emit('local::doubleClick', e);
         },
         slideChange(...args) {
           const swiper = this;
@@ -424,7 +444,9 @@ class PhotoBrowser extends Framework7Class {
 
   onOpened() {
     const pb = this;
-
+    if (pb.$el && pb.params.type === 'standalone') {
+      pb.$el.css('animation', 'none');
+    }
     if (pb.$el) {
       pb.$el.trigger('photobrowser:opened');
     }
@@ -541,6 +563,7 @@ class PhotoBrowser extends Framework7Class {
 
     const popupParams = {
       content: popupHtml,
+      push: pb.params.popupPush,
       on: {
         popupOpen(popup) {
           pb.onOpen('popup', popup.el);
@@ -637,6 +660,7 @@ class PhotoBrowser extends Framework7Class {
     } else {
       pb.modal.once('modalClosed', () => {
         Utils.nextTick(() => {
+          if (pb.destroyed) return;
           pb.modal.destroy();
           delete pb.modal;
         });
@@ -657,6 +681,7 @@ class PhotoBrowser extends Framework7Class {
       delete pb.$el[0].f7PhotoBrowser;
     }
     Utils.deleteProps(pb);
+    pb.destroyed = true;
     pb = null;
   }
 }

@@ -1,172 +1,234 @@
+function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
 import React from 'react';
 import f7 from '../utils/f7';
-import events from '../utils/events';
 import Utils from '../utils/utils';
 import Mixins from '../utils/mixins';
 import __reactComponentDispatchEvent from '../runtime-helpers/react-component-dispatch-event.js';
 import __reactComponentSlots from '../runtime-helpers/react-component-slots.js';
 import __reactComponentSetProps from '../runtime-helpers/react-component-set-props.js';
 
-class F7View extends React.Component {
-  constructor(props, context) {
-    super(props, context);
-    this.__reactRefs = {};
+var F7View =
+/*#__PURE__*/
+function (_React$Component) {
+  _inherits(F7View, _React$Component);
 
-    this.state = (() => {
+  function F7View(props, context) {
+    var _this;
+
+    _classCallCheck(this, F7View);
+
+    _this = _possibleConstructorReturn(this, _getPrototypeOf(F7View).call(this, props, context));
+    _this.__reactRefs = {};
+
+    _this.state = function () {
       return {
         pages: []
       };
+    }();
+
+    (function () {
+      var self = _assertThisInitialized(_this);
+
+      Utils.bindMethods(self, ['onSwipeBackMove', 'onSwipeBackBeforeChange', 'onSwipeBackAfterChange', 'onSwipeBackBeforeReset', 'onSwipeBackAfterReset', 'onTabShow', 'onTabHide', 'onViewInit']);
     })();
 
-    (() => {
-      const self = this;
-      Utils.bindMethods(this, ['onSwipeBackMove', 'onSwipeBackBeforeChange', 'onSwipeBackAfterChange', 'onSwipeBackBeforeReset', 'onSwipeBackAfterReset', 'onTabShow', 'onTabHide', 'onViewInit']);
-    })();
+    return _this;
   }
 
-  onViewInit(event) {
-    const self = this;
-    const view = event.detail;
-    self.dispatchEvent('view:init viewInit', event, view);
+  _createClass(F7View, [{
+    key: "onViewInit",
+    value: function onViewInit(view) {
+      var self = this;
+      self.dispatchEvent('view:init viewInit', view);
 
-    if (!self.props.init) {
-      self.routerData.instance = view;
-      self.f7View = self.routerData.instance;
-    }
-  }
-
-  onSwipeBackMove(event) {
-    const swipeBackData = event.detail;
-    this.dispatchEvent('swipeback:move swipeBackMove', event, swipeBackData);
-  }
-
-  onSwipeBackBeforeChange(event) {
-    const swipeBackData = event.detail;
-    this.dispatchEvent('swipeback:beforechange swipeBackBeforeChange', event, swipeBackData);
-  }
-
-  onSwipeBackAfterChange(event) {
-    const swipeBackData = event.detail;
-    this.dispatchEvent('swipeback:afterchange swipeBackAfterChange', event, swipeBackData);
-  }
-
-  onSwipeBackBeforeReset(event) {
-    const swipeBackData = event.detail;
-    this.dispatchEvent('swipeback:beforereset swipeBackBeforeReset', event, swipeBackData);
-  }
-
-  onSwipeBackAfterReset(event) {
-    const swipeBackData = event.detail;
-    this.dispatchEvent('swipeback:afterreset swipeBackAfterReset', event, swipeBackData);
-  }
-
-  onTabShow(event) {
-    this.dispatchEvent('tab:show tabShow', event);
-  }
-
-  onTabHide(event) {
-    this.dispatchEvent('tab:hide tabHide', event);
-  }
-
-  render() {
-    const self = this;
-    const props = self.props;
-    const {
-      id,
-      style,
-      tab,
-      main,
-      tabActive,
-      className
-    } = props;
-    const classes = Utils.classNames(className, 'view', {
-      'view-main': main,
-      'tab-active': tabActive,
-      tab
-    }, Mixins.colorClasses(props));
-    return React.createElement('div', {
-      ref: __reactNode => {
-        this.__reactRefs['el'] = __reactNode;
-      },
-      id: id,
-      style: style,
-      className: classes
-    }, this.slots['default'], self.state.pages.map(page => {
-      const PageComponent = page.component;
-      {
-        return React.createElement(PageComponent, Object.assign({
-          key: page.id
-        }, page.props));
+      if (!self.props.init) {
+        self.routerData.instance = view;
+        self.f7View = self.routerData.instance;
       }
-    }));
-  }
+    }
+  }, {
+    key: "onSwipeBackMove",
+    value: function onSwipeBackMove(data) {
+      var swipeBackData = data;
+      this.dispatchEvent('swipeback:move swipeBackMove', swipeBackData);
+    }
+  }, {
+    key: "onSwipeBackBeforeChange",
+    value: function onSwipeBackBeforeChange(data) {
+      var swipeBackData = data;
+      this.dispatchEvent('swipeback:beforechange swipeBackBeforeChange', swipeBackData);
+    }
+  }, {
+    key: "onSwipeBackAfterChange",
+    value: function onSwipeBackAfterChange(data) {
+      var swipeBackData = data;
+      this.dispatchEvent('swipeback:afterchange swipeBackAfterChange', swipeBackData);
+    }
+  }, {
+    key: "onSwipeBackBeforeReset",
+    value: function onSwipeBackBeforeReset(data) {
+      var swipeBackData = data;
+      this.dispatchEvent('swipeback:beforereset swipeBackBeforeReset', swipeBackData);
+    }
+  }, {
+    key: "onSwipeBackAfterReset",
+    value: function onSwipeBackAfterReset(data) {
+      var swipeBackData = data;
+      this.dispatchEvent('swipeback:afterreset swipeBackAfterReset', swipeBackData);
+    }
+  }, {
+    key: "onTabShow",
+    value: function onTabShow(el) {
+      if (el === this.refs.el) {
+        this.dispatchEvent('tab:show tabShow');
+      }
+    }
+  }, {
+    key: "onTabHide",
+    value: function onTabHide(el) {
+      if (el === this.refs.el) {
+        this.dispatchEvent('tab:hide tabHide');
+      }
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this2 = this;
 
-  componentDidUpdate() {
-    const self = this;
-    if (!self.routerData) return;
-    events.emit('viewRouterDidUpdate', self.routerData);
-  }
+      var self = this;
+      var props = self.props;
+      var id = props.id,
+          style = props.style,
+          tab = props.tab,
+          main = props.main,
+          tabActive = props.tabActive,
+          className = props.className;
+      var classes = Utils.classNames(className, 'view', {
+        'view-main': main,
+        'tab-active': tabActive,
+        tab: tab
+      }, Mixins.colorClasses(props));
+      return React.createElement('div', {
+        ref: function ref(__reactNode) {
+          _this2.__reactRefs['el'] = __reactNode;
+        },
+        id: id,
+        style: style,
+        className: classes
+      }, this.slots['default'], self.state.pages.map(function (page) {
+        var PageComponent = page.component;
+        {
+          return React.createElement(PageComponent, Object.assign({
+            key: page.id
+          }, page.props));
+        }
+      }));
+    }
+  }, {
+    key: "componentDidUpdate",
+    value: function componentDidUpdate() {
+      var self = this;
+      if (!self.routerData) return;
+      f7.events.emit('viewRouterDidUpdate', self.routerData);
+    }
+  }, {
+    key: "componentWillUnmount",
+    value: function componentWillUnmount() {
+      var self = this;
 
-  componentWillUnmount() {
-    const self = this;
-    const el = self.refs.el;
-    el.removeEventListener('swipeback:move', self.onSwipeBackMove);
-    el.removeEventListener('swipeback:beforechange', self.onSwipeBackBeforeChange);
-    el.removeEventListener('swipeback:afterchange', self.onSwipeBackAfterChange);
-    el.removeEventListener('swipeback:beforereset', self.onSwipeBackBeforeReset);
-    el.removeEventListener('swipeback:afterreset', self.onSwipeBackAfterReset);
-    el.removeEventListener('tab:show', self.onTabShow);
-    el.removeEventListener('tab:hide', self.onTabHide);
-    el.removeEventListener('view:init', self.onViewInit);
-    if (!self.props.init) return;
-    if (self.f7View && self.f7View.destroy) self.f7View.destroy();
-    f7.routers.views.splice(f7.routers.views.indexOf(self.routerData), 1);
-    self.routerData = null;
-    delete self.routerData;
-  }
+      if (f7.instance) {
+        f7.instance.off('tabShow', self.onTabShow);
+        f7.instance.off('tabHide', self.onTabHide);
+      }
 
-  componentDidMount() {
-    const self = this;
-    const el = self.refs.el;
-    el.addEventListener('swipeback:move', self.onSwipeBackMove);
-    el.addEventListener('swipeback:beforechange', self.onSwipeBackBeforeChange);
-    el.addEventListener('swipeback:afterchange', self.onSwipeBackAfterChange);
-    el.addEventListener('swipeback:beforereset', self.onSwipeBackBeforeReset);
-    el.addEventListener('swipeback:afterreset', self.onSwipeBackAfterReset);
-    el.addEventListener('tab:show', self.onTabShow);
-    el.addEventListener('tab:hide', self.onTabHide);
-    el.addEventListener('view:init', self.onViewInit);
-    self.setState({
-      pages: []
-    });
-    self.$f7ready(f7Instance => {
-      self.routerData = {
-        el,
-        component: self,
-        instance: null
-      };
-      f7.routers.views.push(self.routerData);
-      if (!self.props.init) return;
-      self.routerData.instance = f7Instance.views.create(el, Utils.noUndefinedProps(self.props));
-      self.f7View = self.routerData.instance;
-    });
-  }
+      if (self.f7View) {
+        self.f7View.off('swipebackMove', self.onSwipeBackMove);
+        self.f7View.off('swipebackBeforeChange', self.onSwipeBackBeforeChange);
+        self.f7View.off('swipebackAfterChange', self.onSwipeBackAfterChange);
+        self.f7View.off('swipebackBeforeReset', self.onSwipeBackBeforeReset);
+        self.f7View.off('swipebackAfterReset', self.onSwipeBackAfterReset);
+        if (self.f7View.destroy) self.f7View.destroy();
+      }
 
-  get slots() {
-    return __reactComponentSlots(this.props);
-  }
+      f7.routers.views.splice(f7.routers.views.indexOf(self.routerData), 1);
+      self.routerData = null;
+      delete self.routerData;
+    }
+  }, {
+    key: "componentDidMount",
+    value: function componentDidMount() {
+      var self = this;
+      var el = self.refs.el;
+      self.$f7ready(function (f7Instance) {
+        f7Instance.on('tabShow', self.onTabShow);
+        f7Instance.on('tabHide', self.onTabHide);
+        self.routerData = {
+          el: el,
+          component: self,
+          pages: self.state.pages,
+          instance: null,
+          setPages: function setPages(pages) {
+            self.setState({
+              pages: pages
+            });
+          }
+        };
+        f7.routers.views.push(self.routerData);
+        if (!self.props.init) return;
+        self.routerData.instance = f7Instance.views.create(el, Object.assign({
+          on: {
+            init: self.onViewInit
+          }
+        }, Utils.noUndefinedProps(self.props)));
+        self.f7View = self.routerData.instance;
+        self.f7View.on('swipebackMove', self.onSwipeBackMove);
+        self.f7View.on('swipebackBeforeChange', self.onSwipeBackBeforeChange);
+        self.f7View.on('swipebackAfterChange', self.onSwipeBackAfterChange);
+        self.f7View.on('swipebackBeforeReset', self.onSwipeBackBeforeReset);
+        self.f7View.on('swipebackAfterReset', self.onSwipeBackAfterReset);
+      });
+    }
+  }, {
+    key: "dispatchEvent",
+    value: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-  dispatchEvent(events, ...args) {
-    return __reactComponentDispatchEvent(this, events, ...args);
-  }
+      return __reactComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+    }
+  }, {
+    key: "slots",
+    get: function get() {
+      return __reactComponentSlots(this.props);
+    }
+  }, {
+    key: "refs",
+    get: function get() {
+      return this.__reactRefs;
+    },
+    set: function set(refs) {}
+  }]);
 
-  get refs() {
-    return this.__reactRefs;
-  }
-
-  set refs(refs) {}
-
-}
+  return F7View;
+}(React.Component);
 
 __reactComponentSetProps(F7View, Object.assign({
   id: [String, Number],
@@ -193,6 +255,7 @@ __reactComponentSetProps(F7View, Object.assign({
   removeElementsWithTimeout: Boolean,
   removeElementsTimeout: Number,
   restoreScrollTopOnBack: Boolean,
+  loadInitialPage: Boolean,
   iosSwipeBack: Boolean,
   iosSwipeBackAnimateShadow: Boolean,
   iosSwipeBackAnimateOpacity: Boolean,
@@ -215,8 +278,8 @@ __reactComponentSetProps(F7View, Object.assign({
   pushStateSeparator: String,
   pushStateOnLoad: Boolean,
   animate: Boolean,
+  transition: String,
   iosDynamicNavbar: Boolean,
-  iosSeparateDynamicNavbar: Boolean,
   iosAnimateNavbarBackIcon: Boolean,
   materialPageLoadDelay: Number,
   passRouteQueryToRequest: Boolean,

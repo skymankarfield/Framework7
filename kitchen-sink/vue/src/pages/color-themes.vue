@@ -42,13 +42,21 @@
     <f7-block-title medium>Custom Color Theme</f7-block-title>
     <f7-list>
       <f7-list-input
-        type="text"
+        type="colorpicker"
         label="HEX Color"
-        :value="customColor"
-        @input="setCustomColor"
         placeholder="e.g. #ff0000"
+        readonly
+        :value="{hex: customColor || themeColor}"
+        :color-picker-params="{
+          targetEl: '#color-theme-picker-color',
+        }"
+        @colorpicker:change="value => setCustomColor(value.hex)"
       >
-        <div slot="media" style="width: 28px; height: 28px; border-radius: 4px; background: var(--f7-theme-color)"></div>
+        <div
+          slot="media"
+          id="color-theme-picker-color"
+          style="width: 28px; height: 28px; border-radius: 4px; background: var(--f7-theme-color)"
+        ></div>
       </f7-list-input>
     </f7-list>
 
@@ -107,6 +115,7 @@
         customColor: globalCustomColor,
         customProperties: globalCustomProperties,
         colors: colors,
+        themeColor: this.$$('html').css('--f7-theme-color').trim(),
       };
     },
     mounted() {
@@ -132,24 +141,25 @@
           }
         }
         if (self.barsStyle === 'fill') {
+          const colorThemeRgb = self.$$('html').css('--f7-theme-color-rgb').trim().split(',').map(c => c.trim());
           styles += `
 /* Invert navigation bars to fill style */
 :root,
 :root.theme-dark,
 :root .theme-dark {
   --f7-bars-bg-color: var(--f7-theme-color);
+  --f7-bars-bg-color-rgb: var(--f7-theme-color-rgb);
+  --f7-bars-translucent-opacity: 0.9;
   --f7-bars-text-color: #fff;
   --f7-bars-link-color: #fff;
   --f7-navbar-subtitle-text-color: rgba(255,255,255,0.85);
   --f7-bars-border-color: transparent;
   --f7-tabbar-link-active-color: #fff;
   --f7-tabbar-link-inactive-color: rgba(255,255,255,0.54);
-  --f7-searchbar-bg-color: var(--f7-bars-bg-color);
-  --f7-searchbar-input-bg-color: #fff;
-  --f7-searchbar-input-text-color: #000;
   --f7-sheet-border-color: transparent;
   --f7-tabbar-link-active-border-color: #fff;
 }
+.appbar,
 .navbar,
 .toolbar,
 .subnavbar,
@@ -159,6 +169,22 @@
   --f7-link-highlight-color: var(--f7-link-highlight-white);
   --f7-button-text-color: #fff;
   --f7-button-pressed-bg-color: rgba(255,255,255,0.1);
+}
+.navbar-large-transparent {
+  --f7-navbar-large-title-text-color: #000;
+
+  --r: ${colorThemeRgb[0]};
+  --g: ${colorThemeRgb[1]};
+  --b: ${colorThemeRgb[2]};
+  --progress: var(--f7-navbar-large-collapse-progress);
+  --f7-bars-link-color: rgb(
+    calc(var(--r) + (255 - var(--r)) * var(--progress)),
+    calc(var(--g) + (255 - var(--g)) * var(--progress)),
+    calc(var(--b) + (255 - var(--b)) * var(--progress))
+  );
+}
+.theme-dark .navbar-large-transparent {
+  --f7-navbar-large-title-text-color: #fff;
 }
           `;
         }
@@ -178,6 +204,7 @@
         if (currentColorClass) $html.removeClass(currentColorClass[0])
         $html.addClass('color-theme-' + color);
         self.unsetCustomColor();
+        self.themeColor = $html.css('--f7-color-' + color).trim();
       },
       setBarsStyle: function (barsStyle) {
         var self = this;
@@ -195,23 +222,17 @@
         stylesheet.innerHTML = globalCustomProperties;
         self.customProperties = globalCustomProperties;
       },
-      setCustomColor: function (e) {
+      setCustomColor: function (color) {
         var self = this;
-        const value = e.target.value;
-        const hex = value.replace(/#/g, '');
-        globalCustomColor = `#${hex}`;
-        self.customColor = globalCustomColor;
-        if (hex && (hex.length === 3 || hex.length === 6) && hex.match(/[a-fA-F0-9#]*/g)[0] === hex) {
+        if (self.themeColor === color) return;
+        clearTimeout(self.timeout);
+        self.timeout = setTimeout(() => {
+          globalCustomColor = color;
+          self.customColor = globalCustomColor;
           globalCustomProperties = self.generateStylesheet();
           stylesheet.innerHTML = globalCustomProperties;
           self.customProperties = globalCustomProperties;
-        } else if (!hex) {
-          self.unsetCustomColor();
-        } else {
-          globalCustomProperties = self.generateStylesheet();
-          stylesheet.innerHTML = globalCustomProperties;
-          self.customProperties = globalCustomProperties;
-        }
+        }, 300);
       },
     },
   };

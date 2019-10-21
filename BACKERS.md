@@ -3,37 +3,97 @@
 <table>
   <tr>
     <td align="center" valign="middle">
-      <a href="https://yakaz.com/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/yakaz.png">
+      <a href="https://www.sparheld.de/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/sparheld.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://www.activewaiter.com/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/activewaiter.png">
+      <a href="https://www.thoriumbuilder.com/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/thorium.png">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://wappler.io/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/wappler.png">
+      <a href="https://app-valley.vip/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/appvalley.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="https://appvalley.vip/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/appvalley.jpg">
+      <a href="http://mytommy.com" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/tommy.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.securcom.me/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/securcom.png">
       </a>
     </td>
   </tr>
   <tr>
     <td align="center" valign="middle">
-      <a href="https://www.securcom.me/" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/securcom.png">
+      <a href="https://writersperhour.com/write-my-paper" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/writersperhour.jpg">
       </a>
     </td>
     <td align="center" valign="middle">
-      <a href="http://mytommy.com" target="_blank">
-        <img width="200" src="https://cdn.framework7.io/i/sponsors/tommy.png">
+      <a href="https://monovm.com/linux-vps/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/monovm.jpg">
       </a>
     </td>
+    <td align="center" valign="middle">
+      <a href="https://staffaugmentation.ro" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/staffaugmentation.jpg">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.colognewebdesign.de/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/colognewebdesign.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://rise.co" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/rise.png">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+      <a href="https://usave.co.uk/utilities/broadband" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/usave.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://bid4papers.com/write-my-essay.html" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/bid4papers.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://kidoverse.app" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/kidoverse.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://www.cyberbrain.nl/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/cyberbrain.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://hicapps.cl/web/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/hicapps.png">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="middle">
+      <a href="https://blokt.com/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/blokt.png">
+      </a>
+    </td>
+    <td align="center" valign="middle">
+      <a href="https://wappler.io/" target="_blank">
+        <img width="160" src="https://cdn.framework7.io/i/sponsors/wappler.png">
+      </a>
+    </td>
+    <td></td>
     <td></td>
     <td></td>
   </tr>
@@ -54,13 +114,14 @@ Support Framework7 development by [pledging on Patreon](https://www.patreon.com/
 ---
 
 ### $250 Gold Sponsor
-[Yakaz](https://yakaz.com)<br>
-
+[Sparheld.de](https://www.sparheld.de/) - Sparheld.de - save shopping online
+Steven Roussey<br>
 [Join here!](https://www.patreon.com/bePatron?patAmt=250.0&exp=1&u=4109762&rid=830877)
 
 ---
 
 ### $100 Silver Sponsor
+[Thorium Builder](https://www.thoriumbuilder.com/) - Full visual Framework7 app builder<br>
 Colin Adams ([App Valley](https://appvalley.vip/))<br>
 Pavol Cvengros ([securCom Inc](https://www.securcom.me/))<br>
 Mason Fok ([tommy](http://mytommy.com))<br>
@@ -70,9 +131,21 @@ Mason Fok ([tommy](http://mytommy.com))<br>
 ---
 
 ### $50+ Top Supporter
-[ActiveWaiter](https://www.activewaiter.com/) - Order. Drink. Eat. Pay. Love.<br>
+[Writers Per Hour](https://writersperhour.com/write-my-paper) - Write My Paper For Me<br>
+[Staff Augmentation](https://staffaugmentation.ro) - Recruit Top Staff in Romania<br>
+[Bid4Papers](https://bid4papers.com/write-my-essay.html) - Write My Essay<br>
+[COLOGNE WEBDESIGN](https://www.colognewebdesign.de/)<br>
+Fatih Batal<br>
+Vinay Samant<br>
+[Rise](https://rise.co) - Creative Web Development Agency<br>
+[usave](https://usave.co.uk/utilities/broadband) - compare broadband deals on usave.co.uk<br>
+[Kidoverse](https://kidoverse.app) - App for kids to learn, play, create and explore<br>
+[CyberBrain IT Services](https://www.cyberbrain.nl/)<br>
+[HICAPPS](https://hicapps.cl/web/) - Health Informatics Custom APPs<br>
+Michael Russell
+[Blokt](https://blokt.com/) - Cryptocurrency News<br>
+Alexey Victorov<br>
 [Wappler](https://wappler.io) - Visual Web App Creator, offers full visual Framework7 builder<br>
-Olivier<br>
 Marcelo Lopetegui L.<br>
 Bearr Dayss<br>
 Kris Reddy<br>
@@ -83,29 +156,35 @@ Bart DJ
 ---
 
 ### $10+ Supporter
-Daniel Gonzalez<br>
+Ruslan Trifonov<br>
+Michael Powers<br>
+shastox<br>
+iOS Haven<br>
+Dirk Holtwick<br>
+JK<br>
+Azad Zain<br>
+Nicolas Hinze<br>
+Josué Marinho<br>
+Will Mero<br>
+Jorge Pagano<br>
+Jacob Gur<br>
 Yaroslav Ermolaev<br>
 Matthew Proctor<br>
 Andy Fuchs<br>
 Noah A Neibaron<br>
 José Manuel Alarcón<br>
-Fatih Batal<br>
 Matt Davis<br>
 Arsen Huang<br>
 Jonathan Pugh<br>
 Danny Redfern<br>
 Marc Hildmann<br>
 Kyle Hammond<br>
-En-Yang Lin<br>
 VOUSYS<br>
-David Fall<br>
 Almaz Kazakov<br>
 plpl<br>
-Zakery Kates<br>
 Dan Boschen<br>
 Ferry van de Graaf<br>
 Denis Bousselier<br>
-Firestream<br>
 Matthew Becker<br>
 Timo Ernst<br>
 Dave Billington
@@ -115,13 +194,13 @@ Dave Billington
 ---
 
 ### $5+ Thank You
+Brett Lee<br>
+[FanBattle.app](https://fanbattle.ru/)<br>
 Miguel Nahara<br>
 Muthaiyan Rm<br>
 xPlants.it SRL<br>
 Mamadou Ndiaye<br>
-Sören Wrede<br>
 LitoMore<br>
-Philip Fung<br>
 Jacob Rosenberg<br>
 Farshid Mossaiby<br>
 Byron<br>

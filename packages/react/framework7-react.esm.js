@@ -1,5 +1,5 @@
 /**
- * Framework7 React 4.2.0
+ * Framework7 React 5.0.5
  * Build full featured iOS & Android apps using Framework7 & React
  * http://framework7.io/react/
  *
@@ -7,7 +7,7 @@
  *
  * Released under the MIT License
  *
- * Released on: March 20, 2019
+ * Released on: October 16, 2019
  */
 
 import F7AccordionContent from './components/accordion-content';
@@ -86,7 +86,6 @@ import F7Segmented from './components/segmented';
 import F7Sheet from './components/sheet';
 import F7SkeletonBlock from './components/skeleton-block';
 import F7SkeletonText from './components/skeleton-text';
-import F7Statusbar from './components/statusbar';
 import F7Stepper from './components/stepper';
 import F7Subnavbar from './components/subnavbar';
 import F7SwipeoutActions from './components/swipeout-actions';
@@ -95,11 +94,14 @@ import F7SwiperSlide from './components/swiper-slide';
 import F7Swiper from './components/swiper';
 import F7Tab from './components/tab';
 import F7Tabs from './components/tabs';
+import F7TextEditor from './components/text-editor';
 import F7Toggle from './components/toggle';
 import F7Toolbar from './components/toolbar';
+import F7TreeviewItem from './components/treeview-item';
+import F7Treeview from './components/treeview';
 import F7View from './components/view';
 import F7Views from './components/views';
-import Framework7React from './utils/plugin';
+import Framework7React, { f7, f7ready, theme } from './utils/plugin';
 
 const AccordionContent = F7AccordionContent;
 const AccordionItem = F7AccordionItem;
@@ -177,7 +179,6 @@ const Segmented = F7Segmented;
 const Sheet = F7Sheet;
 const SkeletonBlock = F7SkeletonBlock;
 const SkeletonText = F7SkeletonText;
-const Statusbar = F7Statusbar;
 const Stepper = F7Stepper;
 const Subnavbar = F7Subnavbar;
 const SwipeoutActions = F7SwipeoutActions;
@@ -186,8 +187,11 @@ const SwiperSlide = F7SwiperSlide;
 const Swiper = F7Swiper;
 const Tab = F7Tab;
 const Tabs = F7Tabs;
+const TextEditor = F7TextEditor;
 const Toggle = F7Toggle;
 const Toolbar = F7Toolbar;
+const TreeviewItem = F7TreeviewItem;
+const Treeview = F7Treeview;
 const View = F7View;
 const Views = F7Views;
 
@@ -344,8 +348,6 @@ export {
   SkeletonBlock,
   F7SkeletonText,
   SkeletonText,
-  F7Statusbar,
-  Statusbar,
   F7Stepper,
   Stepper,
   F7Subnavbar,
@@ -362,14 +364,22 @@ export {
   Tab,
   F7Tabs,
   Tabs,
+  F7TextEditor,
+  TextEditor,
   F7Toggle,
   Toggle,
   F7Toolbar,
   Toolbar,
+  F7TreeviewItem,
+  TreeviewItem,
+  F7Treeview,
+  Treeview,
   F7View,
   View,
   F7Views,
   Views
 };
+
+export { f7, f7ready, theme };
 
 export default Framework7React;

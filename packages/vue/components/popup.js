@@ -8,23 +8,30 @@ export default {
     id: [String, Number],
     tabletFullscreen: Boolean,
     opened: Boolean,
-    closeByBackdropClick: Boolean,
+    animate: Boolean,
     backdrop: Boolean,
-    animate: Boolean
+    backdropEl: [String, Object, window.HTMLElement],
+    closeByBackdropClick: Boolean,
+    closeOnEscape: Boolean,
+    swipeToClose: {
+      type: [Boolean, String],
+      default: false
+    },
+    swipeHandler: [String, Object, window.HTMLElement],
+    push: Boolean
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      className,
-      id,
-      style,
-      tabletFullscreen
-    } = props;
-    const classes = Utils.classNames(className, 'popup', {
-      'popup-tablet-fullscreen': tabletFullscreen
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var className = props.className,
+        id = props.id,
+        style = props.style,
+        tabletFullscreen = props.tabletFullscreen,
+        push = props.push;
+    var classes = Utils.classNames(className, 'popup', {
+      'popup-tablet-fullscreen': tabletFullscreen,
+      'popup-push': push
     }, Mixins.colorClasses(props));
     return _h('div', {
       ref: 'el',
@@ -35,10 +42,9 @@ export default {
       }
     }, [this.$slots['default']]);
   },
-
   watch: {
     'props.opened': function watchOpened(opened) {
-      const self = this;
+      var self = this;
       if (!self.f7Popup) return;
 
       if (opened) {
@@ -48,34 +54,41 @@ export default {
       }
     }
   },
-
-  created() {
+  created: function created() {
     Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
   },
-
-  mounted() {
-    const self = this;
-    const el = self.$refs.el;
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
     if (!el) return;
-    el.addEventListener('popup:open', self.onOpen);
-    el.addEventListener('popup:opened', self.onOpened);
-    el.addEventListener('popup:close', self.onClose);
-    el.addEventListener('popup:closed', self.onClosed);
-    const props = self.props;
-    const {
-      closeByBackdropClick,
-      backdrop,
-      animate
-    } = props;
-    const popupParams = {
-      el
+    var props = self.props;
+    var closeByBackdropClick = props.closeByBackdropClick,
+        backdrop = props.backdrop,
+        backdropEl = props.backdropEl,
+        animate = props.animate,
+        closeOnEscape = props.closeOnEscape,
+        swipeToClose = props.swipeToClose,
+        swipeHandler = props.swipeHandler;
+    var popupParams = {
+      el: el,
+      on: {
+        open: self.onOpen,
+        opened: self.onOpened,
+        close: self.onClose,
+        closed: self.onClosed
+      }
     };
     {
-      if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') popupParams.closeByBackdropClick = closeByBackdropClick;
-      if (typeof self.$options.propsData.animate !== 'undefined') popupParams.animate = animate;
-      if (typeof self.$options.propsData.backdrop !== 'undefined') popupParams.backdrop = backdrop;
+      var propsData = self.$options.propsData;
+      if (typeof propsData.closeByBackdropClick !== 'undefined') popupParams.closeByBackdropClick = closeByBackdropClick;
+      if (typeof propsData.closeOnEscape !== 'undefined') popupParams.closeOnEscape = closeOnEscape;
+      if (typeof propsData.animate !== 'undefined') popupParams.animate = animate;
+      if (typeof propsData.backdrop !== 'undefined') popupParams.backdrop = backdrop;
+      if (typeof propsData.backdropEl !== 'undefined') popupParams.backdropEl = backdropEl;
+      if (typeof propsData.swipeToClose !== 'undefined') popupParams.swipeToClose = swipeToClose;
+      if (typeof propsData.swipeHandler !== 'undefined') popupParams.swipeHandler = swipeHandler;
     }
-    self.$f7ready(() => {
+    self.$f7ready(function () {
       self.f7Popup = self.$f7.popup.create(popupParams);
 
       if (self.props.opened) {
@@ -83,56 +96,44 @@ export default {
       }
     });
   },
-
-  beforeDestroy() {
-    const self = this;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
     if (self.f7Popup) self.f7Popup.destroy();
-    const el = self.$refs.el;
-    if (!el) return;
-    el.removeEventListener('popup:open', self.onOpen);
-    el.removeEventListener('popup:opened', self.onOpened);
-    el.removeEventListener('popup:close', self.onClose);
-    el.removeEventListener('popup:closed', self.onClosed);
   },
-
   methods: {
-    onOpen(event) {
-      this.dispatchEvent('popup:open popupOpen', event);
+    onOpen: function onOpen(instance) {
+      this.dispatchEvent('popup:open popupOpen', instance);
     },
-
-    onOpened(event) {
-      this.dispatchEvent('popup:opened popupOpened', event);
+    onOpened: function onOpened(instance) {
+      this.dispatchEvent('popup:opened popupOpened', instance);
     },
-
-    onClose(event) {
-      this.dispatchEvent('popup:close popupClose', event);
+    onClose: function onClose(instance) {
+      this.dispatchEvent('popup:close popupClose', instance);
     },
-
-    onClosed(event) {
-      this.dispatchEvent('popup:closed popupClosed', event);
+    onClosed: function onClosed(instance) {
+      this.dispatchEvent('popup:closed popupClosed', instance);
     },
-
-    open(animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.popup.open(self.$refs.el, animate);
+    open: function open(animate) {
+      var self = this;
+      if (!self.f7Popup) return undefined;
+      return self.f7Popup.open(animate);
     },
-
-    close(animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.popup.close(self.$refs.el, animate);
+    close: function close(animate) {
+      var self = this;
+      if (!self.f7Popup) return undefined;
+      return self.f7Popup.close(animate);
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

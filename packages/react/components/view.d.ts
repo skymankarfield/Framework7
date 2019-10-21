@@ -28,6 +28,7 @@ declare namespace F7View {
     removeElementsWithTimeout? : boolean
     removeElementsTimeout? : number
     restoreScrollTopOnBack? : boolean
+    loadInitialPage? : boolean
     iosSwipeBack? : boolean
     iosSwipeBackAnimateShadow? : boolean
     iosSwipeBackAnimateOpacity? : boolean
@@ -50,8 +51,8 @@ declare namespace F7View {
     pushStateSeparator? : string
     pushStateOnLoad? : boolean
     animate? : boolean
+    transition? : string
     iosDynamicNavbar? : boolean
-    iosSeparateDynamicNavbar? : boolean
     iosAnimateNavbarBackIcon? : boolean
     materialPageLoadDelay? : number
     passRouteQueryToRequest? : boolean
@@ -68,25 +69,25 @@ declare namespace F7View {
     borderColor? : string
     rippleColor? : string
     themeDark? : boolean
-    onViewInit? : (event?: any, view?: any) => void
-    onSwipeBackMove? : (event?: any, swipeBackData?: any) => void
-    onSwipeBackBeforeChange? : (event?: any, swipeBackData?: any) => void
-    onSwipeBackAfterChange? : (event?: any, swipeBackData?: any) => void
-    onSwipeBackBeforeReset? : (event?: any, swipeBackData?: any) => void
-    onSwipeBackAfterReset? : (event?: any, swipeBackData?: any) => void
-    onTabShow? : (event?: any) => void
-    onTabHide? : (event?: any) => void
+    onViewInit? : (view?: any) => void
+    onSwipeBackMove? : (swipeBackData?: any) => void
+    onSwipeBackBeforeChange? : (swipeBackData?: any) => void
+    onSwipeBackAfterChange? : (swipeBackData?: any) => void
+    onSwipeBackBeforeReset? : (swipeBackData?: any) => void
+    onSwipeBackAfterReset? : (swipeBackData?: any) => void
+    onTabShow? : (...args: any[]) => void
+    onTabHide? : (...args: any[]) => void
   }
 }
 declare class F7View extends React.Component<F7View.Props, {}> {
-  onViewInit(event? : any) : unknown
-  onSwipeBackMove(event? : any) : unknown
-  onSwipeBackBeforeChange(event? : any) : unknown
-  onSwipeBackAfterChange(event? : any) : unknown
-  onSwipeBackBeforeReset(event? : any) : unknown
-  onSwipeBackAfterReset(event? : any) : unknown
-  onTabShow(event? : any) : unknown
-  onTabHide(event? : any) : unknown
+  onViewInit(view? : any) : unknown
+  onSwipeBackMove(data? : any) : unknown
+  onSwipeBackBeforeChange(data? : any) : unknown
+  onSwipeBackAfterChange(data? : any) : unknown
+  onSwipeBackBeforeReset(data? : any) : unknown
+  onSwipeBackAfterReset(data? : any) : unknown
+  onTabShow(el? : any) : unknown
+  onTabHide(el? : any) : unknown
   f7View: ViewNamespace.View
 }
 export default F7View;

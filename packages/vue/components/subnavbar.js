@@ -12,21 +12,18 @@ export default {
       default: true
     }
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      inner,
-      title,
-      style,
-      id,
-      className,
-      sliding
-    } = props;
-    const classes = Utils.classNames(className, 'subnavbar', {
-      sliding
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var inner = props.inner,
+        title = props.title,
+        style = props.style,
+        id = props.id,
+        className = props.className,
+        sliding = props.sliding;
+    var classes = Utils.classNames(className, 'subnavbar', {
+      sliding: sliding
     }, Mixins.colorClasses(props));
     return _h('div', {
       class: classes,
@@ -37,14 +34,12 @@ export default {
     }, [inner ? _h('div', {
       class: 'subnavbar-inner'
     }, [title && _h('div', {
-      class: 'title'
+      class: 'subnavbar-title'
     }, [title]), this.$slots['default']]) : this.$slots['default']]);
   },
-
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

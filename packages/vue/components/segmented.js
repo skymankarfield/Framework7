@@ -13,31 +13,36 @@ export default {
     roundIos: Boolean,
     roundMd: Boolean,
     roundAurora: Boolean,
+    strong: Boolean,
+    strongIos: Boolean,
+    strongMd: Boolean,
+    strongAurora: Boolean,
     tag: {
       type: String,
       default: 'div'
     }
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      className,
-      raised,
-      raisedIos,
-      raisedAurora,
-      raisedMd,
-      round,
-      roundIos,
-      roundAurora,
-      roundMd,
-      id,
-      style,
-      tag
-    } = props;
-    const classNames = Utils.classNames(className, {
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var className = props.className,
+        raised = props.raised,
+        raisedIos = props.raisedIos,
+        raisedAurora = props.raisedAurora,
+        raisedMd = props.raisedMd,
+        round = props.round,
+        roundIos = props.roundIos,
+        roundAurora = props.roundAurora,
+        roundMd = props.roundMd,
+        strong = props.strong,
+        strongIos = props.strongIos,
+        strongMd = props.strongMd,
+        strongAurora = props.strongAurora,
+        id = props.id,
+        style = props.style,
+        tag = props.tag;
+    var classNames = Utils.classNames(className, {
       segmented: true,
       'segmented-raised': raised,
       'segmented-raised-ios': raisedIos,
@@ -46,9 +51,13 @@ export default {
       'segmented-round': round,
       'segmented-round-ios': roundIos,
       'segmented-round-aurora': roundAurora,
-      'segmented-round-md': roundMd
+      'segmented-round-md': roundMd,
+      'segmented-strong': strong,
+      'segmented-strong-ios': strongIos,
+      'segmented-strong-md': strongMd,
+      'segmented-strong-aurora': strongAurora
     }, Mixins.colorClasses(props));
-    const SegmentedTag = tag;
+    var SegmentedTag = tag;
     return _h(SegmentedTag, {
       style: style,
       class: classNames,
@@ -57,11 +66,9 @@ export default {
       }
     }, [this.$slots['default']]);
   },
-
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

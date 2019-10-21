@@ -7,38 +7,48 @@ export default {
   props: Object.assign({
     id: [String, Number],
     opened: Boolean,
+    top: Boolean,
+    bottom: Boolean,
+    position: String,
     backdrop: Boolean,
+    backdropEl: [String, Object, window.HTMLElement],
     closeByBackdropClick: Boolean,
-    closeByOutsideClick: Boolean
+    closeByOutsideClick: Boolean,
+    closeOnEscape: Boolean,
+    push: Boolean,
+    swipeToClose: Boolean,
+    swipeToStep: Boolean,
+    swipeHandler: [String, Object, window.HTMLElement]
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const fixedList = [];
-    const staticList = [];
-    const props = self.props;
-    const {
-      id,
-      style,
-      className
-    } = props;
-    let fixedTags;
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var fixedList = [];
+    var staticList = [];
+    var props = self.props;
+    var id = props.id,
+        style = props.style,
+        className = props.className,
+        top = props.top,
+        bottom = props.bottom,
+        position = props.position,
+        push = props.push;
+    var fixedTags;
     fixedTags = 'navbar toolbar tabbar subnavbar searchbar messagebar fab list-index'.split(' ');
-    const slotsDefault = self.$slots.default;
+    var slotsDefault = self.$slots.default;
 
     if (slotsDefault && slotsDefault.length) {
-      slotsDefault.forEach(child => {
+      slotsDefault.forEach(function (child) {
         if (typeof child === 'undefined') return;
-        let isFixedTag = false;
+        var isFixedTag = false;
         {
-          const tag = child.tag;
+          var tag = child.tag;
 
           if (!tag) {
             return;
           }
 
-          for (let j = 0; j < fixedTags.length; j += 1) {
+          for (var j = 0; j < fixedTags.length; j += 1) {
             if (tag.indexOf(fixedTags[j]) >= 0) {
               isFixedTag = true;
             }
@@ -48,11 +58,15 @@ export default {
       });
     }
 
-    const innerEl = _h('div', {
+    var innerEl = _h('div', {
       class: 'sheet-modal-inner'
     }, [staticList]);
 
-    const classes = Utils.classNames(className, 'sheet-modal', Mixins.colorClasses(props));
+    var positionComputed = 'bottom';
+    if (position) positionComputed = position;else if (top) positionComputed = 'top';else if (bottom) positionComputed = 'bottom';
+    var classes = Utils.classNames(className, 'sheet-modal', "sheet-modal-".concat(positionComputed), {
+      'sheet-modal-push': push
+    }, Mixins.colorClasses(props));
     return _h('div', {
       ref: 'el',
       style: style,
@@ -62,10 +76,9 @@ export default {
       }
     }, [fixedList, innerEl]);
   },
-
   watch: {
     'props.opened': function watchOpened(opened) {
-      const self = this;
+      var self = this;
       if (!self.f7Sheet) return;
 
       if (opened) {
@@ -75,42 +88,47 @@ export default {
       }
     }
   },
-
-  created() {
-    Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
+  created: function created() {
+    Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed', 'onStepOpen', 'onStepClose', 'onStepProgress']);
   },
-
-  mounted() {
-    const self = this;
-    const el = self.$refs.el;
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
     if (!el) return;
-    el.addEventListener('sheet:open', self.onOpen);
-    el.addEventListener('sheet:opened', self.onOpened);
-    el.addEventListener('sheet:close', self.onClose);
-    el.addEventListener('sheet:closed', self.onClosed);
-    const props = self.props;
-    const {
-      opened,
-      backdrop,
-      closeByBackdropClick,
-      closeByOutsideClick
-    } = props;
-    const sheetParams = {
-      el: self.$refs.el
-    };
-    let useDefaultBackdrop;
-    {
-      useDefaultBackdrop = self.$options.propsData.backdrop === undefined;
-      if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') sheetParams.closeByBackdropClick = closeByBackdropClick;
-      if (typeof self.$options.propsData.closeByOutsideClick !== 'undefined') sheetParams.closeByOutsideClick = closeByOutsideClick;
-    }
-    self.$f7ready(f7 => {
-      if (useDefaultBackdrop) {
-        sheetParams.backdrop = f7.params.sheet && f7.params.sheet.backdrop !== undefined ? f7.params.sheet.backdrop : !self.$theme.ios;
-      } else {
-        sheetParams.backdrop = backdrop;
+    var props = self.props;
+    var opened = props.opened,
+        backdrop = props.backdrop,
+        backdropEl = props.backdropEl,
+        closeByBackdropClick = props.closeByBackdropClick,
+        closeByOutsideClick = props.closeByOutsideClick,
+        closeOnEscape = props.closeOnEscape,
+        swipeToClose = props.swipeToClose,
+        swipeToStep = props.swipeToStep,
+        swipeHandler = props.swipeHandler;
+    var sheetParams = {
+      el: self.$refs.el,
+      on: {
+        open: self.onOpen,
+        opened: self.onOpened,
+        close: self.onClose,
+        closed: self.onClosed,
+        stepOpen: self.onStepOpen,
+        stepClose: self.onStepClose,
+        stepProgress: self.onStepProgress
       }
-
+    };
+    {
+      var propsData = self.$options.propsData;
+      if (typeof propsData.backdrop !== 'undefined') sheetParams.backdrop = backdrop;
+      if (typeof propsData.backdropEl !== 'undefined') sheetParams.backdropEl = backdropEl;
+      if (typeof propsData.closeByBackdropClick !== 'undefined') sheetParams.closeByBackdropClick = closeByBackdropClick;
+      if (typeof propsData.closeByOutsideClick !== 'undefined') sheetParams.closeByOutsideClick = closeByOutsideClick;
+      if (typeof propsData.closeOnEscape !== 'undefined') sheetParams.closeOnEscape = closeOnEscape;
+      if (typeof propsData.swipeToClose !== 'undefined') sheetParams.swipeToClose = swipeToClose;
+      if (typeof propsData.swipeToStep !== 'undefined') sheetParams.swipeToStep = swipeToStep;
+      if (typeof propsData.swipeHandler !== 'undefined') sheetParams.swipeHandler = swipeHandler;
+    }
+    self.$f7ready(function () {
       self.f7Sheet = self.$f7.sheet.create(sheetParams);
 
       if (opened) {
@@ -118,56 +136,53 @@ export default {
       }
     });
   },
-
-  beforeDestroy() {
-    const self = this;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
     if (self.f7Sheet) self.f7Sheet.destroy();
-    const el = self.$refs.el;
-    if (!el) return;
-    el.removeEventListener('popup:open', self.onOpen);
-    el.removeEventListener('popup:opened', self.onOpened);
-    el.removeEventListener('popup:close', self.onClose);
-    el.removeEventListener('popup:closed', self.onClosed);
   },
-
   methods: {
-    onOpen(event) {
-      this.dispatchEvent('sheet:open sheetOpen', event);
+    onStepProgress: function onStepProgress(instance, progress) {
+      this.dispatchEvent('sheet:stepprogress sheetStepProgress', instance, progress);
     },
-
-    onOpened(event) {
-      this.dispatchEvent('sheet:opened sheetOpened', event);
+    onStepOpen: function onStepOpen(instance) {
+      this.dispatchEvent('sheet:stepopen sheetStepOpen', instance);
     },
-
-    onClose(event) {
-      this.dispatchEvent('sheet:close sheetClose', event);
+    onStepClose: function onStepClose(instance) {
+      this.dispatchEvent('sheet:stepclose sheetStepClose', instance);
     },
-
-    onClosed(event) {
-      this.dispatchEvent('sheet:closed sheetClosed', event);
+    onOpen: function onOpen(instance) {
+      this.dispatchEvent('sheet:open sheetOpen', instance);
     },
-
-    open(animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.sheet.open(self.$refs.el, animate);
+    onOpened: function onOpened(instance) {
+      this.dispatchEvent('sheet:opened sheetOpened', instance);
     },
-
-    close(animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.sheet.close(self.$refs.el, animate);
+    onClose: function onClose(instance) {
+      this.dispatchEvent('sheet:close sheetClose', instance);
     },
+    onClosed: function onClosed(instance) {
+      this.dispatchEvent('sheet:closed sheetClosed', instance);
+    },
+    open: function open(animate) {
+      var self = this;
+      if (!self.f7Sheet) return undefined;
+      return self.f7Sheet.open(animate);
+    },
+    close: function close(animate) {
+      var self = this;
+      if (!self.f7Sheet) return undefined;
+      return self.f7Sheet.close(animate);
+    },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };

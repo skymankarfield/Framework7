@@ -20,11 +20,13 @@ function esm({ banner, componentImports, componentAliases, componentExports }) {
 ${banner}
 
 ${componentImports.join('\n')}
-import Framework7React from './utils/plugin';
+import Framework7React, { f7, f7ready, theme } from './utils/plugin';
 
 ${componentAliases.join('\n')}
 
 export {\n${componentExports.join(',\n')}\n};
+
+export { f7, f7ready, theme };
 
 export default Framework7React;
   `.trim();
@@ -98,10 +100,11 @@ function buildReact(cb) {
     external: ['react'],
     plugins: [
       replace({
+        'export { f7ready, f7Instance as f7, f7Theme as theme };': '',
         delimiters: ['', ''],
         'process.env.NODE_ENV': JSON.stringify(env), // or 'production'
       }),
-      resolve({ jsnext: true }),
+      resolve({ mainFields: ['module', 'main', 'jsnext'] }),
       commonjs(),
       buble({
         objectAssign: 'Object.assign',

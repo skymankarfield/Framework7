@@ -1,5 +1,5 @@
 /**
- * Framework7 Vue 4.2.0
+ * Framework7 Vue 5.0.5
  * Build full featured iOS & Android apps using Framework7 & Vue
  * http://framework7.io/vue/
  *
@@ -7,7 +7,7 @@
  *
  * Released under the MIT License
  *
- * Released on: March 20, 2019
+ * Released on: October 16, 2019
  */
 
 (function (global, factory) {
@@ -145,8 +145,6 @@
     linkIconProps: {
       icon: String,
       iconMaterial: String,
-      iconIon: String,
-      iconFa: String,
       iconF7: String,
       iconIos: String,
       iconMd: String,
@@ -174,6 +172,7 @@
       view: String,
       routeProps: Object,
       preventRouter: Boolean,
+      transition: String,
     },
     linkRouterAttrs: function linkRouterAttrs(props) {
       var force = props.force;
@@ -185,6 +184,7 @@
       var ignoreCache = props.ignoreCache;
       var routeTabId = props.routeTabId;
       var view = props.view;
+      var transition = props.transition;
 
       var dataAnimate;
       if ('animate' in props && typeof animate !== 'undefined') {
@@ -206,6 +206,7 @@
         'data-ignore-cache': ignoreCache || undefined,
         'data-route-tab-id': routeTabId || undefined,
         'data-view': Utils.isStringProp(view) ? view : undefined,
+        'data-transition': Utils.isStringProp(transition) ? transition : undefined,
       };
     },
     linkRouterClasses: function linkRouterClasses(props) {
@@ -393,13 +394,12 @@
       id: [String, Number]
     }, Mixins.colorProps),
     name: 'f7-accordion-content',
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'accordion-item-content', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -409,12 +409,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -434,42 +432,43 @@
       id: [String, Number],
       opened: Boolean
     }, Mixins.colorProps),
-
     created: function created() {
       Utils.bindMethods(this, 'onBeforeOpen onOpen onOpened onBeforeClose onClose onClosed'.split(' '));
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('accordion:beforeopen', self.onBeforeOpen);
-      el.addEventListener('accordion:open', self.onOpen);
-      el.addEventListener('accordion:opened', self.onOpened);
-      el.addEventListener('accordion:beforeclose', self.onBeforeClose);
-      el.addEventListener('accordion:close', self.onClose);
-      el.addEventListener('accordion:closed', self.onClosed);
+      self.eventTargetEl = el;
+      self.$f7ready(function (f7) {
+        f7.on('accordionBeforeOpen', self.onBeforeOpen);
+        f7.on('accordionOpen', self.onOpen);
+        f7.on('accordionOpened', self.onOpened);
+        f7.on('accordionBeforeClose', self.onBeforeClose);
+        f7.on('accordionClose', self.onClose);
+        f7.on('accordionClosed', self.onClosed);
+      });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('accordion:beforeopen', self.onBeforeOpen);
-      el.removeEventListener('accordion:open', self.onOpen);
-      el.removeEventListener('accordion:opened', self.onOpened);
-      el.removeEventListener('accordion:beforeclose', self.onBeforeClose);
-      el.removeEventListener('accordion:close', self.onClose);
-      el.removeEventListener('accordion:closed', self.onClosed);
+      if (!el || !self.$f7) { return; }
+      var f7 = self.$f7;
+      f7.off('accordionBeforeOpen', self.onBeforeOpen);
+      f7.off('accordionOpen', self.onOpen);
+      f7.off('accordionOpened', self.onOpened);
+      f7.off('accordionBeforeClose', self.onBeforeClose);
+      f7.off('accordionClose', self.onClose);
+      f7.off('accordionClosed', self.onClosed);
+      delete this.eventTargetEl;
     },
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var opened = props.opened;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          opened = props.opened;
       var classes = Utils.classNames(className, 'accordion-item', {
         'accordion-item-opened': opened
       }, Mixins.colorClasses(props));
@@ -482,45 +481,45 @@
         }
       }, [this.$slots['default']]);
     },
-
     methods: {
-      onBeforeOpen: function onBeforeOpen(event) {
-        this.dispatchEvent('accordionBeforeOpen accordion:beforeopen', event, event.detail.prevent);
+      onBeforeOpen: function onBeforeOpen(el, prevent) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionBeforeOpen accordion:beforeopen', prevent);
       },
-
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('accordionOpen accordion:open', event);
+      onOpen: function onOpen(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionOpen accordion:open');
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('accordionOpened accordion:opened', event);
+      onOpened: function onOpened(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionOpened accordion:opened');
       },
-
-      onBeforeClose: function onBeforeClose(event) {
-        this.dispatchEvent('accordionBeforeClose accordion:beforeclose', event, event.detail.prevent);
+      onBeforeClose: function onBeforeClose(el, prevent) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionBeforeClose accordion:beforeclose', prevent);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('accordionClose accordion:close', event);
+      onClose: function onClose(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionClose accordion:close');
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('accordionClosed accordion:closed', event);
+      onClosed: function onClosed(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordionClosed accordion:closed');
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -529,13 +528,12 @@
       id: [String, Number]
     }, Mixins.colorProps),
     name: 'f7-accordion-toggle',
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'accordion-item-toggle', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -545,12 +543,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -559,13 +555,12 @@
       id: [String, Number]
     }, Mixins.colorProps),
     name: 'f7-accordion',
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'accordion-list', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -575,12 +570,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -594,15 +587,14 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var bold = props.bold;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          bold = props.bold;
       var mediaEl;
 
       if (self.$slots.media && self.$slots.media.length) {
@@ -626,19 +618,15 @@
         class: 'actions-button-text'
       }, [this.$slots['default']])]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         var self = this;
@@ -651,20 +639,20 @@
 
         self.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -673,14 +661,13 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'actions-group', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -690,12 +677,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -705,15 +690,14 @@
       id: [String, Number],
       bold: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var bold = props.bold;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          bold = props.bold;
       var classes = Utils.classNames(className, 'actions-label', {
         'actions-button-bold': bold
       }, Mixins.colorClasses(props));
@@ -726,37 +710,33 @@
         }
       }, [this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -769,18 +749,20 @@
       convertToPopover: Boolean,
       forceToPopover: Boolean,
       target: [String, Object],
+      backdrop: Boolean,
+      backdropEl: [String, Object, window.HTMLElement],
       closeByBackdropClick: Boolean,
-      closeByOutsideClick: Boolean
+      closeByOutsideClick: Boolean,
+      closeOnEscape: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var grid = props.grid;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          grid = props.grid;
       var classes = Utils.classNames(className, 'actions-modal', {
         'actions-grid': grid
       }, Mixins.colorClasses(props));
@@ -793,7 +775,6 @@
         }
       }, [this.$slots['default']]);
     },
-
     watch: {
       'props.opened': function watchOpened(opened) {
         var self = this;
@@ -806,37 +787,44 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('actions:open', self.onOpen);
-      el.addEventListener('actions:opened', self.onOpened);
-      el.addEventListener('actions:close', self.onClose);
-      el.addEventListener('actions:closed', self.onClosed);
       var props = self.props;
-      var grid = props.grid;
-      var target = props.target;
-      var convertToPopover = props.convertToPopover;
-      var forceToPopover = props.forceToPopover;
-      var opened = props.opened;
-      var closeByBackdropClick = props.closeByBackdropClick;
-      var closeByOutsideClick = props.closeByOutsideClick;
+      var grid = props.grid,
+          target = props.target,
+          convertToPopover = props.convertToPopover,
+          forceToPopover = props.forceToPopover,
+          opened = props.opened,
+          closeByBackdropClick = props.closeByBackdropClick,
+          closeByOutsideClick = props.closeByOutsideClick,
+          closeOnEscape = props.closeOnEscape,
+          backdrop = props.backdrop,
+          backdropEl = props.backdropEl;
       var actionsParams = {
-        el: self.$refs.el,
-        grid: grid
+        el: el,
+        grid: grid,
+        on: {
+          open: self.onOpen,
+          opened: self.onOpened,
+          close: self.onClose,
+          closed: self.onClosed
+        }
       };
       if (target) { actionsParams.targetEl = target; }
       {
-        if (typeof self.$options.propsData.convertToPopover !== 'undefined') { actionsParams.convertToPopover = convertToPopover; }
-        if (typeof self.$options.propsData.forceToPopover !== 'undefined') { actionsParams.forceToPopover = forceToPopover; }
-        if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') { actionsParams.closeByBackdropClick = closeByBackdropClick; }
-        if (typeof self.$options.propsData.closeByOutsideClick !== 'undefined') { actionsParams.closeByOutsideClick = closeByOutsideClick; }
+        var propsData = self.$options.propsData;
+        if (typeof propsData.convertToPopover !== 'undefined') { actionsParams.convertToPopover = convertToPopover; }
+        if (typeof propsData.forceToPopover !== 'undefined') { actionsParams.forceToPopover = forceToPopover; }
+        if (typeof propsData.backdrop !== 'undefined') { actionsParams.backdrop = backdrop; }
+        if (typeof propsData.backdropEl !== 'undefined') { actionsParams.backdropEl = backdropEl; }
+        if (typeof propsData.closeByBackdropClick !== 'undefined') { actionsParams.closeByBackdropClick = closeByBackdropClick; }
+        if (typeof propsData.closeByOutsideClick !== 'undefined') { actionsParams.closeByOutsideClick = closeByOutsideClick; }
+        if (typeof propsData.closeOnEscape !== 'undefined') { actionsParams.closeOnEscape = closeOnEscape; }
       }
       self.$f7ready(function () {
         self.f7Actions = self.$f7.actions.create(actionsParams);
@@ -846,133 +834,73 @@
         }
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Actions) { self.f7Actions.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('actions:open', self.onOpen);
-      el.removeEventListener('actions:opened', self.onOpened);
-      el.removeEventListener('actions:close', self.onClose);
-      el.removeEventListener('actions:closed', self.onClosed);
+      delete self.f7Actions;
     },
-
     methods: {
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('actions:open actionsOpen', event);
+      onOpen: function onOpen(instance) {
+        this.dispatchEvent('actions:open actionsOpen', instance);
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('actions:opened actionsOpened', event);
+      onOpened: function onOpened(instance) {
+        this.dispatchEvent('actions:opened actionsOpened', instance);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('actions:close actionsClose', event);
+      onClose: function onClose(instance) {
+        this.dispatchEvent('actions:close actionsClose', instance);
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('actions:closed actionsClosed', event);
+      onClosed: function onClosed(instance) {
+        this.dispatchEvent('actions:closed actionsClosed', instance);
       },
-
       open: function open(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.actions.open(self.$refs.el, animate);
+        if (!self.f7Actions) { return undefined; }
+        return self.f7Actions.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.actions.close(self.$refs.el, animate);
+        if (!self.f7Actions) { return undefined; }
+        return self.f7Actions.close(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
-  };
-
-  var eventsEmitter = {
-    listeners: {},
-    on: function on(events, handler) {
-      events.split(' ').forEach(function (event) {
-        if (!eventsEmitter.listeners[event]) { eventsEmitter.listeners[event] = []; }
-        eventsEmitter.listeners[event].unshift(handler);
-      });
-    },
-    off: function off(events, handler) {
-      events.split(' ').forEach(function (event) {
-        if (!eventsEmitter.listeners[event]) { return; }
-        if (typeof handler === 'undefined') {
-          eventsEmitter.listeners[event] = [];
-        } else {
-          eventsEmitter.listeners[event].forEach(function (eventHandler, index) {
-            if (eventHandler === handler) {
-              eventsEmitter.listeners[event].splice(index, 1);
-            }
-          });
-        }
-      });
-    },
-    once: function once(events, handler) {
-      if (typeof handler !== 'function') { return; }
-      function onceHandler() {
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
-
-        handler.apply(void 0, args);
-        eventsEmitter.off(events, onceHandler);
-      }
-      eventsEmitter.on(events, onceHandler);
-    },
-    emit: function emit(events) {
-      var args = [], len = arguments.length - 1;
-      while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
-
-      events.split(' ').forEach(function (event) {
-        if (eventsEmitter.listeners && eventsEmitter.listeners[event]) {
-          var handlers = [];
-          eventsEmitter.listeners[event].forEach(function (eventHandler) {
-            handlers.push(eventHandler);
-          });
-          handlers.forEach(function (eventHandler) {
-            eventHandler.apply(void 0, args);
-          });
-        }
-      });
-    },
   };
 
   var f7 = {
     instance: null,
     Framework7: null,
+    events: null,
     init: function init(rootEl, params, routes) {
       if ( params === void 0 ) params = {};
 
+      var events = f7.events;
+      var Framework7 = f7.Framework7;
       var f7Params = Utils.extend({}, params, {
         root: rootEl,
       });
       if (routes && routes.length && !f7Params.routes) { f7Params.routes = routes; }
 
-      var instance = new f7.Framework7(f7Params);
+      var instance = new Framework7(f7Params);
       if (instance.initialized) {
         f7.instance = instance;
-        eventsEmitter.emit('ready', f7.instance);
+        events.emit('ready', f7.instance);
       } else {
         instance.on('init', function () {
           f7.instance = instance;
-          eventsEmitter.emit('ready', f7.instance);
+          events.emit('ready', f7.instance);
         });
       }
     },
@@ -980,7 +908,7 @@
       if (!callback) { return; }
       if (f7.instance) { callback(f7.instance); }
       else {
-        eventsEmitter.once('ready', callback);
+        f7.events.once('ready', callback);
       }
     },
     routers: {
@@ -1004,21 +932,19 @@
     if (typeof callback === 'function') { callback(); }
   }
 
-  var RoutableModals = {
+  var f7RoutableModals = {
     name: 'f7-routable-modals',
-
     data: function data() {
-      var state = (function () {
+      var state = function () {
         return {
           modals: []
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       return _h('div', {
@@ -1034,13 +960,11 @@
         }
       })]);
     },
-
     updated: function updated() {
       var self = this;
       if (!self.routerData) { return; }
-      eventsEmitter.emit('modalsRouterDidUpdate', self.routerData);
+      f7.events.emit('modalsRouterDidUpdate', self.routerData);
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (!self.routerData) { return; }
@@ -1048,25 +972,25 @@
       self.routerData = null;
       delete self.routerData;
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      self.setState({
-        modals: []
-      });
       self.routerData = {
+        modals: self.state.modals,
         el: el,
-        component: self
+        component: self,
+        setModals: function setModals(modals) {
+          self.setState({
+            modals: modals
+          });
+        }
       };
       f7.routers.modals = self.routerData;
     },
-
     methods: {
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     }
   };
 
@@ -1077,28 +1001,13 @@
       params: Object,
       routes: Array
     }, Mixins.colorProps),
-
-    data: function data() {
-      var props = __vueComponentProps(this);
-
-      var state = (function () {
-        return {
-          modals: []
-        };
-      })();
-
-      return {
-        state: state
-      };
-    },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          className = props.className;
       var classes = Utils.classNames(className, 'framework7-root', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -1107,14 +1016,14 @@
         attrs: {
           id: id || 'framework7-root'
         }
-      }, [this.$slots['default'], _h(RoutableModals)]);
+      }, [this.$slots['default'], _h(f7RoutableModals)]);
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.props;
-      var params = ref.params; if ( params === void 0 ) params = {};
-      var routes = ref.routes;
+      var _self$props = self.props,
+          _self$props$params = _self$props.params,
+          params = _self$props$params === void 0 ? {} : _self$props$params,
+          routes = _self$props.routes;
       var el = self.$refs.el;
       var parentEl = el.parentNode;
 
@@ -1124,12 +1033,10 @@
 
       f7.init(el, params, routes);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1146,19 +1053,18 @@
       innerClass: String,
       innerClassName: String
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var inner = props.inner;
-      var innerClass = props.innerClass;
-      var innerClassName = props.innerClassName;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var noShadow = props.noShadow;
-      var noHairline = props.noHairline;
+      var inner = props.inner,
+          innerClass = props.innerClass,
+          innerClassName = props.innerClassName,
+          className = props.className,
+          id = props.id,
+          style = props.style,
+          noShadow = props.noShadow,
+          noHairline = props.noHairline;
       var innerEl;
 
       if (inner) {
@@ -1181,27 +1087,24 @@
         }
       }, [this.$slots['before-inner'], innerEl || self.$slots.default, this.$slots['after-inner']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Badge = {
+  var f7Badge = {
     name: 'f7-badge',
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'badge', Mixins.colorClasses(props));
       return _h('span', {
         style: style,
@@ -1211,12 +1114,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1225,13 +1126,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'block-footer', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -1241,12 +1141,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1255,13 +1153,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'block-header', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -1271,12 +1168,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1287,15 +1182,14 @@
       large: Boolean,
       medium: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var large = props.large;
-      var medium = props.medium;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          large = props.large,
+          medium = props.medium;
       var classes = Utils.classNames(className, 'block-title', {
         'block-title-large': large,
         'block-title-medium': medium
@@ -1308,12 +1202,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1322,7 +1214,11 @@
     props: Object.assign({
       id: [String, Number],
       inset: Boolean,
-      tabletInset: Boolean,
+      xsmallInset: Boolean,
+      smallInset: Boolean,
+      mediumInset: Boolean,
+      largeInset: Boolean,
+      xlargeInset: Boolean,
       strong: Boolean,
       tabs: Boolean,
       tab: Boolean,
@@ -1333,48 +1229,57 @@
       noHairlinesIos: Boolean,
       noHairlinesAurora: Boolean
     }, Mixins.colorProps),
-
     created: function created() {
       Utils.bindMethods(this, ['onTabShow', 'onTabHide']);
     },
-
     mounted: function mounted() {
-      var el = this.$refs.el;
+      var self = this;
+      var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('tab:show', this.onTabShow);
-      el.addEventListener('tab:hide', this.onTabHide);
+      self.eventTargetEl = el;
+      self.$f7ready(function (f7) {
+        f7.on('tabShow', self.onTabShow);
+        f7.on('tabHide', self.onTabHide);
+      });
     },
-
     beforeDestroy: function beforeDestroy() {
       var el = this.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('tab:show', this.onTabShow);
-      el.removeEventListener('tab:hide', this.onTabHide);
+      if (!el || !this.$f7) { return; }
+      this.$f7.off('tabShow', this.onTabShow);
+      this.$f7.off('tabHide', this.onTabHide);
+      delete this.eventTargetEl;
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var inset = props.inset;
-      var strong = props.strong;
-      var accordionList = props.accordionList;
-      var tabletInset = props.tabletInset;
-      var tabs = props.tabs;
-      var tab = props.tab;
-      var tabActive = props.tabActive;
-      var noHairlines = props.noHairlines;
-      var noHairlinesIos = props.noHairlinesIos;
-      var noHairlinesMd = props.noHairlinesMd;
-      var noHairlinesAurora = props.noHairlinesAurora;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          inset = props.inset,
+          xsmallInset = props.xsmallInset,
+          smallInset = props.smallInset,
+          mediumInset = props.mediumInset,
+          largeInset = props.largeInset,
+          xlargeInset = props.xlargeInset,
+          strong = props.strong,
+          accordionList = props.accordionList,
+          tabs = props.tabs,
+          tab = props.tab,
+          tabActive = props.tabActive,
+          noHairlines = props.noHairlines,
+          noHairlinesIos = props.noHairlinesIos,
+          noHairlinesMd = props.noHairlinesMd,
+          noHairlinesAurora = props.noHairlinesAurora,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'block', {
         inset: inset,
+        'xsmall-inset': xsmallInset,
+        'small-inset': smallInset,
+        'medium-inset': mediumInset,
+        'large-inset': largeInset,
+        'xlarge-inset': xlargeInset,
         'block-strong': strong,
         'accordion-list': accordionList,
-        'tablet-inset': tabletInset,
         tabs: tabs,
         tab: tab,
         'tab-active': tabActive,
@@ -1392,40 +1297,38 @@
         }
       }, [this.$slots['default']]);
     },
-
     methods: {
-      onTabShow: function onTabShow(event) {
-        this.dispatchEvent('tabShow tab:show', event);
+      onTabShow: function onTabShow(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tabShow tab:show');
       },
-
-      onTabHide: function onTabHide(event) {
-        this.dispatchEvent('tabHide tab:hide', event);
+      onTabHide: function onTabHide(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tabHide tab:hide');
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Icon = {
+  var f7Icon = {
     name: 'f7-icon',
     props: Object.assign({
       id: [String, Number],
       material: String,
       f7: String,
-      ion: String,
-      fa: String,
       icon: String,
       ios: String,
       aurora: String,
@@ -1433,17 +1336,50 @@
       tooltip: String,
       size: [String, Number]
     }, Mixins.colorProps),
+    data: function data() {
+      var _this = this;
 
+      var props = __vueComponentProps(this);
+
+      var state = function () {
+        var self = _this;
+        var $f7 = self.$f7;
+
+        if (!$f7) {
+          self.$f7ready(function () {
+            self.setState({
+              _theme: self.$theme
+            });
+          });
+        }
+
+        return {
+          _theme: $f7 ? self.$theme : null
+        };
+      }();
+
+      return {
+        state: state
+      };
+    },
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
+      var id = props.id,
+          style = props.style;
+      var size = props.size;
+
+      if (typeof size === 'number' || parseFloat(size) === size * 1) {
+        size = "".concat(size, "px");
+      }
+
       return _h('i', {
         ref: 'el',
         style: Utils.extend({
-          fontSize: self.sizeComputed
+          fontSize: size,
+          width: size,
+          height: size
         }, style),
         class: self.classes,
         attrs: {
@@ -1451,21 +1387,34 @@
         }
       }, [self.iconTextComputed, this.$slots['default']]);
     },
-
     watch: {
       'props.tooltip': function watchTooltip(newText) {
         var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
         if (!newText || !self.f7Tooltip) { return; }
         self.f7Tooltip.setText(newText);
       }
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      var ref = self.props;
-      var tooltip = ref.tooltip;
+      var tooltip = self.props.tooltip;
       if (!tooltip) { return; }
       self.$f7ready(function (f7) {
         self.f7Tooltip = f7.tooltip.create({
@@ -1474,7 +1423,6 @@
         });
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
 
@@ -1484,71 +1432,53 @@
         delete self.f7Tooltip;
       }
     },
-
     computed: {
-      sizeComputed: function sizeComputed() {
-        var self = this;
-        var size = self.props.size;
-
-        if (typeof size === 'number' || parseFloat(size) === size * 1) {
-          size = size + "px";
-        }
-
-        return size;
-      },
-
       iconTextComputed: function iconTextComputed() {
         var self = this;
-        var ref = self.props;
-        var material = ref.material;
-        var f7 = ref.f7;
-        var md = ref.md;
-        var ios = ref.ios;
-        var aurora = ref.aurora;
+        var _self$props = self.props,
+            material = _self$props.material,
+            f7 = _self$props.f7,
+            md = _self$props.md,
+            ios = _self$props.ios,
+            aurora = _self$props.aurora;
+        var theme = self.state._theme;
         var text = material || f7;
 
-        if (md && self.$theme.md && (md.indexOf('material:') >= 0 || md.indexOf('f7:') >= 0)) {
+        if (md && theme && theme.md && (md.indexOf('material:') >= 0 || md.indexOf('f7:') >= 0)) {
           text = md.split(':')[1];
-        } else if (ios && self.$theme.ios && (ios.indexOf('material:') >= 0 || ios.indexOf('f7:') >= 0)) {
+        } else if (ios && theme && theme.ios && (ios.indexOf('material:') >= 0 || ios.indexOf('f7:') >= 0)) {
           text = ios.split(':')[1];
-        } else if (aurora && self.$theme.aurora && (aurora.indexOf('material:') >= 0 || aurora.indexOf('f7:') >= 0)) {
+        } else if (aurora && theme && theme.aurora && (aurora.indexOf('material:') >= 0 || aurora.indexOf('f7:') >= 0)) {
           text = aurora.split(':')[1];
         }
 
         return text;
       },
-
       classes: function classes() {
         var classes = {
           icon: true
         };
         var self = this;
         var props = self.props;
-        var material = props.material;
-        var f7 = props.f7;
-        var fa = props.fa;
-        var ion = props.ion;
-        var icon = props.icon;
-        var md = props.md;
-        var ios = props.ios;
-        var aurora = props.aurora;
-        var className = props.className;
+        var theme = self.state._theme;
+        var material = props.material,
+            f7 = props.f7,
+            icon = props.icon,
+            md = props.md,
+            ios = props.ios,
+            aurora = props.aurora,
+            className = props.className;
         var themeIcon;
-        if (self.$theme.ios) { themeIcon = ios; }else if (self.$theme.md) { themeIcon = md; }else if (self.$theme.aurora) { themeIcon = aurora; }
+        if (theme && theme.ios) { themeIcon = ios; }else if (theme && theme.md) { themeIcon = md; }else if (theme && theme.aurora) { themeIcon = aurora; }
 
         if (themeIcon) {
           var parts = themeIcon.split(':');
           var prop = parts[0];
           var value = parts[1];
 
-          if (prop === 'material' || prop === 'fa' || prop === 'f7') {
-            classes.fa = prop === 'fa';
+          if (prop === 'material' || prop === 'f7') {
             classes['material-icons'] = prop === 'material';
             classes['f7-icons'] = prop === 'f7';
-          }
-
-          if (prop === 'fa' || prop === 'ion') {
-            classes[(prop + "-" + value)] = true;
           }
 
           if (prop === 'icon') {
@@ -1558,21 +1488,21 @@
           classes = {
             icon: true,
             'material-icons': material,
-            'f7-icons': f7,
-            fa: fa
+            'f7-icons': f7
           };
-          if (ion) { classes[("ion-" + ion)] = true; }
-          if (fa) { classes[("fa-" + fa)] = true; }
           if (icon) { classes[icon] = true; }
         }
 
         return Utils.classNames(className, classes, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
+    },
+    methods: {
+      setState: function setState(updater, callback) {
+        __vueComponentSetState(this, updater, callback);
+      }
     }
   };
 
@@ -1618,11 +1548,10 @@
     name: 'f7-button',
     props: Object.assign({
       id: [String, Number],
-      noFastclick: Boolean,
-      noFastClick: Boolean,
       text: String,
       tabLink: [Boolean, String],
       tabLinkActive: Boolean,
+      type: String,
       href: {
         type: [String, Boolean],
         default: '#'
@@ -1655,38 +1584,34 @@
       active: Boolean,
       disabled: Boolean,
       tooltip: String
-    }, Mixins.colorProps, Mixins.linkIconProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+    }, Mixins.colorProps, {}, Mixins.linkIconProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var iconEl;
       var textEl;
       var props = self.props;
-      var text = props.text;
-      var icon = props.icon;
-      var iconMaterial = props.iconMaterial;
-      var iconIon = props.iconIon;
-      var iconFa = props.iconFa;
-      var iconF7 = props.iconF7;
-      var iconMd = props.iconMd;
-      var iconIos = props.iconIos;
-      var iconAurora = props.iconAurora;
-      var iconColor = props.iconColor;
-      var iconSize = props.iconSize;
-      var id = props.id;
-      var style = props.style;
+      var text = props.text,
+          icon = props.icon,
+          iconMaterial = props.iconMaterial,
+          iconF7 = props.iconF7,
+          iconMd = props.iconMd,
+          iconIos = props.iconIos,
+          iconAurora = props.iconAurora,
+          iconColor = props.iconColor,
+          iconSize = props.iconSize,
+          id = props.id,
+          style = props.style,
+          type = props.type;
 
       if (text) {
         textEl = _h('span', [text]);
       }
 
-      if (icon || iconMaterial || iconIon || iconFa || iconF7 || iconMd || iconIos || iconAurora) {
-        iconEl = _h(F7Icon, {
+      if (icon || iconMaterial || iconF7 || iconMd || iconIos || iconAurora) {
+        iconEl = _h(f7Icon, {
           attrs: {
             material: iconMaterial,
-            ion: iconIon,
-            fa: iconFa,
             f7: iconF7,
             icon: icon,
             md: iconMd,
@@ -1698,7 +1623,8 @@
         });
       }
 
-      return _h('a', __vueComponentTransformJSXProps(Object.assign({
+      var ButtonTag = type === 'submit' || type === 'reset' || type === 'button' ? 'button' : 'a';
+      return _h(ButtonTag, __vueComponentTransformJSXProps(Object.assign({
         ref: 'el',
         style: style,
         class: self.classes
@@ -1708,62 +1634,59 @@
         }
       })), [iconEl, textEl, this.$slots['default']]);
     },
-
     computed: {
       attrs: function attrs() {
         var self = this;
         var props = self.props;
-        var href = props.href;
-        var target = props.target;
-        var tabLink = props.tabLink;
+        var href = props.href,
+            target = props.target,
+            tabLink = props.tabLink,
+            type = props.type;
         var hrefComputed = href;
         if (href === true) { hrefComputed = '#'; }
         if (href === false) { hrefComputed = undefined; }
         return Utils.extend({
           href: hrefComputed,
           target: target,
+          type: type,
           'data-tab': Utils.isStringProp(tabLink) && tabLink || undefined
         }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
       },
-
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var noFastclick = props.noFastclick;
-        var noFastClick = props.noFastClick;
-        var tabLink = props.tabLink;
-        var tabLinkActive = props.tabLinkActive;
-        var round = props.round;
-        var roundIos = props.roundIos;
-        var roundAurora = props.roundAurora;
-        var roundMd = props.roundMd;
-        var fill = props.fill;
-        var fillIos = props.fillIos;
-        var fillAurora = props.fillAurora;
-        var fillMd = props.fillMd;
-        var large = props.large;
-        var largeIos = props.largeIos;
-        var largeAurora = props.largeAurora;
-        var largeMd = props.largeMd;
-        var small = props.small;
-        var smallIos = props.smallIos;
-        var smallAurora = props.smallAurora;
-        var smallMd = props.smallMd;
-        var raised = props.raised;
-        var raisedIos = props.raisedIos;
-        var raisedAurora = props.raisedAurora;
-        var raisedMd = props.raisedMd;
-        var active = props.active;
-        var outline = props.outline;
-        var outlineIos = props.outlineIos;
-        var outlineAurora = props.outlineAurora;
-        var outlineMd = props.outlineMd;
-        var disabled = props.disabled;
-        var className = props.className;
+        var tabLink = props.tabLink,
+            tabLinkActive = props.tabLinkActive,
+            round = props.round,
+            roundIos = props.roundIos,
+            roundAurora = props.roundAurora,
+            roundMd = props.roundMd,
+            fill = props.fill,
+            fillIos = props.fillIos,
+            fillAurora = props.fillAurora,
+            fillMd = props.fillMd,
+            large = props.large,
+            largeIos = props.largeIos,
+            largeAurora = props.largeAurora,
+            largeMd = props.largeMd,
+            small = props.small,
+            smallIos = props.smallIos,
+            smallAurora = props.smallAurora,
+            smallMd = props.smallMd,
+            raised = props.raised,
+            raisedIos = props.raisedIos,
+            raisedAurora = props.raisedAurora,
+            raisedMd = props.raisedMd,
+            active = props.active,
+            outline = props.outline,
+            outlineIos = props.outlineIos,
+            outlineAurora = props.outlineAurora,
+            outlineMd = props.outlineMd,
+            disabled = props.disabled,
+            className = props.className;
         return Utils.classNames(className, 'button', {
           'tab-link': tabLink || tabLink === '',
           'tab-link-active': tabLinkActive,
-          'no-fastclick': noFastclick || noFastClick,
           'button-round': round,
           'button-round-ios': roundIos,
           'button-round-aurora': roundAurora,
@@ -1792,44 +1715,57 @@
           disabled: disabled
         }, Mixins.colorClasses(props), Mixins.linkRouterClasses(props), Mixins.linkActionsClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     watch: {
       'props.tooltip': function watchTooltip(newText) {
         var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
         if (!newText || !self.f7Tooltip) { return; }
         self.f7Tooltip.setText(newText);
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       el.addEventListener('click', self.onClick);
-      var ref = self.props;
-      var tooltip = ref.tooltip;
-      var routeProps = ref.routeProps;
+      var _self$props = self.props,
+          tooltip = _self$props.tooltip,
+          routeProps = _self$props.routeProps;
 
       if (routeProps) {
         el.f7RouteProps = routeProps;
@@ -1843,18 +1779,15 @@
         });
       });
     },
-
     updated: function updated() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
 
       if (routeProps) {
         el.f7RouteProps = routeProps;
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
@@ -1867,10 +1800,9 @@
         delete self.f7Tooltip;
       }
     }
-
   };
 
-  var F7CardContent = {
+  var f7CardContent = {
     name: 'f7-card-content',
     props: Object.assign({
       id: [String, Number],
@@ -1879,14 +1811,13 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var padding = props.padding;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          padding = props.padding;
       var classes = Utils.classNames(className, 'card-content', {
         'card-content-padding': padding
       }, Mixins.colorClasses(props));
@@ -1898,27 +1829,24 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7CardFooter = {
+  var f7CardFooter = {
     name: 'f7-card-footer',
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'card-footer', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -1928,27 +1856,24 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7CardHeader = {
+  var f7CardHeader = {
     name: 'f7-card-header',
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'card-header', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -1958,12 +1883,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -1978,6 +1901,38 @@
       expandable: Boolean,
       expandableAnimateWidth: Boolean,
       expandableOpened: Boolean,
+      animate: {
+        type: Boolean,
+        default: undefined
+      },
+      hideNavbarOnOpen: {
+        type: Boolean,
+        default: undefined
+      },
+      hideToolbarOnOpen: {
+        type: Boolean,
+        default: undefined
+      },
+      hideStatusbarOnOpen: {
+        type: Boolean,
+        default: undefined
+      },
+      swipeToClose: {
+        type: Boolean,
+        default: undefined
+      },
+      closeByBackdropClick: {
+        type: Boolean,
+        default: undefined
+      },
+      backdrop: {
+        type: Boolean,
+        default: undefined
+      },
+      backdropEl: {
+        type: String,
+        default: undefined
+      },
       noShadow: Boolean,
       noBorder: Boolean,
       padding: {
@@ -1996,57 +1951,64 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, 'onBeforeOpen onOpen onOpened onClose onClosed'.split(' '));
     },
-
     mounted: function mounted() {
       var self = this;
       if (!self.props.expandable) { return; }
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('card:beforeopen', self.onBeforeOpen);
-      el.addEventListener('card:open', self.onOpen);
-      el.addEventListener('card:opened', self.onOpened);
-      el.addEventListener('card:close', self.onClose);
-      el.addEventListener('card:closed', self.onClosed);
+      self.eventTargetEl = el;
+      self.$f7ready(function (f7) {
+        f7.on('cardBeforeOpen', self.onBeforeOpen);
+        f7.on('cardOpen', self.onOpen);
+        f7.on('cardOpened', self.onOpened);
+        f7.on('cardClose', self.onClose);
+        f7.on('cardClosed', self.onClosed);
 
-      if (self.props.expandable && self.props.expandableOpened) {
-        self.$f7ready(function () {
+        if (self.props.expandable && self.props.expandableOpened) {
           self.$f7.card.open(el, false);
-        });
-      }
+        }
+      });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (!self.props.expandable) { return; }
       var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('card:beforeopen', self.onBeforeOpen);
-      el.removeEventListener('card:open', self.onOpen);
-      el.removeEventListener('card:opened', self.onOpened);
-      el.removeEventListener('card:close', self.onClose);
-      el.removeEventListener('card:closed', self.onClosed);
+      if (!el || !self.$f7) { return; }
+      self.$f7.off('cardBeforeOpen', self.onBeforeOpen);
+      self.$f7.off('cardOpen', self.onOpen);
+      self.$f7.off('cardOpened', self.onOpened);
+      self.$f7.off('cardClose', self.onClose);
+      self.$f7.off('cardClosed', self.onClosed);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var title = props.title;
-      var content = props.content;
-      var footer = props.footer;
-      var padding = props.padding;
-      var outline = props.outline;
-      var expandable = props.expandable;
-      var expandableAnimateWidth = props.expandableAnimateWidth;
-      var noShadow = props.noShadow;
-      var noBorder = props.noBorder;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          title = props.title,
+          content = props.content,
+          footer = props.footer,
+          padding = props.padding,
+          outline = props.outline,
+          expandable = props.expandable,
+          expandableAnimateWidth = props.expandableAnimateWidth,
+          animate = props.animate,
+          hideNavbarOnOpen = props.hideNavbarOnOpen,
+          hideToolbarOnOpen = props.hideToolbarOnOpen,
+          hideStatusbarOnOpen = props.hideStatusbarOnOpen,
+          swipeToClose = props.swipeToClose,
+          closeByBackdropClick = props.closeByBackdropClick,
+          backdrop = props.backdrop,
+          backdropEl = props.backdropEl,
+          noShadow = props.noShadow,
+          noBorder = props.noBorder;
       var headerEl;
       var contentEl;
       var footerEl;
@@ -2059,11 +2021,11 @@
       }, Mixins.colorClasses(props));
 
       if (title || self.$slots && self.$slots.header) {
-        headerEl = _h(F7CardHeader, [title, this.$slots['header']]);
+        headerEl = _h(f7CardHeader, [title, this.$slots['header']]);
       }
 
       if (content || self.$slots && self.$slots.content) {
-        contentEl = _h(F7CardContent, {
+        contentEl = _h(f7CardContent, {
           attrs: {
             padding: padding
           }
@@ -2071,7 +2033,7 @@
       }
 
       if (footer || self.$slots && self.$slots.footer) {
-        footerEl = _h(F7CardFooter, [footer, this.$slots['footer']]);
+        footerEl = _h(f7CardFooter, [footer, this.$slots['footer']]);
       }
 
       return _h('div', {
@@ -2079,57 +2041,63 @@
         class: classes,
         ref: 'el',
         attrs: {
-          id: id
+          id: id,
+          'data-animate': typeof animate === 'undefined' ? animate : animate.toString(),
+          'data-hide-navbar-on-open': typeof hideNavbarOnOpen === 'undefined' ? hideNavbarOnOpen : hideNavbarOnOpen.toString(),
+          'data-hide-toolbar-on-open': typeof hideToolbarOnOpen === 'undefined' ? hideToolbarOnOpen : hideToolbarOnOpen.toString(),
+          'data-hide-statusbar-on-open': typeof hideStatusbarOnOpen === 'undefined' ? hideStatusbarOnOpen : hideStatusbarOnOpen.toString(),
+          'data-swipe-to-close': typeof swipeToClose === 'undefined' ? swipeToClose : swipeToClose.toString(),
+          'data-close-by-backdrop-click': typeof closeByBackdropClick === 'undefined' ? closeByBackdropClick : closeByBackdropClick.toString(),
+          'data-backdrop': typeof backdrop === 'undefined' ? backdrop : backdrop.toString(),
+          'data-backdrop-el': backdropEl
         }
       }, [headerEl, contentEl, footerEl, this.$slots['default']]);
     },
-
     methods: {
       open: function open() {
         var self = this;
         if (!self.$refs.el) { return; }
         self.$f7.card.open(self.$refs.el);
       },
-
       close: function close() {
         var self = this;
         if (!self.$refs.el) { return; }
         self.$f7.card.close(self.$refs.el);
       },
-
-      onBeforeOpen: function onBeforeOpen(e) {
-        this.dispatchEvent('cardBeforeOpen card:beforeopen', e, e.detail.prevent);
+      onBeforeOpen: function onBeforeOpen(el, prevent) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('cardBeforeOpen card:beforeopen', el, prevent);
       },
-
-      onOpen: function onOpen(e) {
-        this.dispatchEvent('cardOpen card:open', e);
+      onOpen: function onOpen(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('cardOpen card:open', el);
       },
-
-      onOpened: function onOpened(e) {
-        this.dispatchEvent('cardOpened card:opened', e);
+      onOpened: function onOpened(el, pageEl) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('cardOpened card:opened', el, pageEl);
       },
-
-      onClose: function onClose(e) {
-        this.dispatchEvent('cardClose card:close', e);
+      onClose: function onClose(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('cardClose card:close', el);
       },
-
-      onClosed: function onClosed(e) {
-        this.dispatchEvent('cardClosed card:closed', e);
+      onClosed: function onClosed(el, pageEl) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('cardClosed card:closed', el, pageEl);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -2138,25 +2106,25 @@
     props: Object.assign({
       id: [String, Number],
       checked: Boolean,
+      indeterminate: Boolean,
       name: [Number, String],
       value: [Number, String, Boolean],
       disabled: Boolean,
       readonly: Boolean,
       defaultChecked: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var name = props.name;
-      var value = props.value;
-      var disabled = props.disabled;
-      var readonly = props.readonly;
-      var checked = props.checked;
-      var defaultChecked = props.defaultChecked;
-      var id = props.id;
-      var style = props.style;
+      var name = props.name,
+          value = props.value,
+          disabled = props.disabled,
+          readonly = props.readonly,
+          checked = props.checked,
+          defaultChecked = props.defaultChecked,
+          id = props.id,
+          style = props.style;
       var inputEl;
       {
         inputEl = _h('input', {
@@ -2189,41 +2157,55 @@
         }
       }, [inputEl, iconEl, this.$slots['default']]);
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var className = props.className;
-        var disabled = props.disabled;
+        var className = props.className,
+            disabled = props.disabled;
         return Utils.classNames(className, {
           checkbox: true,
           disabled: disabled
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onChange']);
     },
+    mounted: function mounted() {
+      var self = this;
+      var inputEl = self.$refs.inputEl;
+      var indeterminate = self.props.indeterminate;
 
+      if (indeterminate && inputEl) {
+        inputEl.indeterminate = true;
+      }
+    },
+    updated: function updated() {
+      var self = this;
+      var inputEl = self.$refs.inputEl;
+      var indeterminate = self.props.indeterminate;
+
+      if (inputEl) {
+        inputEl.indeterminate = indeterminate;
+      }
+    },
     methods: {
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -2238,26 +2220,25 @@
       mediaTextColor: String,
       outline: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var media = props.media;
-      var text = props.text;
-      var deleteable = props.deleteable;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var mediaTextColor = props.mediaTextColor;
-      var mediaBgColor = props.mediaBgColor;
-      var outline = props.outline;
+      var media = props.media,
+          text = props.text,
+          deleteable = props.deleteable,
+          className = props.className,
+          id = props.id,
+          style = props.style,
+          mediaTextColor = props.mediaTextColor,
+          mediaBgColor = props.mediaBgColor,
+          outline = props.outline;
       var mediaEl;
       var labelEl;
       var deleteEl;
 
       if (media || self.$slots && self.$slots.media) {
-        var mediaClasses = Utils.classNames('chip-media', mediaTextColor && ("text-color-" + mediaTextColor), mediaBgColor && ("bg-color-" + mediaBgColor));
+        var mediaClasses = Utils.classNames('chip-media', mediaTextColor && "text-color-".concat(mediaTextColor), mediaBgColor && "bg-color-".concat(mediaBgColor));
         mediaEl = _h('div', {
           class: mediaClasses
         }, [media || this.$slots['media']]);
@@ -2272,10 +2253,7 @@
       if (deleteable) {
         deleteEl = _h('a', {
           ref: 'deleteEl',
-          class: 'chip-delete',
-          attrs: {
-            href: '#'
-          }
+          class: 'chip-delete'
         });
       }
 
@@ -2291,11 +2269,9 @@
         }
       }, [mediaEl, labelEl, deleteEl]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick', 'onDeleteClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
 
@@ -2303,7 +2279,6 @@
         this.$refs.deleteEl.addEventListener('click', this.onDeleteClick);
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
 
@@ -2311,32 +2286,31 @@
         this.$refs.deleteEl.removeEventListener('click', this.onDeleteClick);
       }
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       onDeleteClick: function onDeleteClick(event) {
         this.dispatchEvent('delete', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
+  function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
   var f7Col = {
     name: 'f7-col',
     props: Object.assign({
@@ -2349,31 +2323,42 @@
         type: [Number, String],
         default: 'auto'
       },
-      tabletWidth: {
+      xsmall: {
         type: [Number, String]
       },
-      desktopWidth: {
+      small: {
+        type: [Number, String]
+      },
+      medium: {
+        type: [Number, String]
+      },
+      large: {
+        type: [Number, String]
+      },
+      xlarge: {
         type: [Number, String]
       }
     }, Mixins.colorProps),
-
     render: function render() {
-      var obj;
+      var _Utils$classNames;
 
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var tag = props.tag;
-      var width = props.width;
-      var tabletWidth = props.tabletWidth;
-      var desktopWidth = props.desktopWidth;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          tag = props.tag,
+          width = props.width,
+          xsmall = props.xsmall,
+          small = props.small,
+          medium = props.medium,
+          large = props.large,
+          xlarge = props.xlarge;
       var ColTag = tag;
-      var classes = Utils.classNames(className, ( obj = {
+      var classes = Utils.classNames(className, (_Utils$classNames = {
         col: width === 'auto'
-      }, obj[("col-" + width)] = width !== 'auto', obj[("tablet-" + tabletWidth)] = tabletWidth, obj[("desktop-" + desktopWidth)] = desktopWidth, obj ), Mixins.colorClasses(props));
+      }, _defineProperty(_Utils$classNames, "col-".concat(width), width !== 'auto'), _defineProperty(_Utils$classNames, "xsmall-".concat(xsmall), xsmall), _defineProperty(_Utils$classNames, "small-".concat(small), small), _defineProperty(_Utils$classNames, "medium-".concat(medium), medium), _defineProperty(_Utils$classNames, "large-".concat(large), large), _defineProperty(_Utils$classNames, "xlarge-".concat(xlarge), xlarge), _Utils$classNames), Mixins.colorClasses(props));
       return _h(ColTag, {
         style: style,
         class: classes,
@@ -2383,37 +2368,33 @@
         }
       }, [this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -2426,16 +2407,15 @@
       target: String,
       tooltip: String
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var fabClose = props.fabClose;
-      var label = props.label;
-      var target = props.target;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          fabClose = props.fabClose,
+          label = props.label,
+          target = props.target;
       var classes = Utils.classNames(className, {
         'fab-close': fabClose,
         'fab-label-button': label
@@ -2458,20 +2438,13 @@
         }
       }, [this.$slots['default'], labelEl]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
-    created: function created() {
-      this.onClick = this.onClick.bind(this);
-    },
-
     mounted: function mounted() {
       var self = this;
       self.$refs.el.addEventListener('click', self.onClick);
-      var ref = self.props;
-      var tooltip = ref.tooltip;
+      var tooltip = self.props.tooltip;
       if (!tooltip) { return; }
       self.$f7ready(function (f7) {
         self.f7Tooltip = f7.tooltip.create({
@@ -2480,7 +2453,6 @@
         });
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       self.$refs.el.removeEventListener('click', self.onClick);
@@ -2491,23 +2463,39 @@
         delete self.f7Tooltip;
       }
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     watch: {
       'props.tooltip': function watchTooltip(newText) {
         var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
         if (!newText || !self.f7Tooltip) { return; }
         self.f7Tooltip.setText(newText);
       }
@@ -2516,7 +2504,6 @@
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -2529,15 +2516,14 @@
         default: 'top'
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var position = props.position;
-      var classes = Utils.classNames(className, 'fab-buttons', ("fab-buttons-" + position), Mixins.colorClasses(props));
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          position = props.position;
+      var classes = Utils.classNames(className, 'fab-buttons', "fab-buttons-".concat(position), Mixins.colorClasses(props));
       return _h('div', {
         style: style,
         class: classes,
@@ -2546,12 +2532,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -2569,34 +2553,33 @@
       },
       tooltip: String
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var morphTo = props.morphTo;
-      var initialHref = props.href;
-      var position = props.position;
-      var text = props.text;
-      var target = props.target;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          morphTo = props.morphTo,
+          initialHref = props.href,
+          position = props.position,
+          text = props.text,
+          target = props.target;
       var href = initialHref;
       if (href === true) { href = '#'; }
       if (href === false) { href = undefined; }
       var linkChildren = [];
       var rootChildren = [];
-      var ref = self.$slots;
-      var linkSlots = ref.link;
-      var defaultSlots = ref.default;
-      var rootSlots = ref.root;
-      var textSlots = ref.text;
+      var _self$$slots = self.$slots,
+          linkSlots = _self$$slots.link,
+          defaultSlots = _self$$slots.default,
+          rootSlots = _self$$slots.root,
+          textSlots = _self$$slots.text;
 
       if (defaultSlots) {
         for (var i = 0; i < defaultSlots.length; i += 1) {
           var child = defaultSlots[i];
-          var isRoot = (void 0);
+          var isRoot = void 0;
           {
             if (child.tag && child.tag.indexOf('fab-buttons') >= 0) { isRoot = true; }
           }
@@ -2625,7 +2608,7 @@
         }, [linkChildren, textEl, linkSlots]);
       }
 
-      var classes = Utils.classNames(className, 'fab', ("fab-" + position), {
+      var classes = Utils.classNames(className, 'fab', "fab-".concat(position), {
         'fab-morph': morphTo,
         'fab-extended': typeof textEl !== 'undefined'
       }, Mixins.colorClasses(props));
@@ -2638,19 +2621,32 @@
         }
       }, [linkEl, rootChildren, rootSlots]);
     },
-
     watch: {
       'props.tooltip': function watchTooltip(newText) {
         var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
         if (!newText || !self.f7Tooltip) { return; }
         self.f7Tooltip.setText(newText);
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       var self = this;
 
@@ -2658,8 +2654,7 @@
         self.$refs.linkEl.addEventListener('click', self.onClick);
       }
 
-      var ref = self.props;
-      var tooltip = ref.tooltip;
+      var tooltip = self.props.tooltip;
       if (!tooltip) { return; }
       self.$f7ready(function (f7) {
         self.f7Tooltip = f7.tooltip.create({
@@ -2668,7 +2663,6 @@
         });
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
 
@@ -2682,26 +2676,25 @@
         delete self.f7Tooltip;
       }
     },
-
     methods: {
       onClick: function onClick(event) {
         var self = this;
         self.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -2764,28 +2757,27 @@
       }
     },
     name: 'f7-gauge',
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var type = props.type;
-      var value = props.value;
-      var size = props.size;
-      var bgColor = props.bgColor;
-      var borderBgColor = props.borderBgColor;
-      var borderColor = props.borderColor;
-      var borderWidth = props.borderWidth;
-      var valueText = props.valueText;
-      var valueTextColor = props.valueTextColor;
-      var valueFontSize = props.valueFontSize;
-      var valueFontWeight = props.valueFontWeight;
-      var labelText = props.labelText;
-      var labelTextColor = props.labelTextColor;
-      var labelFontSize = props.labelFontSize;
-      var labelFontWeight = props.labelFontWeight;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          type = props.type,
+          value = props.value,
+          size = props.size,
+          bgColor = props.bgColor,
+          borderBgColor = props.borderBgColor,
+          borderColor = props.borderColor,
+          borderWidth = props.borderWidth,
+          valueText = props.valueText,
+          valueTextColor = props.valueTextColor,
+          valueFontSize = props.valueFontSize,
+          valueFontWeight = props.valueFontWeight,
+          labelText = props.labelText,
+          labelTextColor = props.labelTextColor,
+          labelFontSize = props.labelFontSize,
+          labelFontWeight = props.labelFontWeight;
       var classes = Utils.classNames(className, 'gauge');
       var semiCircle = type === 'semicircle';
       var radius = size / 2 - borderWidth / 2;
@@ -2800,14 +2792,14 @@
       }, [_h('svg', {
         class: 'gauge-svg',
         attrs: {
-          width: (size + "px"),
-          height: ((semiCircle ? size / 2 : size) + "px"),
-          viewBox: ("0 0 " + size + " " + (semiCircle ? size / 2 : size))
+          width: "".concat(size, "px"),
+          height: "".concat(semiCircle ? size / 2 : size, "px"),
+          viewBox: "0 0 ".concat(size, " ").concat(semiCircle ? size / 2 : size)
         }
       }, [semiCircle && _h('path', {
         class: 'gauge-back-semi',
         attrs: {
-          d: ("M" + (size - borderWidth / 2) + "," + (size / 2) + " a1,1 0 0,0 -" + (size - borderWidth) + ",0"),
+          d: "M".concat(size - borderWidth / 2, ",").concat(size / 2, " a1,1 0 0,0 -").concat(size - borderWidth, ",0"),
           stroke: borderBgColor,
           'stroke-width': borderWidth,
           fill: bgColor || 'none'
@@ -2815,7 +2807,7 @@
       }), semiCircle && _h('path', {
         class: 'gauge-front-semi',
         attrs: {
-          d: ("M" + (size - borderWidth / 2) + "," + (size / 2) + " a1,1 0 0,0 -" + (size - borderWidth) + ",0"),
+          d: "M".concat(size - borderWidth / 2, ",").concat(size / 2, " a1,1 0 0,0 -").concat(size - borderWidth, ",0"),
           stroke: borderColor,
           'stroke-width': borderWidth,
           'stroke-dasharray': length / 2,
@@ -2835,7 +2827,7 @@
       }), !semiCircle && _h('circle', {
         class: 'gauge-front-circle',
         attrs: {
-          transform: ("rotate(-90 " + (size / 2) + " " + (size / 2) + ")"),
+          transform: "rotate(-90 ".concat(size / 2, " ").concat(size / 2, ")"),
           stroke: borderColor,
           'stroke-width': borderWidth,
           'stroke-dasharray': length,
@@ -2871,16 +2863,14 @@
         }
       }, [labelText])])]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Toggle = {
+  var f7Toggle = {
     name: 'f7-toggle',
     props: Object.assign({
       id: [String, Number],
@@ -2895,20 +2885,19 @@
       name: String,
       value: [String, Number, Array]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var disabled = props.disabled;
-      var id = props.id;
-      var style = props.style;
-      var name = props.name;
-      var readonly = props.readonly;
-      var checked = props.checked;
-      var defaultChecked = props.defaultChecked;
-      var value = props.value;
+      var className = props.className,
+          disabled = props.disabled,
+          id = props.id,
+          style = props.style,
+          name = props.name,
+          readonly = props.readonly,
+          checked = props.checked,
+          defaultChecked = props.defaultChecked,
+          value = props.value;
       var labelClasses = Utils.classNames('toggle', className, {
         disabled: disabled
       }, Mixins.colorClasses(props));
@@ -2942,7 +2931,6 @@
         class: 'toggle-icon'
       })]);
     },
-
     watch: {
       'props.checked': function watchChecked(newValue) {
         var self = this;
@@ -2950,11 +2938,9 @@
         self.f7Toggle.checked = newValue;
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onChange']);
     },
-
     mounted: function mounted() {
       var self = this;
       if (!self.props.init) { return; }
@@ -2966,45 +2952,41 @@
               var checked = toggle.checked;
               self.dispatchEvent('toggle:change toggleChange', checked);
             }
-
           }
         });
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Toggle && self.f7Toggle.destroy && self.f7Toggle.$el) { self.f7Toggle.destroy(); }
     },
-
     methods: {
       toggle: function toggle() {
         var self = this;
         if (self.f7Toggle && self.f7Toggle.toggle) { self.f7Toggle.toggle(); }
       },
-
       onChange: function onChange(event) {
         var self = this;
         self.dispatchEvent('change', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Range = {
+  var f7Range = {
     name: 'f7-range',
     props: Object.assign({
       id: [String, Number],
@@ -3062,26 +3044,29 @@
         default: 0
       },
       formatScaleLabel: Function,
+      limitKnobPosition: {
+        type: Boolean,
+        default: undefined
+      },
       name: String,
       input: Boolean,
       inputId: String,
       disabled: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var ref = self.props;
-      var id = ref.id;
-      var disabled = ref.disabled;
-      var className = ref.className;
-      var style = ref.style;
-      var input = ref.input;
-      var inputId = ref.inputId;
-      var name = ref.name;
-      var vertical = ref.vertical;
-      var verticalReversed = ref.verticalReversed;
+      var _self$props = self.props,
+          id = _self$props.id,
+          disabled = _self$props.disabled,
+          className = _self$props.className,
+          style = _self$props.style,
+          input = _self$props.input,
+          inputId = _self$props.inputId,
+          name = _self$props.name,
+          vertical = _self$props.vertical,
+          verticalReversed = _self$props.verticalReversed;
       var classes = Utils.classNames(className, 'range-slider', {
         'range-slider-horizontal': !vertical,
         'range-slider-vertical': vertical,
@@ -3103,7 +3088,6 @@
         }
       }), this.$slots['default']]);
     },
-
     watch: {
       'props.value': function watchValue(newValue) {
         var self = this;
@@ -3111,26 +3095,26 @@
         self.f7Range.setValue(newValue);
       }
     },
-
     mounted: function mounted() {
       var self = this;
       self.$f7ready(function (f7) {
         if (!self.props.init) { return; }
         var props = self.props;
-        var value = props.value;
-        var min = props.min;
-        var max = props.max;
-        var step = props.step;
-        var label = props.label;
-        var dual = props.dual;
-        var draggableBar = props.draggableBar;
-        var vertical = props.vertical;
-        var verticalReversed = props.verticalReversed;
-        var formatLabel = props.formatLabel;
-        var scale = props.scale;
-        var scaleSteps = props.scaleSteps;
-        var scaleSubSteps = props.scaleSubSteps;
-        var formatScaleLabel = props.formatScaleLabel;
+        var value = props.value,
+            min = props.min,
+            max = props.max,
+            step = props.step,
+            label = props.label,
+            dual = props.dual,
+            draggableBar = props.draggableBar,
+            vertical = props.vertical,
+            verticalReversed = props.verticalReversed,
+            formatLabel = props.formatLabel,
+            scale = props.scale,
+            scaleSteps = props.scaleSteps,
+            scaleSubSteps = props.scaleSubSteps,
+            formatScaleLabel = props.formatScaleLabel,
+            limitKnobPosition = props.limitKnobPosition;
         self.f7Range = f7.range.create(Utils.noUndefinedProps({
           el: self.$refs.el,
           value: value,
@@ -3147,31 +3131,27 @@
           scaleSteps: scaleSteps,
           scaleSubSteps: scaleSubSteps,
           formatScaleLabel: formatScaleLabel,
+          limitKnobPosition: limitKnobPosition,
           on: {
             change: function change(range, val) {
               self.dispatchEvent('range:change rangeChange', val);
             },
-
             changed: function changed(range, val) {
               self.dispatchEvent('range:changed rangeChanged', val);
             }
-
           }
         }));
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Range && self.f7Range.destroy) { self.f7Range.destroy(); }
     },
-
     methods: {
       setValue: function setValue(newValue) {
         var self = this;
         if (self.f7Range && self.f7Range.setValue) { self.f7Range.setValue(newValue); }
       },
-
       getValue: function getValue() {
         var self = this;
 
@@ -3181,29 +3161,193 @@
 
         return undefined;
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Input = {
+  var f7TextEditor = {
+    name: 'f7-text-editor',
+    props: Object.assign({
+      id: [String, Number]
+    }, Mixins.colorProps, {
+      mode: {
+        type: String,
+        default: undefined
+      },
+      value: {
+        type: String,
+        default: undefined
+      },
+      buttons: Array,
+      customButtons: Object,
+      dividers: {
+        type: Boolean,
+        default: undefined
+      },
+      imageUrlText: {
+        type: String,
+        default: undefined
+      },
+      linkUrlText: {
+        type: String,
+        default: undefined
+      },
+      placeholder: {
+        type: String,
+        default: undefined
+      },
+      clearFormattingOnPaste: {
+        type: Boolean,
+        default: undefined
+      },
+      resizable: {
+        type: Boolean,
+        default: false
+      }
+    }),
+    created: function created() {
+      Utils.bindMethods(this, 'onChange onInput onFocus onBlur onButtonClick onKeyboardOpen onKeyboardClose onPopoverOpen onPopoverClose'.split(' '));
+    },
+    mounted: function mounted() {
+      var _this = this;
+
+      var props = this.props;
+      var mode = props.mode,
+          value = props.value,
+          palceholder = props.palceholder,
+          buttons = props.buttons,
+          customButtons = props.customButtons,
+          dividers = props.dividers,
+          imageUrlText = props.imageUrlText,
+          linkUrlText = props.linkUrlText,
+          placeholder = props.placeholder,
+          clearFormattingOnPaste = props.clearFormattingOnPaste;
+      var params = Utils.noUndefinedProps({
+        el: this.$refs.el,
+        mode: mode,
+        value: value,
+        palceholder: palceholder,
+        buttons: buttons,
+        customButtons: customButtons,
+        dividers: dividers,
+        imageUrlText: imageUrlText,
+        linkUrlText: linkUrlText,
+        placeholder: placeholder,
+        clearFormattingOnPaste: clearFormattingOnPaste,
+        on: {
+          change: this.onChange,
+          input: this.onInput,
+          focus: this.onFocus,
+          blur: this.onBlur,
+          buttonClick: this.onButtonClick,
+          keyboardOpen: this.onKeyboardOpen,
+          keyboardClose: this.onKeyboardClose,
+          popoverOpen: this.onPopoverOpen,
+          popoverClose: this.onPopoverClose
+        }
+      });
+      this.$f7ready(function (f7) {
+        _this.f7TextEditor = f7.textEditor.create(params);
+      });
+    },
+    beforeDestroy: function beforeDestroy() {
+      if (this.f7TextEditor && this.f7TextEditor.destroy) {
+        this.f7TextEditor.destroy();
+      }
+    },
+    watch: {
+      'props.value': function watchValue() {
+        if (this.f7TextEditor) {
+          this.f7TextEditor.setValue(this.props.value);
+        }
+      }
+    },
+    render: function render() {
+      var _h = this.$createElement;
+      var props = this.props;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          resizable = props.resizable;
+      var classes = Utils.classNames(className, 'text-editor', resizable && 'text-editor-resizable', Mixins.colorClasses(props));
+      return _h('div', {
+        ref: 'el',
+        style: style,
+        class: classes,
+        attrs: {
+          id: id
+        }
+      }, [this.$slots['root-start'], _h('div', {
+        class: 'text-editor-content',
+        attrs: {
+          contenteditable: true
+        }
+      }, [this.$slots['default']]), this.$slots['root-end'], this.$slots['root']]);
+    },
+    methods: {
+      onChange: function onChange(editor, value) {
+        this.dispatchEvent('texteditor:change textEditorChange', value);
+      },
+      onInput: function onInput() {
+        this.dispatchEvent('texteditor:change textEditorChange');
+      },
+      onFocus: function onFocus() {
+        this.dispatchEvent('texteditor:focus textEditorFocus');
+      },
+      onBlur: function onBlur() {
+        this.dispatchEvent('texteditor:blur textEditorBlur');
+      },
+      onButtonClick: function onButtonClick(editor, button) {
+        this.dispatchEvent('texteditor:buttonclick textEditorButtonClick', button);
+      },
+      onKeyboardOpen: function onKeyboardOpen() {
+        this.dispatchEvent('texteditor:keyboardopen textEditorKeyboardOpen');
+      },
+      onKeyboardClose: function onKeyboardClose() {
+        this.dispatchEvent('texteditor:keyboardclose textEditorKeyboardClose');
+      },
+      onPopoverOpen: function onPopoverOpen() {
+        this.dispatchEvent('texteditor:popoveropen textEditorPopoverOpen');
+      },
+      onPopoverClose: function onPopoverClose() {
+        this.dispatchEvent('texteditor:popoverclose textEditorPopoverClose');
+      },
+      dispatchEvent: function dispatchEvent(events) {
+        var arguments$1 = arguments;
+
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+      }
+    },
+    computed: {
+      props: function props() {
+        return __vueComponentProps(this);
+      }
+    }
+  };
+
+  var f7Input = {
     name: 'f7-input',
     props: Object.assign({
       type: String,
       name: String,
-      value: [String, Number, Array],
+      value: [String, Number, Array, Date, Object],
       defaultValue: [String, Number, Array],
       placeholder: String,
       id: [String, Number],
@@ -3247,80 +3391,88 @@
       dropdown: {
         type: [String, Boolean],
         default: 'auto'
-      }
+      },
+      calendarParams: Object,
+      colorPickerParams: Object,
+      textEditorParams: Object
     }, Mixins.colorProps),
-
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           inputFocused: false,
           inputInvalid: false
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var type = props.type;
-      var name = props.name;
-      var value = props.value;
-      var defaultValue = props.defaultValue;
-      var placeholder = props.placeholder;
-      var id = props.id;
-      var inputId = props.inputId;
-      var size = props.size;
-      var accept = props.accept;
-      var autocomplete = props.autocomplete;
-      var autocorrect = props.autocorrect;
-      var autocapitalize = props.autocapitalize;
-      var spellcheck = props.spellcheck;
-      var autofocus = props.autofocus;
-      var autosave = props.autosave;
-      var checked = props.checked;
-      var disabled = props.disabled;
-      var max = props.max;
-      var min = props.min;
-      var step = props.step;
-      var maxlength = props.maxlength;
-      var minlength = props.minlength;
-      var multiple = props.multiple;
-      var readonly = props.readonly;
-      var required = props.required;
-      var inputStyle = props.inputStyle;
-      var pattern = props.pattern;
-      var validate = props.validate;
-      var validateOnBlur = props.validateOnBlur;
-      var tabindex = props.tabindex;
-      var resizable = props.resizable;
-      var clearButton = props.clearButton;
-      var errorMessage = props.errorMessage;
-      var errorMessageForce = props.errorMessageForce;
-      var info = props.info;
-      var wrap = props.wrap;
-      var dropdown = props.dropdown;
-      var style = props.style;
-      var className = props.className;
-      var noStoreData = props.noStoreData;
-      var noFormStoreData = props.noFormStoreData;
-      var ignoreStoreData = props.ignoreStoreData;
-      var outline = props.outline;
+      var type = props.type,
+          name = props.name,
+          value = props.value,
+          defaultValue = props.defaultValue,
+          placeholder = props.placeholder,
+          id = props.id,
+          inputId = props.inputId,
+          size = props.size,
+          accept = props.accept,
+          autocomplete = props.autocomplete,
+          autocorrect = props.autocorrect,
+          autocapitalize = props.autocapitalize,
+          spellcheck = props.spellcheck,
+          autofocus = props.autofocus,
+          autosave = props.autosave,
+          checked = props.checked,
+          disabled = props.disabled,
+          max = props.max,
+          min = props.min,
+          step = props.step,
+          maxlength = props.maxlength,
+          minlength = props.minlength,
+          multiple = props.multiple,
+          readonly = props.readonly,
+          required = props.required,
+          inputStyle = props.inputStyle,
+          pattern = props.pattern,
+          validate = props.validate,
+          validateOnBlur = props.validateOnBlur,
+          tabindex = props.tabindex,
+          resizable = props.resizable,
+          clearButton = props.clearButton,
+          errorMessage = props.errorMessage,
+          errorMessageForce = props.errorMessageForce,
+          info = props.info,
+          wrap = props.wrap,
+          dropdown = props.dropdown,
+          style = props.style,
+          className = props.className,
+          noStoreData = props.noStoreData,
+          noFormStoreData = props.noFormStoreData,
+          ignoreStoreData = props.ignoreStoreData,
+          outline = props.outline,
+          textEditorParams = props.textEditorParams;
       var domValue = self.domValue();
       var inputHasValue = self.inputHasValue();
       var inputEl;
 
-      var createInput = function (InputTag, children) {
-        var needsValue = type !== 'file';
+      var createInput = function createInput(InputTag, children) {
+        var needsValue = type !== 'file' && type !== 'datepicker' && type !== 'colorpicker';
         var needsType = InputTag === 'input';
+        var inputType = type;
+
+        if (inputType === 'datepicker' || inputType === 'colorpicker') {
+          inputType = 'text';
+        }
+
         var inputClassName = Utils.classNames(!wrap && className, {
-          resizable: type === 'textarea' && resizable,
+          resizable: inputType === 'textarea' && resizable,
           'no-store-data': noFormStoreData || noStoreData || ignoreStoreData,
           'input-invalid': errorMessage && errorMessageForce || self.state.inputInvalid,
           'input-with-value': inputHasValue,
@@ -3334,8 +3486,12 @@
         }
 
         var valueProps = {};
-        if ('value' in props) { valueProps.value = inputValue; }
-        if ('defaultValue' in props) { valueProps.defaultValue = defaultValue; }
+
+        if (type !== 'datepicker' && type !== 'colorpicker') {
+          if ('value' in props) { valueProps.value = inputValue; }
+          if ('defaultValue' in props) { valueProps.defaultValue = defaultValue; }
+        }
+
         {
           input = _h(InputTag, {
             ref: 'inputEl',
@@ -3356,7 +3512,7 @@
             },
             attrs: {
               name: name,
-              type: needsType ? type : undefined,
+              type: needsType ? inputType : undefined,
               placeholder: placeholder,
               id: inputId,
               size: size,
@@ -3384,9 +3540,9 @@
         return input;
       };
 
-      var ref = self.$slots;
-      var slotsDefault = ref.default;
-      var slotsInfo = ref.info;
+      var _self$$slots = self.$slots,
+          slotsDefault = _self$$slots.default,
+          slotsInfo = _self$$slots.info;
 
       if (type === 'select' || type === 'textarea' || type === 'file') {
         if (type === 'select') {
@@ -3399,7 +3555,7 @@
       } else if (slotsDefault && slotsDefault.length > 0 || !type) {
         inputEl = slotsDefault;
       } else if (type === 'toggle') {
-        inputEl = _h(F7Toggle, {
+        inputEl = _h(f7Toggle, {
           on: {
             change: self.onChange
           },
@@ -3413,7 +3569,7 @@
           }
         });
       } else if (type === 'range') {
-        inputEl = _h(F7Range, {
+        inputEl = _h(f7Range, {
           on: {
             rangeChange: self.onChange
           },
@@ -3428,6 +3584,20 @@
             input: true
           }
         });
+      } else if (type === 'texteditor') {
+        inputEl = _h(f7TextEditor, __vueComponentTransformJSXProps(Object.assign({}, textEditorParams, {
+          on: {
+            textEditorFocus: self.onFocus,
+            textEditorBlur: self.onBlur,
+            textEditorInput: self.onInput,
+            textEditorChange: self.onChange
+          },
+          attrs: {
+            value: value,
+            resizable: resizable,
+            placeholder: placeholder
+          }
+        })));
       } else {
         inputEl = createInput('input');
       }
@@ -3455,33 +3625,39 @@
 
       return inputEl;
     },
-
     watch: {
       'props.value': function watchValue() {
         var self = this;
-        var ref = self.props;
-        var type = ref.type;
+        var type = self.props.type;
         if (type === 'range' || type === 'toggle') { return; }
         if (!self.$f7) { return; }
         self.updateInputOnDidUpdate = true;
+
+        if (self.f7Calendar) {
+          self.f7Calendar.setValue(self.props.value);
+        }
+
+        if (self.f7ColorPicker) {
+          self.f7ColorPicker.setValue(self.props.value);
+        }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, 'onFocus onBlur onInput onChange onTextareaResize onInputNotEmpty onInputEmpty onInputClear'.split(' '));
     },
-
     mounted: function mounted() {
       var self = this;
       self.$f7ready(function (f7) {
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        var resizable = ref.resizable;
-        var type = ref.type;
-        var clearButton = ref.clearButton;
-        var value = ref.value;
-        var defaultValue = ref.defaultValue;
+        var _self$props = self.props,
+            validate = _self$props.validate,
+            validateOnBlur = _self$props.validateOnBlur,
+            resizable = _self$props.resizable,
+            type = _self$props.type,
+            clearButton = _self$props.clearButton,
+            value = _self$props.value,
+            defaultValue = _self$props.defaultValue,
+            calendarParams = _self$props.calendarParams,
+            colorPickerParams = _self$props.colorPickerParams;
         if (type === 'range' || type === 'toggle') { return; }
         var inputEl = self.$refs.inputEl;
         if (!inputEl) { return; }
@@ -3494,6 +3670,30 @@
         if (clearButton) {
           inputEl.addEventListener('input:empty', self.onInputEmpty, false);
           inputEl.addEventListener('input:clear', self.onInputClear, false);
+        }
+
+        if (type === 'datepicker') {
+          self.f7Calendar = f7.calendar.create(Object.assign({
+            inputEl: inputEl,
+            value: value,
+            on: {
+              change: function change(calendar, calendarValue) {
+                self.dispatchEvent('calendar:change calendarChange', calendarValue);
+              }
+            }
+          }, calendarParams || {}));
+        }
+
+        if (type === 'colorpicker') {
+          self.f7ColorPicker = f7.colorPicker.create(Object.assign({
+            inputEl: inputEl,
+            value: value,
+            on: {
+              change: function change(colorPicker, colorPickerValue) {
+                self.dispatchEvent('colorpicker:change colorPickerChange', colorPickerValue);
+              }
+            }
+          }, colorPickerParams || {}));
         }
 
         f7.input.checkEmptyState(inputEl);
@@ -3509,13 +3709,12 @@
         }
       });
     },
-
     updated: function updated() {
       var self = this;
-      var ref = self.props;
-      var validate = ref.validate;
-      var validateOnBlur = ref.validateOnBlur;
-      var resizable = ref.resizable;
+      var _self$props2 = self.props,
+          validate = _self$props2.validate,
+          validateOnBlur = _self$props2.validateOnBlur,
+          resizable = _self$props2.resizable;
       var f7 = self.$f7;
       if (!f7) { return; }
 
@@ -3534,13 +3733,12 @@
         }
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var ref = self.props;
-      var type = ref.type;
-      var resizable = ref.resizable;
-      var clearButton = ref.clearButton;
+      var _self$props3 = self.props,
+          type = _self$props3.type,
+          resizable = _self$props3.resizable,
+          clearButton = _self$props3.clearButton;
       if (type === 'range' || type === 'toggle') { return; }
       var inputEl = self.$refs.inputEl;
       if (!inputEl) { return; }
@@ -3554,25 +3752,38 @@
         inputEl.removeEventListener('input:empty', self.onInputEmpty, false);
         inputEl.removeEventListener('input:clear', self.onInputClear, false);
       }
-    },
 
+      if (self.f7Calendar && self.f7Calendar.destroy) {
+        self.f7Calendar.destroy();
+      }
+
+      if (self.f7ColorPicker && self.f7ColorPicker.destroy) {
+        self.f7ColorPicker.destroy();
+      }
+
+      delete self.f7Calendar;
+      delete self.f7ColorPicker;
+    },
     methods: {
       domValue: function domValue() {
         var self = this;
-        var ref = self.$refs;
-        var inputEl = ref.inputEl;
+        var inputEl = self.$refs.inputEl;
         if (!inputEl) { return undefined; }
         return inputEl.value;
       },
-
       inputHasValue: function inputHasValue() {
         var self = this;
-        var ref = self.props;
-        var value = ref.value;
+        var _self$props4 = self.props,
+            value = _self$props4.value,
+            type = _self$props4.type;
+
+        if (type === 'datepicker' && Array.isArray(value) && value.length === 0) {
+          return false;
+        }
+
         var domValue = self.domValue();
         return typeof value === 'undefined' ? domValue || domValue === 0 : value || value === 0;
       },
-
       validateInput: function validateInput(inputEl) {
         var self = this;
         var f7 = self.$f7;
@@ -3592,48 +3803,61 @@
           });
         }
       },
-
       onTextareaResize: function onTextareaResize(event) {
         this.dispatchEvent('textarea:resize textareaResize', event);
       },
-
       onInputNotEmpty: function onInputNotEmpty(event) {
         this.dispatchEvent('input:notempty inputNotEmpty', event);
       },
-
       onInputEmpty: function onInputEmpty(event) {
         this.dispatchEvent('input:empty inputEmpty', event);
       },
-
       onInputClear: function onInputClear(event) {
         this.dispatchEvent('input:clear inputClear', event);
       },
+      onInput: function onInput() {
+        var arguments$1 = arguments;
 
-      onInput: function onInput(event) {
         var self = this;
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        self.dispatchEvent('input', event);
+        var _self$props5 = self.props,
+            validate = _self$props5.validate,
+            validateOnBlur = _self$props5.validateOnBlur;
+
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments$1[_key];
+        }
+
+        self.dispatchEvent.apply(self, ['input'].concat(args));
 
         if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && self.$refs && self.$refs.inputEl) {
           self.validateInput(self.$refs.inputEl);
         }
       },
+      onFocus: function onFocus() {
+        var arguments$1 = arguments;
 
-      onFocus: function onFocus(event) {
-        this.dispatchEvent('focus', event);
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments$1[_key2];
+        }
+
+        this.dispatchEvent.apply(this, ['focus'].concat(args));
         this.setState({
           inputFocused: true
         });
       },
+      onBlur: function onBlur() {
+        var arguments$1 = arguments;
 
-      onBlur: function onBlur(event) {
         var self = this;
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        self.dispatchEvent('blur', event);
+        var _self$props6 = self.props,
+            validate = _self$props6.validate,
+            validateOnBlur = _self$props6.validateOnBlur;
+
+        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments$1[_key3];
+        }
+
+        self.dispatchEvent.apply(self, ['blur'].concat(args));
 
         if ((validate || validate === '' || validateOnBlur || validateOnBlur === '') && self.$refs && self.$refs.inputEl) {
           self.validateInput(self.$refs.inputEl);
@@ -3643,38 +3867,44 @@
           inputFocused: false
         });
       },
+      onChange: function onChange() {
+        var arguments$1 = arguments;
 
-      onChange: function onChange(event) {
-        this.dispatchEvent('change', event);
+        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments$1[_key4];
+        }
+
+        this.dispatchEvent.apply(this, ['change'].concat(args));
+
+        if (this.props.type === 'texteditor') {
+          this.dispatchEvent('texteditor:change textEditorChange', args[1]);
+        }
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+          args[_key5 - 1] = arguments$1[_key5];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7Link = {
+  var f7Link = {
     name: 'f7-link',
     props: Object.assign({
       id: [String, Number],
       noLinkClass: Boolean,
-      noFastClick: Boolean,
-      noFastclick: Boolean,
       text: String,
       tabLink: [Boolean, String],
       tabLinkActive: Boolean,
@@ -3691,43 +3921,39 @@
       tooltip: String,
       smartSelect: Boolean,
       smartSelectParams: Object
-    }, Mixins.colorProps, Mixins.linkIconProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+    }, Mixins.colorProps, {}, Mixins.linkIconProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           isTabbarLabel: props.tabbarLabel
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var text = props.text;
-      var badge = props.badge;
-      var badgeColor = props.badgeColor;
-      var iconOnly = props.iconOnly;
-      var iconBadge = props.iconBadge;
-      var icon = props.icon;
-      var iconColor = props.iconColor;
-      var iconSize = props.iconSize;
-      var iconMaterial = props.iconMaterial;
-      var iconIon = props.iconIon;
-      var iconFa = props.iconFa;
-      var iconF7 = props.iconF7;
-      var iconMd = props.iconMd;
-      var iconIos = props.iconIos;
-      var iconAurora = props.iconAurora;
-      var id = props.id;
-      var style = props.style;
+      var text = props.text,
+          badge = props.badge,
+          badgeColor = props.badgeColor,
+          iconOnly = props.iconOnly,
+          iconBadge = props.iconBadge,
+          icon = props.icon,
+          iconColor = props.iconColor,
+          iconSize = props.iconSize,
+          iconMaterial = props.iconMaterial,
+          iconF7 = props.iconF7,
+          iconMd = props.iconMd,
+          iconIos = props.iconIos,
+          iconAurora = props.iconAurora,
+          id = props.id,
+          style = props.style;
       var defaultSlots = self.$slots.default;
       var iconEl;
       var textEl;
@@ -3735,7 +3961,7 @@
       var iconBadgeEl;
 
       if (text) {
-        if (badge) { badgeEl = _h(F7Badge, {
+        if (badge) { badgeEl = _h(f7Badge, {
           attrs: {
             color: badgeColor
           }
@@ -3745,21 +3971,19 @@
         }, [text, badgeEl]);
       }
 
-      if (icon || iconMaterial || iconIon || iconFa || iconF7 || iconMd || iconIos || iconAurora) {
+      if (icon || iconMaterial || iconF7 || iconMd || iconIos || iconAurora) {
         if (iconBadge) {
-          iconBadgeEl = _h(F7Badge, {
+          iconBadgeEl = _h(f7Badge, {
             attrs: {
               color: badgeColor
             }
           }, [iconBadge]);
         }
 
-        iconEl = _h(F7Icon, {
+        iconEl = _h(f7Icon, {
           attrs: {
             material: iconMaterial,
             f7: iconF7,
-            fa: iconFa,
-            ion: iconIon,
             icon: icon,
             md: iconMd,
             ios: iconIos,
@@ -3786,30 +4010,43 @@
         }
       })), [iconEl, textEl, defaultSlots]);
     },
-
     watch: {
       'props.tooltip': function watchTooltip(newText) {
         var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
         if (!newText || !self.f7Tooltip) { return; }
         self.f7Tooltip.setText(newText);
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       el.addEventListener('click', self.onClick);
-      var ref = self.props;
-      var tabbarLabel = ref.tabbarLabel;
-      var tabLink = ref.tabLink;
-      var tooltip = ref.tooltip;
-      var smartSelect = ref.smartSelect;
-      var smartSelectParams = ref.smartSelectParams;
-      var routeProps = ref.routeProps;
+      var _self$props = self.props,
+          tabbarLabel = _self$props.tabbarLabel,
+          tabLink = _self$props.tabLink,
+          tooltip = _self$props.tooltip,
+          smartSelect = _self$props.smartSelect,
+          smartSelectParams = _self$props.smartSelectParams,
+          routeProps = _self$props.routeProps;
       var isTabbarLabel = false;
 
       if (tabbarLabel || (tabLink || tabLink === '') && self.$$(el).parents('.tabbar-labels').length) {
@@ -3836,18 +4073,15 @@
         }
       });
     },
-
     updated: function updated() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
 
       if (routeProps) {
         el.f7RouteProps = routeProps;
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
@@ -3864,14 +4098,13 @@
         delete self.f7Tooltip;
       }
     },
-
     computed: {
       attrs: function attrs() {
         var self = this;
         var props = self.props;
-        var href = props.href;
-        var target = props.target;
-        var tabLink = props.tabLink;
+        var href = props.href,
+            target = props.target,
+            tabLink = props.tabLink;
         var hrefComputed = href;
         if (href === true) { hrefComputed = '#'; }
         if (href === false) { hrefComputed = undefined; }
@@ -3881,48 +4114,42 @@
           'data-tab': Utils.isStringProp(tabLink) && tabLink || undefined
         }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
       },
-
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var noFastclick = props.noFastclick;
-        var noFastClick = props.noFastClick;
-        var tabLink = props.tabLink;
-        var tabLinkActive = props.tabLinkActive;
-        var noLinkClass = props.noLinkClass;
-        var smartSelect = props.smartSelect;
-        var className = props.className;
+        var tabLink = props.tabLink,
+            tabLinkActive = props.tabLinkActive,
+            noLinkClass = props.noLinkClass,
+            smartSelect = props.smartSelect,
+            className = props.className;
         return Utils.classNames(className, {
           link: !(noLinkClass || self.state.isTabbarLabel),
           'icon-only': self.iconOnlyComputed,
           'tab-link': tabLink || tabLink === '',
           'tab-link-active': tabLinkActive,
-          'no-fastclick': noFastclick || noFastClick,
           'smart-select': smartSelect
         }, Mixins.colorClasses(props), Mixins.linkRouterClasses(props), Mixins.linkActionsClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     }
   };
 
@@ -3930,26 +4157,24 @@
     name: 'f7-list-button',
     props: Object.assign({
       id: [String, Number],
-      noFastclick: Boolean,
-      noFastClick: Boolean,
       title: [String, Number],
       text: [String, Number],
       tabLink: [Boolean, String],
       tabLinkActive: Boolean,
       link: [Boolean, String],
       href: [Boolean, String],
-      target: String
-    }, Mixins.colorProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+      target: String,
+      tooltip: String
+    }, Mixins.colorProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var title = props.title;
-      var text = props.text;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          title = props.title,
+          text = props.text;
       return _h('li', {
         style: style,
         class: className,
@@ -3962,90 +4187,116 @@
         ref: 'linkEl'
       })), [this.$slots['default'] || [title || text]])]);
     },
-
     computed: {
       attrs: function attrs() {
         var self = this;
         var props = self.props;
-        var link = props.link;
-        var href = props.href;
-        var target = props.target;
-        var tabLink = props.tabLink;
+        var link = props.link,
+            href = props.href,
+            target = props.target,
+            tabLink = props.tabLink;
         return Utils.extend({
           href: typeof link === 'boolean' && typeof href === 'boolean' ? '#' : link || href,
           target: target,
           'data-tab': Utils.isStringProp(tabLink) && tabLink
         }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
       },
-
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var noFastclick = props.noFastclick;
-        var noFastClick = props.noFastClick;
-        var tabLink = props.tabLink;
-        var tabLinkActive = props.tabLinkActive;
+        var tabLink = props.tabLink,
+            tabLinkActive = props.tabLinkActive;
         return Utils.classNames({
           'list-button': true,
           'tab-link': tabLink || tabLink === '',
-          'tab-link-active': tabLinkActive,
-          'no-fastclick': noFastclick || noFastClick
+          'tab-link-active': tabLinkActive
         }, Mixins.colorClasses(props), Mixins.linkRouterClasses(props), Mixins.linkActionsClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
+    watch: {
+      'props.tooltip': function watchTooltip(newText) {
+        var self = this;
 
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
+        if (!newText || !self.f7Tooltip) { return; }
+        self.f7Tooltip.setText(newText);
+      }
+    },
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       var self = this;
       var linkEl = self.$refs.linkEl;
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var _self$props = self.props,
+          routeProps = _self$props.routeProps,
+          tooltip = _self$props.tooltip;
 
       if (routeProps) {
         linkEl.f7RouteProps = routeProps;
       }
 
       linkEl.addEventListener('click', self.onClick);
+      self.$f7ready(function (f7) {
+        if (tooltip) {
+          self.f7Tooltip = f7.tooltip.create({
+            targetEl: linkEl,
+            text: tooltip
+          });
+        }
+      });
     },
-
     updated: function updated() {
       var self = this;
       var linkEl = self.$refs.linkEl;
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
 
       if (routeProps) {
         linkEl.f7RouteProps = routeProps;
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var linkEl = self.$refs.linkEl;
       linkEl.removeEventListener('click', this.onClick);
       delete linkEl.f7RouteProps;
-    },
 
+      if (self.f7Tooltip && self.f7Tooltip.destroy) {
+        self.f7Tooltip.destroy();
+        self.f7Tooltip = null;
+        delete self.f7Tooltip;
+      }
+    },
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -4054,36 +4305,42 @@
     props: Object.assign({
       id: [String, Number],
       mediaList: Boolean,
-      sortable: Boolean
+      sortable: Boolean,
+      sortableTapHold: Boolean,
+      sortableMoveElements: {
+        type: Boolean,
+        default: undefined
+      }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var mediaList = props.mediaList;
-      var sortable = props.sortable;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          mediaList = props.mediaList,
+          sortable = props.sortable,
+          sortableTapHold = props.sortableTapHold,
+          sortableMoveElements = props.sortableMoveElements;
       var classes = Utils.classNames(className, 'list-group', {
         'media-list': mediaList,
-        sortable: sortable
+        sortable: sortable,
+        'sortable-tap-hold': sortableTapHold
       }, Mixins.colorClasses(props));
       return _h('div', {
         style: style,
         class: classes,
         attrs: {
-          id: id
+          id: id,
+          'data-sortable-move-elements': typeof sortableMoveElements !== 'undefined' ? sortableMoveElements.toString() : undefined
         }
       }, [_h('ul', [this.$slots['default']])]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -4121,13 +4378,12 @@
         default: 14
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'list-index', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -4138,7 +4394,6 @@
         }
       }, [this.$slots['default']]);
     },
-
     beforeDestroy: function beforeDestroy() {
       if (!this.props.init) { return; }
 
@@ -4146,20 +4401,19 @@
         this.f7ListIndex.destroy();
       }
     },
-
     mounted: function mounted() {
       var self = this;
       if (!self.props.init) { return; }
       self.$f7ready(function (f7) {
         var el = self.$refs.el;
-        var ref = self.props;
-        var listEl = ref.listEl;
-        var indexes = ref.indexes;
-        var iosItemHeight = ref.iosItemHeight;
-        var mdItemHeight = ref.mdItemHeight;
-        var auroraItemHeight = ref.auroraItemHeight;
-        var scrollList = ref.scrollList;
-        var label = ref.label;
+        var _self$props = self.props,
+            listEl = _self$props.listEl,
+            indexes = _self$props.indexes,
+            iosItemHeight = _self$props.iosItemHeight,
+            mdItemHeight = _self$props.mdItemHeight,
+            auroraItemHeight = _self$props.auroraItemHeight,
+            scrollList = _self$props.scrollList,
+            label = _self$props.label;
         self.f7ListIndex = f7.listIndex.create({
           el: el,
           listEl: listEl,
@@ -4173,12 +4427,10 @@
             select: function select(index, itemContent, itemIndex) {
               self.dispatchEvent('listindex:select listIndexSelect', itemContent, itemIndex);
             }
-
           }
         });
       });
     },
-
     watch: {
       'props.indexes': function watchIndexes() {
         if (!this.f7ListIndex) { return; }
@@ -4191,25 +4443,24 @@
         if (!this.f7ListIndex) { return; }
         this.f7ListIndex.update();
       },
-
       scrollListToIndex: function scrollListToIndex(indexContent) {
         if (!this.f7ListIndex) { return; }
         this.f7ListIndex.scrollListToIndex(indexContent);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -4217,7 +4468,10 @@
     name: 'f7-list-input',
     props: Object.assign({
       id: [String, Number],
-      sortable: Boolean,
+      sortable: {
+        type: Boolean,
+        default: undefined
+      },
       media: String,
       dropdown: {
         type: [String, Boolean],
@@ -4236,7 +4490,7 @@
         default: 'text'
       },
       name: String,
-      value: [String, Number, Array],
+      value: [String, Number, Array, Date, Object],
       defaultValue: [String, Number, Array],
       readonly: Boolean,
       required: Boolean,
@@ -4273,89 +4527,97 @@
       outline: Boolean,
       label: [String, Number],
       inlineLabel: Boolean,
-      floatingLabel: Boolean
+      floatingLabel: Boolean,
+      calendarParams: Object,
+      colorPickerParams: Object,
+      textEditorParams: Object
     }, Mixins.colorProps),
-
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           isSortable: props.sortable,
           inputFocused: false,
           inputInvalid: false
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
-      var ref = self.state;
-      var inputFocused = ref.inputFocused;
-      var inputInvalid = ref.inputInvalid;
+      var _self$state = self.state,
+          inputFocused = _self$state.inputFocused,
+          inputInvalid = _self$state.inputInvalid;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
-      var sortable = props.sortable;
-      var media = props.media;
-      var dropdown = props.dropdown;
-      var renderInput = props.input;
-      var wrap = props.wrap;
-      var type = props.type;
-      var name = props.name;
-      var value = props.value;
-      var defaultValue = props.defaultValue;
-      var readonly = props.readonly;
-      var required = props.required;
-      var disabled = props.disabled;
-      var placeholder = props.placeholder;
-      var inputId = props.inputId;
-      var size = props.size;
-      var accept = props.accept;
-      var autocomplete = props.autocomplete;
-      var autocorrect = props.autocorrect;
-      var autocapitalize = props.autocapitalize;
-      var spellcheck = props.spellcheck;
-      var autofocus = props.autofocus;
-      var autosave = props.autosave;
-      var max = props.max;
-      var min = props.min;
-      var step = props.step;
-      var maxlength = props.maxlength;
-      var minlength = props.minlength;
-      var multiple = props.multiple;
-      var inputStyle = props.inputStyle;
-      var pattern = props.pattern;
-      var validate = props.validate;
-      var validateOnBlur = props.validateOnBlur;
-      var tabindex = props.tabindex;
-      var resizable = props.resizable;
-      var clearButton = props.clearButton;
-      var noFormStoreData = props.noFormStoreData;
-      var noStoreData = props.noStoreData;
-      var ignoreStoreData = props.ignoreStoreData;
-      var errorMessage = props.errorMessage;
-      var errorMessageForce = props.errorMessageForce;
-      var info = props.info;
-      var outline = props.outline;
-      var label = props.label;
-      var inlineLabel = props.inlineLabel;
-      var floatingLabel = props.floatingLabel;
+      var id = props.id,
+          style = props.style,
+          className = props.className,
+          sortable = props.sortable,
+          media = props.media,
+          dropdown = props.dropdown,
+          renderInput = props.input,
+          wrap = props.wrap,
+          type = props.type,
+          name = props.name,
+          value = props.value,
+          defaultValue = props.defaultValue,
+          readonly = props.readonly,
+          required = props.required,
+          disabled = props.disabled,
+          placeholder = props.placeholder,
+          inputId = props.inputId,
+          size = props.size,
+          accept = props.accept,
+          autocomplete = props.autocomplete,
+          autocorrect = props.autocorrect,
+          autocapitalize = props.autocapitalize,
+          spellcheck = props.spellcheck,
+          autofocus = props.autofocus,
+          autosave = props.autosave,
+          max = props.max,
+          min = props.min,
+          step = props.step,
+          maxlength = props.maxlength,
+          minlength = props.minlength,
+          multiple = props.multiple,
+          inputStyle = props.inputStyle,
+          pattern = props.pattern,
+          validate = props.validate,
+          validateOnBlur = props.validateOnBlur,
+          tabindex = props.tabindex,
+          resizable = props.resizable,
+          clearButton = props.clearButton,
+          noFormStoreData = props.noFormStoreData,
+          noStoreData = props.noStoreData,
+          ignoreStoreData = props.ignoreStoreData,
+          errorMessage = props.errorMessage,
+          errorMessageForce = props.errorMessageForce,
+          info = props.info,
+          outline = props.outline,
+          label = props.label,
+          inlineLabel = props.inlineLabel,
+          floatingLabel = props.floatingLabel,
+          textEditorParams = props.textEditorParams;
       var domValue = self.domValue();
       var inputHasValue = self.inputHasValue();
       var isSortable = sortable || self.state.isSortable;
 
-      var createInput = function (InputTag, children) {
-        var needsValue = type !== 'file';
+      var createInput = function createInput(InputTag, children) {
+        var needsValue = type !== 'file' && type !== 'datepicker' && type !== 'colorpicker';
         var needsType = InputTag === 'input';
+        var inputType = type;
+
+        if (inputType === 'datepicker' || inputType === 'colorpicker') {
+          inputType = 'text';
+        }
+
         var inputClassName = Utils.classNames({
-          resizable: type === 'textarea' && resizable,
+          resizable: inputType === 'textarea' && resizable,
           'no-store-data': noFormStoreData || noStoreData || ignoreStoreData,
           'input-invalid': errorMessage && errorMessageForce || inputInvalid,
           'input-with-value': inputHasValue,
@@ -4369,8 +4631,12 @@
         }
 
         var valueProps = {};
-        if ('value' in props) { valueProps.value = inputValue; }
-        if ('defaultValue' in props) { valueProps.defaultValue = defaultValue; }
+
+        if (type !== 'datepicker' && type !== 'colorpicker') {
+          if ('value' in props) { valueProps.value = inputValue; }
+          if ('defaultValue' in props) { valueProps.defaultValue = defaultValue; }
+        }
+
         {
           input = _h(InputTag, {
             ref: 'inputEl',
@@ -4390,7 +4656,7 @@
             },
             attrs: {
               name: name,
-              type: needsType ? type : undefined,
+              type: needsType ? inputType : undefined,
               placeholder: placeholder,
               id: inputId,
               size: size,
@@ -4429,6 +4695,20 @@
           } else {
             inputEl = createInput('textarea');
           }
+        } else if (type === 'texteditor') {
+          inputEl = _h(f7TextEditor, __vueComponentTransformJSXProps(Object.assign({}, textEditorParams, {
+            on: {
+              textEditorFocus: self.onFocus,
+              textEditorBlur: self.onBlur,
+              textEditorInput: self.onInput,
+              textEditorChange: self.onChange
+            },
+            attrs: {
+              value: value,
+              resizable: resizable,
+              placeholder: placeholder
+            }
+          })));
         } else {
           inputEl = createInput('input');
         }
@@ -4490,38 +4770,69 @@
         class: 'sortable-handler'
       }), this.$slots['root'], this.$slots['root-end']]);
     },
-
     watch: {
       'props.value': function watchValue() {
         var self = this;
         if (!self.$f7) { return; }
         self.updateInputOnDidUpdate = true;
+
+        if (self.f7Calendar) {
+          self.f7Calendar.setValue(self.props.value);
+        }
+
+        if (self.f7ColorPicker) {
+          self.f7ColorPicker.setValue(self.props.value);
+        }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, 'onChange onInput onFocus onBlur onTextareaResize onInputNotEmpty onInputEmpty onInputClear'.split(' '));
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       var itemContentEl = self.$refs.itemContentEl;
       if (!el && !itemContentEl) { return; }
       self.$f7ready(function (f7) {
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        var resizable = ref.resizable;
-        var value = ref.value;
-        var defaultValue = ref.defaultValue;
-        var type = ref.type;
+        var _self$props = self.props,
+            validate = _self$props.validate,
+            validateOnBlur = _self$props.validateOnBlur,
+            resizable = _self$props.resizable,
+            value = _self$props.value,
+            defaultValue = _self$props.defaultValue,
+            type = _self$props.type,
+            calendarParams = _self$props.calendarParams,
+            colorPickerParams = _self$props.colorPickerParams;
         var inputEl = self.$refs.inputEl;
         if (!inputEl) { return; }
         inputEl.addEventListener('input:notempty', self.onInputNotEmpty, false);
         inputEl.addEventListener('textarea:resize', self.onTextareaResize, false);
         inputEl.addEventListener('input:empty', self.onInputEmpty, false);
         inputEl.addEventListener('input:clear', self.onInputClear, false);
+
+        if (type === 'datepicker') {
+          self.f7Calendar = f7.calendar.create(Object.assign({
+            inputEl: inputEl,
+            value: value,
+            on: {
+              change: function change(calendar, calendarValue) {
+                self.dispatchEvent('calendar:change calendarChange', calendarValue);
+              }
+            }
+          }, calendarParams || {}));
+        }
+
+        if (type === 'colorpicker') {
+          self.f7ColorPicker = f7.colorPicker.create(Object.assign({
+            inputEl: inputEl,
+            value: value,
+            on: {
+              change: function change(colorPicker, colorPickerValue) {
+                self.dispatchEvent('colorpicker:change colorPickerChange', colorPickerValue);
+              }
+            }
+          }, colorPickerParams || {}));
+        }
 
         if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && (typeof value !== 'undefined' && value !== null && value !== '' || typeof defaultValue !== 'undefined' && defaultValue !== null && defaultValue !== '')) {
           setTimeout(function () {
@@ -4541,7 +4852,6 @@
         });
       }
     },
-
     updated: function updated() {
       var self = this;
       var $listEl = self.$listEl;
@@ -4554,11 +4864,11 @@
         });
       }
 
-      var ref = self.props;
-      var validate = ref.validate;
-      var validateOnBlur = ref.validateOnBlur;
-      var resizable = ref.resizable;
-      var type = ref.type;
+      var _self$props2 = self.props,
+          validate = _self$props2.validate,
+          validateOnBlur = _self$props2.validateOnBlur,
+          resizable = _self$props2.resizable,
+          type = _self$props2.type;
       var f7 = self.$f7;
       if (!f7) { return; }
 
@@ -4576,7 +4886,6 @@
         }
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var inputEl = self.$refs.inputEl;
@@ -4585,25 +4894,38 @@
       inputEl.removeEventListener('textarea:resize', self.onTextareaResize, false);
       inputEl.removeEventListener('input:empty', self.onInputEmpty, false);
       inputEl.removeEventListener('input:clear', self.onInputClear, false);
-    },
 
+      if (self.f7Calendar && self.f7Calendar.destroy) {
+        self.f7Calendar.destroy();
+      }
+
+      if (self.f7ColorPicker && self.f7ColorPicker.destroy) {
+        self.f7ColorPicker.destroy();
+      }
+
+      delete self.f7Calendar;
+      delete self.f7ColorPicker;
+    },
     methods: {
       domValue: function domValue() {
         var self = this;
-        var ref = self.$refs;
-        var inputEl = ref.inputEl;
+        var inputEl = self.$refs.inputEl;
         if (!inputEl) { return undefined; }
         return inputEl.value;
       },
-
       inputHasValue: function inputHasValue() {
         var self = this;
-        var ref = self.props;
-        var value = ref.value;
+        var _self$props3 = self.props,
+            value = _self$props3.value,
+            type = _self$props3.type;
+
+        if (type === 'datepicker' && Array.isArray(value) && value.length === 0) {
+          return false;
+        }
+
         var domValue = self.domValue();
         return typeof value === 'undefined' ? domValue || domValue === 0 : value || value === 0;
       },
-
       validateInput: function validateInput(inputEl) {
         var self = this;
         var f7 = self.$f7;
@@ -4623,48 +4945,61 @@
           });
         }
       },
-
       onTextareaResize: function onTextareaResize(event) {
         this.dispatchEvent('textarea:resize textareaResize', event);
       },
-
       onInputNotEmpty: function onInputNotEmpty(event) {
         this.dispatchEvent('input:notempty inputNotEmpty', event);
       },
-
       onInputEmpty: function onInputEmpty(event) {
         this.dispatchEvent('input:empty inputEmpty', event);
       },
-
       onInputClear: function onInputClear(event) {
         this.dispatchEvent('input:clear inputClear', event);
       },
+      onInput: function onInput() {
+        var arguments$1 = arguments;
 
-      onInput: function onInput(event) {
         var self = this;
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        self.dispatchEvent('input', event);
+        var _self$props4 = self.props,
+            validate = _self$props4.validate,
+            validateOnBlur = _self$props4.validateOnBlur;
+
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments$1[_key];
+        }
+
+        self.dispatchEvent.apply(self, ['input'].concat(args));
 
         if (!(validateOnBlur || validateOnBlur === '') && (validate || validate === '') && self.$refs && self.$refs.inputEl) {
           self.validateInput(self.$refs.inputEl);
         }
       },
+      onFocus: function onFocus() {
+        var arguments$1 = arguments;
 
-      onFocus: function onFocus(event) {
-        this.dispatchEvent('focus', event);
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments$1[_key2];
+        }
+
+        this.dispatchEvent.apply(this, ['focus'].concat(args));
         this.setState({
           inputFocused: true
         });
       },
+      onBlur: function onBlur() {
+        var arguments$1 = arguments;
 
-      onBlur: function onBlur(event) {
         var self = this;
-        var ref = self.props;
-        var validate = ref.validate;
-        var validateOnBlur = ref.validateOnBlur;
-        self.dispatchEvent('blur', event);
+        var _self$props5 = self.props,
+            validate = _self$props5.validate,
+            validateOnBlur = _self$props5.validateOnBlur;
+
+        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments$1[_key3];
+        }
+
+        self.dispatchEvent.apply(self, ['blur'].concat(args));
 
         if ((validate || validate === '' || validateOnBlur || validateOnBlur === '') && self.$refs && self.$refs.inputEl) {
           self.validateInput(self.$refs.inputEl);
@@ -4674,28 +5009,36 @@
           inputFocused: false
         });
       },
+      onChange: function onChange() {
+        var arguments$1 = arguments;
 
-      onChange: function onChange(event) {
-        this.dispatchEvent('change', event);
+        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments$1[_key4];
+        }
+
+        this.dispatchEvent.apply(this, ['change'].concat(args));
+
+        if (this.props.type === 'texteditor') {
+          this.dispatchEvent('texteditor:change textEditorChange', args[0]);
+        }
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len5 = arguments.length, args = new Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+          args[_key5 - 1] = arguments$1[_key5];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -4704,13 +5047,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'item-cell', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -4720,16 +5062,21 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7ListItemContent = {
+  function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+  function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+  function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") { return Array.from(iter); } }
+
+  function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+  var f7ListItemContent = {
     name: 'f7-list-item-content',
     props: Object.assign({
       id: [String, Number],
@@ -4747,6 +5094,7 @@
       checkbox: Boolean,
       checked: Boolean,
       defaultChecked: Boolean,
+      indeterminate: Boolean,
       radio: Boolean,
       name: String,
       value: [String, Number, Array],
@@ -4754,34 +5102,33 @@
       required: Boolean,
       disabled: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var radio = props.radio;
-      var checkbox = props.checkbox;
-      var value = props.value;
-      var name = props.name;
-      var checked = props.checked;
-      var defaultChecked = props.defaultChecked;
-      var readonly = props.readonly;
-      var disabled = props.disabled;
-      var required = props.required;
-      var media = props.media;
-      var header = props.header;
-      var footer = props.footer;
-      var title = props.title;
-      var subtitle = props.subtitle;
-      var text = props.text;
-      var after = props.after;
-      var badge = props.badge;
-      var mediaList = props.mediaList;
-      var mediaItem = props.mediaItem;
-      var badgeColor = props.badgeColor;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          radio = props.radio,
+          checkbox = props.checkbox,
+          value = props.value,
+          name = props.name,
+          checked = props.checked,
+          defaultChecked = props.defaultChecked,
+          readonly = props.readonly,
+          disabled = props.disabled,
+          required = props.required,
+          media = props.media,
+          header = props.header,
+          footer = props.footer,
+          title = props.title,
+          subtitle = props.subtitle,
+          text = props.text,
+          after = props.after,
+          badge = props.badge,
+          mediaList = props.mediaList,
+          mediaItem = props.mediaItem,
+          badgeColor = props.badgeColor;
       var slotsContentStart = [];
       var slotsContent = [];
       var slotsContentEnd = [];
@@ -4817,7 +5164,7 @@
 
       if (slots && slots.length) {
         slots.forEach(function (slot) {
-          if (Array.isArray(slot)) { flattenSlots.push.apply(flattenSlots, slot); }else { flattenSlots.push(slot); }
+          if (Array.isArray(slot)) { flattenSlots.push.apply(flattenSlots, _toConsumableArray(slot)); }else { flattenSlots.push(slot); }
         });
       }
 
@@ -4865,7 +5212,7 @@
           });
         }
         inputIconEl = _h('i', {
-          class: ("icon icon-" + (radio ? 'radio' : 'checkbox'))
+          class: "icon icon-".concat(radio ? 'radio' : 'checkbox')
         });
       }
 
@@ -4923,7 +5270,7 @@
         }
 
         if (badge) {
-          badgeEl = _h(F7Badge, {
+          badgeEl = _h(f7Badge, {
             attrs: {
               color: badgeColor
             }
@@ -4964,48 +5311,57 @@
         }
       }, [slotsContentStart, inputEl, inputIconEl, mediaEl, innerEl, slotsContent, slotsContentEnd]);
     },
-
     created: function created() {
       Utils.bindMethods(this, 'onClick onChange'.split(' '));
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.$refs;
-      var innerEl = ref.innerEl;
-      var el = ref.el;
+      var _self$$refs = self.$refs,
+          el = _self$$refs.el,
+          inputEl = _self$$refs.inputEl;
+      var indeterminate = self.props.indeterminate;
+
+      if (indeterminate && inputEl) {
+        inputEl.indeterminate = true;
+      }
+
       el.addEventListener('click', self.onClick);
     },
+    updated: function updated() {
+      var self = this;
+      var inputEl = self.$refs.inputEl;
+      var indeterminate = self.props.indeterminate;
 
+      if (inputEl) {
+        inputEl.indeterminate = indeterminate;
+      }
+    },
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var ref = self.$refs;
-      var el = ref.el;
+      var el = self.$refs.el;
       el.removeEventListener('click', self.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -5014,13 +5370,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'item-row', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -5030,12 +5385,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -5049,10 +5402,9 @@
       subtitle: [String, Number],
       header: [String, Number],
       footer: [String, Number],
+      tooltip: String,
       link: [Boolean, String],
       target: String,
-      noFastclick: Boolean,
-      noFastClick: Boolean,
       after: [String, Number],
       badge: [String, Number],
       badgeColor: String,
@@ -5062,7 +5414,10 @@
       groupTitle: Boolean,
       swipeout: Boolean,
       swipeoutOpened: Boolean,
-      sortable: Boolean,
+      sortable: {
+        type: Boolean,
+        default: undefined
+      },
       accordionItem: Boolean,
       accordionItemOpened: Boolean,
       smartSelect: Boolean,
@@ -5073,81 +5428,79 @@
       radio: Boolean,
       checked: Boolean,
       defaultChecked: Boolean,
+      indeterminate: Boolean,
       name: String,
       value: [String, Number, Array],
       readonly: Boolean,
       required: Boolean,
       disabled: Boolean,
       virtualListIndex: Number
-    }, Mixins.colorProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+    }, Mixins.colorProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           isMedia: props.mediaItem || props.mediaList,
           isSortable: props.sortable,
           isSimple: false
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var linkEl;
       var itemContentEl;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
-      var title = props.title;
-      var text = props.text;
-      var media = props.media;
-      var subtitle = props.subtitle;
-      var header = props.header;
-      var footer = props.footer;
-      var link = props.link;
-      var href = props.href;
-      var target = props.target;
-      var noFastclick = props.noFastclick;
-      var noFastClick = props.noFastClick;
-      var after = props.after;
-      var badge = props.badge;
-      var badgeColor = props.badgeColor;
-      var mediaItem = props.mediaItem;
-      var mediaList = props.mediaList;
-      var divider = props.divider;
-      var groupTitle = props.groupTitle;
-      var swipeout = props.swipeout;
-      var accordionItem = props.accordionItem;
-      var accordionItemOpened = props.accordionItemOpened;
-      var smartSelect = props.smartSelect;
-      var checkbox = props.checkbox;
-      var radio = props.radio;
-      var checked = props.checked;
-      var defaultChecked = props.defaultChecked;
-      var name = props.name;
-      var value = props.value;
-      var readonly = props.readonly;
-      var required = props.required;
-      var disabled = props.disabled;
-      var sortable = props.sortable;
-      var noChevron = props.noChevron;
-      var chevronCenter = props.chevronCenter;
-      var virtualListIndex = props.virtualListIndex;
+      var id = props.id,
+          style = props.style,
+          className = props.className,
+          title = props.title,
+          text = props.text,
+          media = props.media,
+          subtitle = props.subtitle,
+          header = props.header,
+          footer = props.footer,
+          link = props.link,
+          href = props.href,
+          target = props.target,
+          after = props.after,
+          badge = props.badge,
+          badgeColor = props.badgeColor,
+          mediaItem = props.mediaItem,
+          mediaList = props.mediaList,
+          divider = props.divider,
+          groupTitle = props.groupTitle,
+          swipeout = props.swipeout,
+          accordionItem = props.accordionItem,
+          accordionItemOpened = props.accordionItemOpened,
+          smartSelect = props.smartSelect,
+          checkbox = props.checkbox,
+          radio = props.radio,
+          checked = props.checked,
+          defaultChecked = props.defaultChecked,
+          indeterminate = props.indeterminate,
+          name = props.name,
+          value = props.value,
+          readonly = props.readonly,
+          required = props.required,
+          disabled = props.disabled,
+          sortable = props.sortable,
+          noChevron = props.noChevron,
+          chevronCenter = props.chevronCenter,
+          virtualListIndex = props.virtualListIndex;
       var isMedia = mediaItem || mediaList || self.state.isMedia;
       var isSortable = sortable || self.state.isSortable;
       var isSimple = self.state.isSimple;
 
       if (!isSimple) {
         var needsEvents = !(link || href || accordionItem || smartSelect);
-        itemContentEl = _h(F7ListItemContent, {
+        itemContentEl = _h(f7ListItemContent, {
           on: needsEvents ? {
             click: self.onClick,
             change: self.onChange
@@ -5167,6 +5520,7 @@
             checkbox: checkbox,
             checked: checked,
             defaultChecked: defaultChecked,
+            indeterminate: indeterminate,
             radio: radio,
             name: name,
             value: value,
@@ -5177,13 +5531,12 @@
         }, [this.$slots['content-start'], this.$slots['content'], this.$slots['content-end'], this.$slots['media'], this.$slots['inner-start'], this.$slots['inner'], this.$slots['inner-end'], this.$slots['after-start'], this.$slots['after'], this.$slots['after-end'], this.$slots['header'], this.$slots['footer'], this.$slots['before-title'], this.$slots['title'], this.$slots['after-title'], this.$slots['subtitle'], this.$slots['text'], swipeout || accordionItem ? null : self.$slots.default]);
 
         if (link || href || accordionItem || smartSelect) {
-          var linkAttrs = Utils.extend({
-            href: link === true || accordionItem || smartSelect ? '#' : link || href,
+          var linkAttrs = Object.assign({
+            href: link === true ? '' : link || href,
             target: target
-          }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
+          }, Mixins.linkRouterAttrs(props), {}, Mixins.linkActionsAttrs(props));
           var linkClasses = Utils.classNames({
             'item-link': true,
-            'no-fastclick': noFastclick || noFastClick,
             'smart-select': smartSelect
           }, Mixins.linkRouterClasses(props), Mixins.linkActionsClasses(props));
           linkEl = _h('a', __vueComponentTransformJSXProps(Object.assign({
@@ -5202,7 +5555,8 @@
         'accordion-item-opened': accordionItemOpened,
         disabled: disabled && !(radio || checkbox),
         'no-chevron': noChevron,
-        'chevron-center': chevronCenter
+        'chevron-center': chevronCenter,
+        'disallow-sorting': sortable === false
       }, Mixins.colorClasses(props));
 
       if (divider || groupTitle) {
@@ -5240,12 +5594,32 @@
         }
       }, [this.$slots['root-start'], swipeout ? _h('div', {
         class: 'swipeout-content'
-      }, [linkItemEl]) : linkItemEl, isSortable && _h('div', {
+      }, [linkItemEl]) : linkItemEl, isSortable && sortable !== false && _h('div', {
         class: 'sortable-handler'
       }), (swipeout || accordionItem) && self.$slots.default, this.$slots['root'], this.$slots['root-end']]);
     },
-
     watch: {
+      'props.tooltip': function watchTooltip(newText) {
+        var self = this;
+
+        if (!newText && self.f7Tooltip) {
+          self.f7Tooltip.destroy();
+          self.f7Tooltip = null;
+          delete self.f7Tooltip;
+          return;
+        }
+
+        if (newText && !self.f7Tooltip && self.$f7) {
+          self.f7Tooltip = self.$f7.tooltip.create({
+            targetEl: self.$refs.el,
+            text: newText
+          });
+          return;
+        }
+
+        if (!newText || !self.f7Tooltip) { return; }
+        self.f7Tooltip.setText(newText);
+      },
       'props.swipeoutOpened': function watchSwipeoutOpened(opened) {
         var self = this;
         if (!self.props.swipeout) { return; }
@@ -5258,26 +5632,25 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick', 'onChange', 'onSwipeoutOpen', 'onSwipeoutOpened', 'onSwipeoutClose', 'onSwipeoutClosed', 'onSwipeoutDelete', 'onSwipeoutDeleted', 'onSwipeoutOverswipeEnter', 'onSwipeoutOverswipeExit', 'onSwipeout', 'onAccBeforeOpen', 'onAccOpen', 'onAccOpened', 'onAccBeforeClose', 'onAccClose', 'onAccClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.$refs;
-      var el = ref.el;
-      var linkEl = ref.linkEl;
+      var _self$$refs = self.$refs,
+          el = _self$$refs.el,
+          linkEl = _self$$refs.linkEl;
       if (!el) { return; }
-      var ref$1 = self.props;
-      var link = ref$1.link;
-      var href = ref$1.href;
-      var smartSelect = ref$1.smartSelect;
-      var swipeout = ref$1.swipeout;
-      var swipeoutOpened = ref$1.swipeoutOpened;
-      var accordionItem = ref$1.accordionItem;
-      var smartSelectParams = ref$1.smartSelectParams;
-      var routeProps = ref$1.routeProps;
+      var _self$props = self.props,
+          link = _self$props.link,
+          href = _self$props.href,
+          smartSelect = _self$props.smartSelect,
+          swipeout = _self$props.swipeout,
+          swipeoutOpened = _self$props.swipeoutOpened,
+          accordionItem = _self$props.accordionItem,
+          smartSelectParams = _self$props.smartSelectParams,
+          routeProps = _self$props.routeProps,
+          tooltip = _self$props.tooltip;
       var needsEvents = !(link || href || accordionItem || smartSelect);
 
       if (!needsEvents && linkEl) {
@@ -5298,28 +5671,30 @@
         });
       }
 
-      if (swipeout) {
-        el.addEventListener('swipeout:open', self.onSwipeoutOpen);
-        el.addEventListener('swipeout:opened', self.onSwipeoutOpened);
-        el.addEventListener('swipeout:close', self.onSwipeoutClose);
-        el.addEventListener('swipeout:closed', self.onSwipeoutClosed);
-        el.addEventListener('swipeout:delete', self.onSwipeoutDelete);
-        el.addEventListener('swipeout:deleted', self.onSwipeoutDeleted);
-        el.addEventListener('swipeout:overswipeenter', self.onSwipeoutOverswipeEnter);
-        el.addEventListener('swipeout:overswipeexit', self.onSwipeoutOverswipeExit);
-        el.addEventListener('swipeout', self.onSwipeout);
-      }
-
-      if (accordionItem) {
-        el.addEventListener('accordion:beforeopen', self.onAccBeforeOpen);
-        el.addEventListener('accordion:open', self.onAccOpen);
-        el.addEventListener('accordion:opened', self.onAccOpened);
-        el.addEventListener('accordion:beforeclose', self.onAccBeforeClose);
-        el.addEventListener('accordion:close', self.onAccClose);
-        el.addEventListener('accordion:closed', self.onAccClosed);
-      }
-
       self.$f7ready(function (f7) {
+        self.eventTargetEl = el;
+
+        if (swipeout) {
+          f7.on('swipeoutOpen', self.onSwipeoutOpen);
+          f7.on('swipeoutOpened', self.onSwipeoutOpened);
+          f7.on('swipeoutClose', self.onSwipeoutClose);
+          f7.on('swipeoutClosed', self.onSwipeoutClosed);
+          f7.on('swipeoutDelete', self.onSwipeoutDelete);
+          f7.on('swipeoutDeleted', self.onSwipeoutDeleted);
+          f7.on('swipeoutOverswipeEnter', self.onSwipeoutOverswipeEnter);
+          f7.on('swipeoutOverswipeExit', self.onSwipeoutOverswipeExit);
+          f7.on('swipeout', self.onSwipeout);
+        }
+
+        if (accordionItem) {
+          f7.on('accordionBeforeOpen', self.onAccBeforeOpen);
+          f7.on('accordionOpen', self.onAccOpen);
+          f7.on('accordionOpened', self.onAccOpened);
+          f7.on('accordionBeforeClose', self.onAccBeforeClose);
+          f7.on('accordionClose', self.onAccClose);
+          f7.on('accordionClosed', self.onAccClosed);
+        }
+
         if (smartSelect) {
           var ssParams = Utils.extend({
             el: el.querySelector('a.smart-select')
@@ -5330,16 +5705,20 @@
         if (swipeoutOpened) {
           f7.swipeout.open(el);
         }
+
+        if (tooltip) {
+          self.f7Tooltip = f7.tooltip.create({
+            targetEl: el,
+            text: tooltip
+          });
+        }
       });
     },
-
     updated: function updated() {
       var self = this;
       var $listEl = self.$listEl;
-      var ref = self.$refs;
-      var linkEl = ref.linkEl;
-      var ref$1 = self.props;
-      var routeProps = ref$1.routeProps;
+      var linkEl = self.$refs.linkEl;
+      var routeProps = self.props.routeProps;
 
       if (linkEl && routeProps) {
         linkEl.f7RouteProps = routeProps;
@@ -5368,18 +5747,15 @@
         });
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var ref = self.$refs;
-      var el = ref.el;
-      var linkEl = ref.linkEl;
-      var ref$1 = self.props;
-      var link = ref$1.link;
-      var href = ref$1.href;
-      var smartSelect = ref$1.smartSelect;
-      var swipeout = ref$1.swipeout;
-      var accordionItem = ref$1.accordionItem;
+      var linkEl = self.$refs.linkEl;
+      var _self$props2 = self.props,
+          link = _self$props2.link,
+          href = _self$props2.href,
+          smartSelect = _self$props2.smartSelect,
+          swipeout = _self$props2.swipeout,
+          accordionItem = _self$props2.accordionItem;
       var needsEvents = !(link || href || accordionItem || smartSelect);
 
       if (linkEl) {
@@ -5390,34 +5766,44 @@
         delete linkEl.f7RouteProps;
       }
 
-      if (el) {
+      if (self.$f7) {
+        var f7 = self.$f7;
+
         if (swipeout) {
-          el.removeEventListener('swipeout:open', self.onSwipeoutOpen);
-          el.removeEventListener('swipeout:opened', self.onSwipeoutOpened);
-          el.removeEventListener('swipeout:close', self.onSwipeoutClose);
-          el.removeEventListener('swipeout:closed', self.onSwipeoutClosed);
-          el.removeEventListener('swipeout:delete', self.onSwipeoutDelete);
-          el.removeEventListener('swipeout:deleted', self.onSwipeoutDeleted);
-          el.removeEventListener('swipeout:overswipeenter', self.onSwipeoutOverswipeEnter);
-          el.removeEventListener('swipeout:overswipeexit', self.onSwipeoutOverswipeExit);
-          el.removeEventListener('swipeout', self.onSwipeout);
+          f7.off('swipeoutOpen', self.onSwipeoutOpen);
+          f7.off('swipeoutOpened', self.onSwipeoutOpened);
+          f7.off('swipeoutClose', self.onSwipeoutClose);
+          f7.off('swipeoutClosed', self.onSwipeoutClosed);
+          f7.off('swipeoutDelete', self.onSwipeoutDelete);
+          f7.off('swipeoutDeleted', self.onSwipeoutDeleted);
+          f7.off('swipeoutOverswipeEnter', self.onSwipeoutOverswipeEnter);
+          f7.off('swipeoutOverswipeExit', self.onSwipeoutOverswipeExit);
+          f7.off('swipeout', self.onSwipeout);
         }
 
         if (accordionItem) {
-          el.removeEventListener('accordion:beforeopen', self.onAccBeforeOpen);
-          el.removeEventListener('accordion:open', self.onAccOpen);
-          el.removeEventListener('accordion:opened', self.onAccOpened);
-          el.removeEventListener('accordion:beforeclose', self.onAccBeforeClose);
-          el.removeEventListener('accordion:close', self.onAccClose);
-          el.removeEventListener('accordion:closed', self.onAccClosed);
+          f7.off('accordionBeforeOpen', self.onAccBeforeOpen);
+          f7.off('accordionOpen', self.onAccOpen);
+          f7.off('accordionOpened', self.onAccOpened);
+          f7.off('accordionBeforeClose', self.onAccBeforeClose);
+          f7.off('accordionClose', self.onAccClose);
+          f7.off('accordionClosed', self.onAccClosed);
         }
       }
 
       if (smartSelect && self.f7SmartSelect) {
         self.f7SmartSelect.destroy();
       }
-    },
 
+      if (self.f7Tooltip && self.f7Tooltip.destroy) {
+        self.f7Tooltip.destroy();
+        self.f7Tooltip = null;
+        delete self.f7Tooltip;
+      }
+
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
+    },
     methods: {
       onClick: function onClick(event) {
         var self = this;
@@ -5426,92 +5812,89 @@
           self.dispatchEvent('click', event);
         }
       },
-
-      onSwipeoutOverswipeEnter: function onSwipeoutOverswipeEnter(event) {
-        this.dispatchEvent('swipeout:overswipeenter swipeoutOverswipeEnter', event);
+      onSwipeoutOverswipeEnter: function onSwipeoutOverswipeEnter(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:overswipeenter swipeoutOverswipeEnter');
       },
-
-      onSwipeoutOverswipeExit: function onSwipeoutOverswipeExit(event) {
-        this.dispatchEvent('swipeout:overswipeexit swipeoutOverswipeExit', event);
+      onSwipeoutOverswipeExit: function onSwipeoutOverswipeExit(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:overswipeexit swipeoutOverswipeExit');
       },
-
-      onSwipeoutDeleted: function onSwipeoutDeleted(event) {
-        this.dispatchEvent('swipeout:deleted swipeoutDeleted', event);
+      onSwipeoutDeleted: function onSwipeoutDeleted(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:deleted swipeoutDeleted');
       },
-
-      onSwipeoutDelete: function onSwipeoutDelete(event) {
-        this.dispatchEvent('swipeout:delete swipeoutDelete', event);
+      onSwipeoutDelete: function onSwipeoutDelete(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:delete swipeoutDelete');
       },
-
-      onSwipeoutClose: function onSwipeoutClose(event) {
-        this.dispatchEvent('swipeout:close swipeoutClose', event);
+      onSwipeoutClose: function onSwipeoutClose(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:close swipeoutClose');
       },
-
-      onSwipeoutClosed: function onSwipeoutClosed(event) {
-        this.dispatchEvent('swipeout:closed swipeoutClosed', event);
+      onSwipeoutClosed: function onSwipeoutClosed(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:closed swipeoutClosed');
       },
-
-      onSwipeoutOpen: function onSwipeoutOpen(event) {
-        this.dispatchEvent('swipeout:open swipeoutOpen', event);
+      onSwipeoutOpen: function onSwipeoutOpen(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:open swipeoutOpen');
       },
-
-      onSwipeoutOpened: function onSwipeoutOpened(event) {
-        this.dispatchEvent('swipeout:opened swipeoutOpened', event);
+      onSwipeoutOpened: function onSwipeoutOpened(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout:opened swipeoutOpened');
       },
-
-      onSwipeout: function onSwipeout(event) {
-        this.dispatchEvent('swipeout', event);
+      onSwipeout: function onSwipeout(el, progress) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('swipeout', progress);
       },
-
-      onAccBeforeClose: function onAccBeforeClose(event) {
-        this.dispatchEvent('accordion:beforeclose accordionBeforeClose', event, event.detail.prevent);
+      onAccBeforeClose: function onAccBeforeClose(el, prevent) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:beforeclose accordionBeforeClose', prevent);
       },
-
-      onAccClose: function onAccClose(event) {
-        this.dispatchEvent('accordion:close accordionClose', event);
+      onAccClose: function onAccClose(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:close accordionClose');
       },
-
-      onAccClosed: function onAccClosed(event) {
-        this.dispatchEvent('accordion:closed accordionClosed', event);
+      onAccClosed: function onAccClosed(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:closed accordionClosed');
       },
-
-      onAccBeforeOpen: function onAccBeforeOpen(event) {
-        this.dispatchEvent('accordion:beforeopen accordionBeforeOpen', event, event.detail.prevent);
+      onAccBeforeOpen: function onAccBeforeOpen(el, prevent) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:beforeopen accordionBeforeOpen', prevent);
       },
-
-      onAccOpen: function onAccOpen(event) {
-        this.dispatchEvent('accordion:open accordionOpen', event);
+      onAccOpen: function onAccOpen(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:open accordionOpen');
       },
-
-      onAccOpened: function onAccOpened(event) {
-        this.dispatchEvent('accordion:opened accordionOpened', event);
+      onAccOpened: function onAccOpened(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('accordion:opened accordionOpened');
       },
-
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       onInput: function onInput(event) {
         this.dispatchEvent('input', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -5520,10 +5903,19 @@
     props: Object.assign({
       id: [String, Number],
       inset: Boolean,
-      tabletInset: Boolean,
+      xsmallInset: Boolean,
+      smallInset: Boolean,
+      mediumInset: Boolean,
+      largeInset: Boolean,
+      xlargeInset: Boolean,
       mediaList: Boolean,
       sortable: Boolean,
+      sortableTapHold: Boolean,
       sortableEnabled: Boolean,
+      sortableMoveElements: {
+        type: Boolean,
+        default: undefined
+      },
       accordionList: Boolean,
       contactsList: Boolean,
       simpleList: Boolean,
@@ -5546,17 +5938,17 @@
       virtualList: Boolean,
       virtualListParams: Object
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var form = props.form;
-      var ref = self.$slots;
-      var slotsList = ref.list;
-      var slotsDefault = ref.default;
+      var id = props.id,
+          style = props.style,
+          form = props.form,
+          sortableMoveElements = props.sortableMoveElements;
+      var _self$$slots = self.$slots,
+          slotsList = _self$$slots.list,
+          slotsDefault = _self$$slots.default;
       var rootChildrenBeforeList = [];
       var rootChildrenAfterList = [];
       var ulChildren = slotsList || [];
@@ -5584,7 +5976,8 @@
           style: style,
           class: self.classes,
           attrs: {
-            id: id
+            id: id,
+            'data-sortable-move-elements': typeof sortableMoveElements !== 'undefined' ? sortableMoveElements.toString() : undefined
           }
         }, [self.$slots['before-list'], rootChildrenBeforeList, _h('ul', [ulChildren]), self.$slots['after-list'], rootChildrenAfterList]);
       } else {
@@ -5593,61 +5986,71 @@
           style: style,
           class: self.classes,
           attrs: {
-            id: id
+            id: id,
+            'data-sortable-move-elements': typeof sortableMoveElements !== 'undefined' ? sortableMoveElements.toString() : undefined
           }
         }, [self.$slots['before-list'], rootChildrenBeforeList, self.$slots['after-list'], rootChildrenAfterList]);
       }
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var inset = props.inset;
-        var tabletInset = props.tabletInset;
-        var mediaList = props.mediaList;
-        var simpleList = props.simpleList;
-        var linksList = props.linksList;
-        var sortable = props.sortable;
-        var accordionList = props.accordionList;
-        var contactsList = props.contactsList;
-        var virtualList = props.virtualList;
-        var sortableEnabled = props.sortableEnabled;
-        var tab = props.tab;
-        var tabActive = props.tabActive;
-        var noHairlines = props.noHairlines;
-        var noHairlinesIos = props.noHairlinesIos;
-        var noHairlinesMd = props.noHairlinesMd;
-        var noHairlinesAurora = props.noHairlinesAurora;
-        var noHairlinesBetween = props.noHairlinesBetween;
-        var noHairlinesBetweenIos = props.noHairlinesBetweenIos;
-        var noHairlinesBetweenMd = props.noHairlinesBetweenMd;
-        var noHairlinesBetweenAurora = props.noHairlinesBetweenAurora;
-        var formStoreData = props.formStoreData;
-        var inlineLabels = props.inlineLabels;
-        var className = props.className;
-        var noChevron = props.noChevron;
-        var chevronCenter = props.chevronCenter;
+        var inset = props.inset,
+            xsmallInset = props.xsmallInset,
+            smallInset = props.smallInset,
+            mediumInset = props.mediumInset,
+            largeInset = props.largeInset,
+            xlargeInset = props.xlargeInset,
+            mediaList = props.mediaList,
+            simpleList = props.simpleList,
+            linksList = props.linksList,
+            sortable = props.sortable,
+            sortableTapHold = props.sortableTapHold,
+            sortableEnabled = props.sortableEnabled,
+            accordionList = props.accordionList,
+            contactsList = props.contactsList,
+            virtualList = props.virtualList,
+            tab = props.tab,
+            tabActive = props.tabActive,
+            noHairlines = props.noHairlines,
+            noHairlinesIos = props.noHairlinesIos,
+            noHairlinesMd = props.noHairlinesMd,
+            noHairlinesAurora = props.noHairlinesAurora,
+            noHairlinesBetween = props.noHairlinesBetween,
+            noHairlinesBetweenIos = props.noHairlinesBetweenIos,
+            noHairlinesBetweenMd = props.noHairlinesBetweenMd,
+            noHairlinesBetweenAurora = props.noHairlinesBetweenAurora,
+            formStoreData = props.formStoreData,
+            inlineLabels = props.inlineLabels,
+            className = props.className,
+            noChevron = props.noChevron,
+            chevronCenter = props.chevronCenter;
         return Utils.classNames(className, 'list', {
           inset: inset,
-          'tablet-inset': tabletInset,
+          'xsmall-inset': xsmallInset,
+          'small-inset': smallInset,
+          'medium-inset': mediumInset,
+          'large-inset': largeInset,
+          'xlarge-inset': xlargeInset,
           'media-list': mediaList,
           'simple-list': simpleList,
           'links-list': linksList,
           sortable: sortable,
+          'sortable-tap-hold': sortableTapHold,
+          'sortable-enabled': sortableEnabled,
           'accordion-list': accordionList,
           'contacts-list': contactsList,
           'virtual-list': virtualList,
-          'sortable-enabled': sortableEnabled,
           tab: tab,
           'tab-active': tabActive,
           'no-hairlines': noHairlines,
-          'no-hairlines-between': noHairlinesBetween,
           'no-hairlines-md': noHairlinesMd,
-          'no-hairlines-between-md': noHairlinesBetweenMd,
           'no-hairlines-ios': noHairlinesIos,
-          'no-hairlines-between-ios': noHairlinesBetweenIos,
           'no-hairlines-aurora': noHairlinesAurora,
+          'no-hairlines-between': noHairlinesBetween,
+          'no-hairlines-between-md': noHairlinesBetweenMd,
+          'no-hairlines-between-ios': noHairlinesBetweenIos,
           'no-hairlines-between-aurora': noHairlinesBetweenAurora,
           'form-store-data': formStoreData,
           'inline-labels': inlineLabels,
@@ -5655,121 +6058,107 @@
           'chevron-center': chevronCenter
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onSortableEnable', 'onSortableDisable', 'onSortableSort', 'onTabShow', 'onTabHide']);
+      Utils.bindMethods(this, ['onSortableEnable', 'onSortableDisable', 'onSortableSort', 'onTabShow', 'onTabHide', 'onSubmit']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var virtualList = ref.virtualList;
-      var virtualListParams = ref.virtualListParams;
-
-      if (el) {
-        el.addEventListener('sortable:enable', self.onSortableEnable);
-        el.addEventListener('sortable:disable', self.onSortableDisable);
-        el.addEventListener('sortable:sort', self.onSortableSort);
-        el.addEventListener('tab:show', self.onTabShow);
-        el.addEventListener('tab:hide', self.onTabHide);
-      }
-
-      if (!virtualList) { return; }
+      var _self$props = self.props,
+          virtualList = _self$props.virtualList,
+          virtualListParams = _self$props.virtualListParams,
+          form = _self$props.form;
       self.$f7ready(function (f7) {
-        var $$ = self.$$;
-        var $el = $$(el);
-        var templateScript = $el.find('script');
-        var template = templateScript.html();
+        self.eventTargetEl = el;
+        f7.on('sortableEnable', self.onSortableEnable);
+        f7.on('sortableDisable', self.onSortableDisable);
+        f7.on('sortableSort', self.onSortableSort);
+        f7.on('tabShow', self.onTabShow);
+        f7.on('tabHide', self.onTabHide);
 
-        if (!template && templateScript.length > 0) {
-          template = templateScript[0].outerHTML;
-          template = /\<script type="text\/template7"\>(.*)<\/script>/.exec(template)[1];
+        if (form) {
+          el.addEventListener('submit', self.onSubmit);
         }
 
+        if (!virtualList) { return; }
         var vlParams = virtualListParams || {};
-        if (!template && !vlParams.renderItem && !vlParams.itemTemplate && !vlParams.renderExternal) { return; }
-        if (template) { template = self.$t7.compile(template); }
+        if (!vlParams.renderItem && !vlParams.itemTemplate && !vlParams.renderExternal) { return; }
         self.f7VirtualList = f7.virtualList.create(Utils.extend({
           el: el,
-          itemTemplate: template,
           on: {
             itemBeforeInsert: function itemBeforeInsert(itemEl, item) {
               var vl = this;
               self.dispatchEvent('virtual:itembeforeinsert virtualItemBeforeInsert', vl, itemEl, item);
             },
-
             beforeClear: function beforeClear(fragment) {
               var vl = this;
               self.dispatchEvent('virtual:beforeclear virtualBeforeClear', vl, fragment);
             },
-
             itemsBeforeInsert: function itemsBeforeInsert(fragment) {
               var vl = this;
               self.dispatchEvent('virtual:itemsbeforeinsert virtualItemsBeforeInsert', vl, fragment);
             },
-
             itemsAfterInsert: function itemsAfterInsert(fragment) {
               var vl = this;
               self.dispatchEvent('virtual:itemsafterinsert virtualItemsAfterInsert', vl, fragment);
             }
-
           }
         }, vlParams));
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
-
-      if (el) {
-        el.removeEventListener('sortable:enable', self.onSortableEnable);
-        el.removeEventListener('sortable:disable', self.onSortableDisable);
-        el.removeEventListener('sortable:sort', self.onSortableSort);
-        el.removeEventListener('tab:show', self.onTabShow);
-        el.removeEventListener('tab:hide', self.onTabHide);
-      }
-
+      var f7 = self.$f7;
+      if (!el || !f7) { return; }
+      f7.off('sortableEnable', self.onSortableEnable);
+      f7.off('sortableDisable', self.onSortableDisable);
+      f7.off('sortableSort', self.onSortableSort);
+      f7.off('tabShow', self.onTabShow);
+      f7.off('tabHide', self.onTabHide);
+      el.removeEventListener('submit', self.onSubmit);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
       if (!(self.virtualList && self.f7VirtualList)) { return; }
       if (self.f7VirtualList.destroy) { self.f7VirtualList.destroy(); }
     },
-
     methods: {
-      onSortableEnable: function onSortableEnable(event) {
-        this.dispatchEvent('sortable:enable sortableEnable', event);
+      onSubmit: function onSubmit(event) {
+        this.dispatchEvent('submit', event);
       },
-
-      onSortableDisable: function onSortableDisable(event) {
-        this.dispatchEvent('sortable:disable sortableDisable', event);
+      onSortableEnable: function onSortableEnable(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('sortable:enable sortableEnable');
       },
-
-      onSortableSort: function onSortableSort(event) {
-        var sortData = event.detail;
-        this.dispatchEvent('sortable:sort sortableSort', event, sortData);
+      onSortableDisable: function onSortableDisable(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('sortable:disable sortableDisable');
       },
-
-      onTabShow: function onTabShow(event) {
-        this.dispatchEvent('tab:show tabShow', event);
+      onSortableSort: function onSortableSort(el, sortData, listEl) {
+        if (this.eventTargetEl !== listEl) { return; }
+        this.dispatchEvent('sortable:sort sortableSort', sortData);
       },
-
-      onTabHide: function onTabHide(event) {
-        this.dispatchEvent('tab:hide tabHide', event);
+      onTabShow: function onTabShow(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:show tabShow');
       },
-
+      onTabHide: function onTabHide(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:hide tabHide');
+      },
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -5778,13 +6167,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'login-screen-title', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -5794,12 +6182,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -5809,14 +6195,13 @@
       id: [String, Number],
       opened: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'login-screen', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -5827,7 +6212,6 @@
         }
       }, [this.$slots['default']]);
     },
-
     watch: {
       'props.opened': function watchOpened(opened) {
         var self = this;
@@ -5840,22 +6224,22 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('loginscreen:open', self.onOpen);
-      el.addEventListener('loginscreen:opened', self.onOpened);
-      el.addEventListener('loginscreen:close', self.onClose);
-      el.addEventListener('loginscreen:closed', self.onClosed);
       self.$f7ready(function () {
         self.f7LoginScreen = self.$f7.loginScreen.create({
-          el: el
+          el: el,
+          on: {
+            open: self.onOpen,
+            opened: self.onOpened,
+            close: self.onClose,
+            closed: self.onClosed
+          }
         });
 
         if (self.props.opened) {
@@ -5863,62 +6247,47 @@
         }
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var el = self.$refs.el;
       if (self.f7LoginScreen) { self.f7LoginScreen.destroy(); }
-      if (!el) { return; }
-      el.removeEventListener('loginscreen:open', self.onOpen);
-      el.removeEventListener('loginscreen:opened', self.onOpened);
-      el.removeEventListener('loginscreen:close', self.onClose);
-      el.removeEventListener('loginscreen:closed', self.onClosed);
     },
-
     methods: {
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('loginscreen:open loginScreenOpen', event);
+      onOpen: function onOpen(instance) {
+        this.dispatchEvent('loginscreen:open loginScreenOpen', instance);
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('loginscreen:opened loginScreenOpened', event);
+      onOpened: function onOpened(instance) {
+        this.dispatchEvent('loginscreen:opened loginScreenOpened', instance);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('loginscreen:close loginScreenClose', event);
+      onClose: function onClose(instance) {
+        this.dispatchEvent('loginscreen:close loginScreenClose', instance);
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('loginscreen:closed loginScreenClosed', event);
+      onClosed: function onClosed(instance) {
+        this.dispatchEvent('loginscreen:closed loginScreenClosed', instance);
       },
-
       open: function open(animate) {
         var self = this;
-        var el = self.$refs.el;
-        if (!self.$f7 || !el) { return undefined; }
-        return self.$f7.loginScreen.open(el, animate);
+        if (!self.f7LoginScreen) { return undefined; }
+        return self.f7LoginScreen.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        var el = self.$refs.el;
-        if (!self.$f7 || !el) { return undefined; }
-        return self.$f7.loginScreen.close(el, animate);
+        if (!self.f7LoginScreen) { return undefined; }
+        return self.f7LoginScreen.close(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -5931,20 +6300,19 @@
       href: String,
       target: String,
       divider: Boolean
-    }, Mixins.colorProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+    }, Mixins.colorProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var link = props.link;
-      var href = props.href;
-      var text = props.text;
-      var divider = props.divider;
-      var menuClose = props.menuClose;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          link = props.link,
+          href = props.href,
+          text = props.text,
+          divider = props.divider,
+          menuClose = props.menuClose;
       var isLink = link || href || href === '';
       var Tag = isLink ? 'a' : 'div';
       var classes = Utils.classNames({
@@ -5964,30 +6332,24 @@
         }
       })), [text, this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
       el.addEventListener('click', self.onClick);
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
       if (routeProps) { el.f7RouteProps = routeProps; }
     },
-
     updated: function updated() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
       if (routeProps) { el.f7RouteProps = routeProps; }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
@@ -5995,14 +6357,13 @@
       el.removeEventListener('click', self.onClick);
       delete el.f7RouteProps;
     },
-
     computed: {
       attrs: function attrs() {
         var self = this;
         var props = self.props;
-        var link = props.link;
-        var href = props.href;
-        var target = props.target;
+        var link = props.link,
+            href = props.href,
+            target = props.target;
         var hrefComputed = href;
         if (typeof hrefComputed === 'undefined' && link) { hrefComputed = '#'; }
         return Utils.extend({
@@ -6010,24 +6371,23 @@
           target: target
         }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -6041,24 +6401,23 @@
       center: Boolean,
       right: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var contentHeight = props.contentHeight;
-      var position = props.position;
-      var left = props.left;
-      var center = props.center;
-      var right = props.right;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          contentHeight = props.contentHeight,
+          position = props.position,
+          left = props.left,
+          center = props.center,
+          right = props.right;
       var positionComputed = position || 'left';
       if (left) { positionComputed = 'left'; }
       if (center) { positionComputed = 'center'; }
       if (right) { positionComputed = 'right'; }
-      var classes = Utils.classNames('menu-dropdown', ("menu-dropdown-" + positionComputed), Mixins.colorClasses(props), className);
+      var classes = Utils.classNames('menu-dropdown', "menu-dropdown-".concat(positionComputed), Mixins.colorClasses(props), className);
       return _h('div', {
         class: classes,
         style: style,
@@ -6072,12 +6431,10 @@
         }
       }, [this.$slots['default']])]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6091,41 +6448,36 @@
       link: Boolean,
       target: String,
       dropdown: Boolean
-    }, Mixins.colorProps, Mixins.linkIconProps, Mixins.linkRouterProps, Mixins.linkActionsProps),
-
+    }, Mixins.colorProps, {}, Mixins.linkIconProps, {}, Mixins.linkRouterProps, {}, Mixins.linkActionsProps),
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
-      var link = props.link;
-      var href = props.href;
-      var text = props.text;
-      var dropdown = props.dropdown;
-      var iconOnly = props.iconOnly;
-      var icon = props.icon;
-      var iconColor = props.iconColor;
-      var iconSize = props.iconSize;
-      var iconMaterial = props.iconMaterial;
-      var iconIon = props.iconIon;
-      var iconFa = props.iconFa;
-      var iconF7 = props.iconF7;
-      var iconMd = props.iconMd;
-      var iconIos = props.iconIos;
-      var iconAurora = props.iconAurora;
+      var id = props.id,
+          className = props.className,
+          style = props.style,
+          link = props.link,
+          href = props.href,
+          text = props.text,
+          dropdown = props.dropdown,
+          iconOnly = props.iconOnly,
+          icon = props.icon,
+          iconColor = props.iconColor,
+          iconSize = props.iconSize,
+          iconMaterial = props.iconMaterial,
+          iconF7 = props.iconF7,
+          iconMd = props.iconMd,
+          iconIos = props.iconIos,
+          iconAurora = props.iconAurora;
       var slots = self.$slots;
       var iconEl;
       var iconOnlyComputed;
 
-      if (icon || iconMaterial || iconIon || iconFa || iconF7 || iconMd || iconIos || iconAurora) {
-        iconEl = _h(F7Icon, {
+      if (icon || iconMaterial || iconF7 || iconMd || iconIos || iconAurora) {
+        iconEl = _h(f7Icon, {
           attrs: {
             material: iconMaterial,
             f7: iconF7,
-            fa: iconFa,
-            ion: iconIon,
             icon: icon,
             md: iconMd,
             ios: iconIos,
@@ -6162,49 +6514,47 @@
         class: 'menu-item-content'
       }, [text, iconEl, this.$slots['text']]), this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick', 'onOpened', 'onClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
+      self.eventTargetEl = el;
       el.addEventListener('click', self.onClick);
-      el.addEventListener('menu:opened', self.onOpened);
-      el.addEventListener('menu:closed', self.onClosed);
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
       if (routeProps) { el.f7RouteProps = routeProps; }
+      self.$f7ready(function (f7) {
+        f7.on('menuOpened', self.onOpened);
+        f7.on('menuClosed', self.onClosed);
+      });
     },
-
     updated: function updated() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      var ref = self.props;
-      var routeProps = ref.routeProps;
+      var routeProps = self.props.routeProps;
       if (routeProps) { el.f7RouteProps = routeProps; }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       var el = self.$refs.el;
-      if (!el) { return; }
+      if (!el || !self.$f7) { return; }
       el.removeEventListener('click', self.onClick);
-      el.removeEventListener('menu:opened', self.onOpened);
-      el.removeEventListener('menu:closed', self.onClosed);
+      self.$f7.off('menuOpened', self.onOpened);
+      self.$f7.off('menuClosed', self.onOpened);
+      self.eventTargetEl = null;
       delete el.f7RouteProps;
+      delete self.eventTargetEl;
     },
-
     computed: {
       attrs: function attrs() {
         var self = this;
         var props = self.props;
-        var href = props.href;
-        var link = props.link;
-        var target = props.target;
+        var href = props.href,
+            link = props.link,
+            target = props.target;
         var hrefComputed = href;
         if (typeof hrefComputed === 'undefined' && link) { hrefComputed = '#'; }
         return Utils.extend({
@@ -6212,32 +6562,31 @@
           target: target
         }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     methods: {
       onClick: function onClick(e) {
         this.dispatchEvent('click', e);
       },
-
-      onOpened: function onOpened(e) {
-        this.dispatchEvent('menuOpened menu:opened', e);
+      onOpened: function onOpened(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('menuOpened menu:opened', el);
       },
-
-      onClosed: function onClosed(e) {
-        this.dispatchEvent('menuClosed menu:closed', e);
+      onClosed: function onClosed(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('menuClosed menu:closed', el);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -6246,14 +6595,13 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
+      var id = props.id,
+          className = props.className,
+          style = props.style;
       return _h('div', {
         class: Utils.classNames('menu', Mixins.colorClasses(props), className),
         style: style,
@@ -6264,12 +6612,10 @@
         class: 'menu-inner'
       }, [this.$slots['default']])]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6298,38 +6644,37 @@
       sameAvatar: Boolean,
       typing: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var text = props.text;
-      var name = props.name;
-      var avatar = props.avatar;
-      var image = props.image;
-      var header = props.header;
-      var footer = props.footer;
-      var textHeader = props.textHeader;
-      var textFooter = props.textFooter;
-      var typing = props.typing;
-      var id = props.id;
-      var style = props.style;
-      var ref = self.$slots;
-      var slotsStart = ref.start;
-      var slotsEnd = ref.end;
-      var slotsDefault = ref.default;
-      var slotsContentStart = ref['content-start'];
-      var slotsContentEnd = ref['content-end'];
-      var slotsAvatar = ref.avatar;
-      var slotsName = ref.name;
-      var slotsHeader = ref.header;
-      var slotsFooter = ref.footer;
-      var slotsImage = ref.image;
-      var slotsText = ref.text;
-      var slotsTextHeader = ref['text-header'];
-      var slotsTextFooter = ref['text-footer'];
-      var slotsBubbleStart = ref['bubble-start'];
-      var slotsBubbleEnd = ref['bubble-end'];
+      var text = props.text,
+          name = props.name,
+          avatar = props.avatar,
+          image = props.image,
+          header = props.header,
+          footer = props.footer,
+          textHeader = props.textHeader,
+          textFooter = props.textFooter,
+          typing = props.typing,
+          id = props.id,
+          style = props.style;
+      var _self$$slots = self.$slots,
+          slotsStart = _self$$slots.start,
+          slotsEnd = _self$$slots.end,
+          slotsDefault = _self$$slots.default,
+          slotsContentStart = _self$$slots['content-start'],
+          slotsContentEnd = _self$$slots['content-end'],
+          slotsAvatar = _self$$slots.avatar,
+          slotsName = _self$$slots.name,
+          slotsHeader = _self$$slots.header,
+          slotsFooter = _self$$slots.footer,
+          slotsImage = _self$$slots.image,
+          slotsText = _self$$slots.text,
+          slotsTextHeader = _self$$slots['text-header'],
+          slotsTextFooter = _self$$slots['text-footer'],
+          slotsBubbleStart = _self$$slots['bubble-start'],
+          slotsBubbleEnd = _self$$slots['bubble-end'];
       return _h('div', {
         ref: 'el',
         style: style,
@@ -6341,7 +6686,7 @@
         ref: 'avatarEl',
         class: 'message-avatar',
         style: {
-          backgroundImage: avatar && ("url(" + avatar + ")")
+          backgroundImage: avatar && "url(".concat(avatar, ")")
         }
       }, [slotsAvatar]), _h('div', {
         class: 'message-content'
@@ -6374,21 +6719,20 @@
         class: 'message-footer'
       }, [slotsFooter || footer]), slotsContentEnd]), slotsEnd]);
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var type = props.type;
-        var typing = props.typing;
-        var first = props.first;
-        var last = props.last;
-        var tail = props.tail;
-        var sameName = props.sameName;
-        var sameHeader = props.sameHeader;
-        var sameFooter = props.sameFooter;
-        var sameAvatar = props.sameAvatar;
-        var className = props.className;
+        var type = props.type,
+            typing = props.typing,
+            first = props.first,
+            last = props.last,
+            tail = props.tail,
+            sameName = props.sameName,
+            sameHeader = props.sameHeader,
+            sameFooter = props.sameFooter,
+            sameAvatar = props.sameAvatar,
+            className = props.className;
         return Utils.classNames(className, 'message', {
           'message-sent': type === 'sent',
           'message-received': type === 'received',
@@ -6402,26 +6746,22 @@
           'message-same-avatar': sameAvatar
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick', 'onNameClick', 'onTextClick', 'onAvatarClick', 'onHeaderClick', 'onFooterClick', 'onBubbleClick']);
     },
-
     mounted: function mounted() {
-      var ref = this.$refs;
-      var el = ref.el;
-      var nameEl = ref.nameEl;
-      var textEl = ref.textEl;
-      var avatarEl = ref.avatarEl;
-      var headerEl = ref.headerEl;
-      var footerEl = ref.footerEl;
-      var bubbleEl = ref.bubbleEl;
+      var _this$$refs = this.$refs,
+          el = _this$$refs.el,
+          nameEl = _this$$refs.nameEl,
+          textEl = _this$$refs.textEl,
+          avatarEl = _this$$refs.avatarEl,
+          headerEl = _this$$refs.headerEl,
+          footerEl = _this$$refs.footerEl,
+          bubbleEl = _this$$refs.bubbleEl;
       el.addEventListener('click', this.onClick);
       if (nameEl) { nameEl.addEventListener('click', this.onNameClick); }
       if (textEl) { textEl.addEventListener('click', this.onTextClick); }
@@ -6430,16 +6770,15 @@
       if (footerEl) { footerEl.addEventListener('click', this.onFooterClick); }
       if (bubbleEl) { bubbleEl.addEventListener('click', this.onBubbleClick); }
     },
-
     beforeDestroy: function beforeDestroy() {
-      var ref = this.$refs;
-      var el = ref.el;
-      var nameEl = ref.nameEl;
-      var textEl = ref.textEl;
-      var avatarEl = ref.avatarEl;
-      var headerEl = ref.headerEl;
-      var footerEl = ref.footerEl;
-      var bubbleEl = ref.bubbleEl;
+      var _this$$refs2 = this.$refs,
+          el = _this$$refs2.el,
+          nameEl = _this$$refs2.nameEl,
+          textEl = _this$$refs2.textEl,
+          avatarEl = _this$$refs2.avatarEl,
+          headerEl = _this$$refs2.headerEl,
+          footerEl = _this$$refs2.footerEl,
+          bubbleEl = _this$$refs2.bubbleEl;
       el.removeEventListener('click', this.onClick);
       if (nameEl) { nameEl.removeEventListener('click', this.onNameClick); }
       if (textEl) { textEl.removeEventListener('click', this.onTextClick); }
@@ -6448,43 +6787,37 @@
       if (footerEl) { footerEl.removeEventListener('click', this.onFooterClick); }
       if (bubbleEl) { bubbleEl.removeEventListener('click', this.onBubbleClick); }
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       onNameClick: function onNameClick(event) {
         this.dispatchEvent('click:name clickName', event);
       },
-
       onTextClick: function onTextClick(event) {
         this.dispatchEvent('click:text clickText', event);
       },
-
       onAvatarClick: function onAvatarClick(event) {
         this.dispatchEvent('click:avatar clickAvatar', event);
       },
-
       onHeaderClick: function onHeaderClick(event) {
         this.dispatchEvent('click:header clickHeader', event);
       },
-
       onFooterClick: function onFooterClick(event) {
         this.dispatchEvent('click:footer clickFooter', event);
       },
-
       onBubbleClick: function onBubbleClick(event) {
         this.dispatchEvent('click:bubble clickBubble', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -6498,16 +6831,15 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var deletable = props.deletable;
-      var image = props.image;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var deletable = props.deletable,
+          image = props.image,
+          className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'messagebar-attachment', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -6525,11 +6857,9 @@
         class: 'messagebar-attachment-delete'
       }), this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick', 'onDeleteClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
 
@@ -6537,7 +6867,6 @@
         this.$refs.deleteEl.addEventListener('click', this.onDeleteClick);
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
 
@@ -6545,29 +6874,27 @@
         this.$refs.deleteEl.removeEventListener('click', this.onDeleteClick);
       }
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('attachment:click attachmentClick', event);
       },
-
       onDeleteClick: function onDeleteClick(event) {
         this.dispatchEvent('attachment:delete attachmentDelete', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6576,13 +6903,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'messagebar-attachments', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -6592,12 +6918,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6608,19 +6932,18 @@
       image: String,
       checked: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var image = props.image;
-      var checked = props.checked;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
+      var image = props.image,
+          checked = props.checked,
+          id = props.id,
+          className = props.className,
+          style = props.style;
       var classes = Utils.classNames(className, 'messagebar-sheet-image', 'checkbox', Mixins.colorClasses(props));
       var styles = Utils.extend({
-        backgroundImage: image && ("url(" + image + ")")
+        backgroundImage: image && "url(".concat(image, ")")
       }, style || {});
       var inputEl;
       {
@@ -6647,30 +6970,28 @@
         class: 'icon icon-checkbox'
       }), this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onChange']);
     },
-
     methods: {
       onChange: function onChange(event) {
         if (this.props.checked) { this.dispatchEvent('checked', event); }else { this.dispatchEvent('unchecked', event); }
         this.dispatchEvent('change', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6679,13 +7000,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'messagebar-sheet-item', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -6695,12 +7015,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6709,13 +7027,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'messagebar-sheet', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -6725,12 +7042,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -6773,33 +7088,31 @@
         default: true
       }
     }, Mixins.colorProps),
-
     created: function created() {
-      Utils.bindMethods(this, ['onChange', 'onInput', 'onFocus', 'onBlur', 'onClick', 'onDeleteAttachment', 'onClickAttachment', 'onResizePage']);
+      Utils.bindMethods(this, ['onChange', 'onInput', 'onFocus', 'onBlur', 'onClick', 'onAttachmentDelete', 'onAttachmentClick,', 'onResizePage']);
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
-      var ref = self.props;
-      var placeholder = ref.placeholder;
-      var disabled = ref.disabled;
-      var name = ref.name;
-      var readonly = ref.readonly;
-      var resizable = ref.resizable;
-      var value = ref.value;
-      var sendLink = ref.sendLink;
-      var id = ref.id;
-      var style = ref.style;
-      var ref$1 = self.$slots;
-      var slotsDefault = ref$1.default;
-      var slotsBeforeInner = ref$1['before-inner'];
-      var slotsAfterInner = ref$1['after-inner'];
-      var slotsSendLink = ref$1['send-link'];
-      var slotsInnerStart = ref$1['inner-start'];
-      var slotsInnerEnd = ref$1['inner-end'];
-      var slotsBeforeArea = ref$1['before-area'];
-      var slotsAfterArea = ref$1['after-area'];
+      var _self$props = self.props,
+          placeholder = _self$props.placeholder,
+          disabled = _self$props.disabled,
+          name = _self$props.name,
+          readonly = _self$props.readonly,
+          resizable = _self$props.resizable,
+          value = _self$props.value,
+          sendLink = _self$props.sendLink,
+          id = _self$props.id,
+          style = _self$props.style;
+      var _self$$slots = self.$slots,
+          slotsDefault = _self$$slots.default,
+          slotsBeforeInner = _self$$slots['before-inner'],
+          slotsAfterInner = _self$$slots['after-inner'],
+          slotsSendLink = _self$$slots['send-link'],
+          slotsInnerStart = _self$$slots['inner-start'],
+          slotsInnerEnd = _self$$slots['inner-end'],
+          slotsBeforeArea = _self$$slots['before-area'],
+          slotsAfterArea = _self$$slots['after-area'];
       var innerEndEls = [];
       var messagebarAttachmentsEl;
       var messagebarSheetEl;
@@ -6820,6 +7133,8 @@
         });
       }
 
+      var valueProps = {};
+      if ('value' in self.props) { valueProps.value = value; }
       return _h('div', {
         ref: 'el',
         style: style,
@@ -6831,8 +7146,9 @@
         class: 'toolbar-inner'
       }, [slotsInnerStart, _h('div', {
         class: 'messagebar-area'
-      }, [slotsBeforeArea, messagebarAttachmentsEl, _h(F7Input, {
-        ref: 'area',
+      }, [slotsBeforeArea, messagebarAttachmentsEl, _h(f7Input, __vueComponentTransformJSXProps(Object.assign({
+        ref: 'area'
+      }, valueProps, {
         on: {
           input: self.onInput,
           change: self.onChange,
@@ -6846,33 +7162,29 @@
           disabled: disabled,
           name: name,
           readonly: readonly,
-          resizable: resizable,
-          value: value
+          resizable: resizable
         }
-      }), slotsAfterArea]), (sendLink && sendLink.length > 0 || slotsSendLink) && _h(F7Link, {
+      }))), slotsAfterArea]), (sendLink && sendLink.length > 0 || slotsSendLink) && _h(f7Link, {
         on: {
           click: self.onClick
         }
       }, [slotsSendLink || sendLink]), slotsInnerEnd, innerEndEls]), slotsAfterInner, messagebarSheetEl]);
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var className = props.className;
-        var attachmentsVisible = props.attachmentsVisible;
-        var sheetVisible = props.sheetVisible;
+        var className = props.className,
+            attachmentsVisible = props.attachmentsVisible,
+            sheetVisible = props.sheetVisible;
         return Utils.classNames(className, 'toolbar', 'messagebar', {
           'messagebar-attachments-visible': attachmentsVisible,
           'messagebar-sheet-visible': sheetVisible
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     watch: {
       'props.sheetVisible': function watchSheetVisible() {
@@ -6886,41 +7198,41 @@
         self.updateAttachmentsVisible = true;
       }
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.props;
-      var init = ref.init;
-      var top = ref.top;
-      var resizePage = ref.resizePage;
-      var bottomOffset = ref.bottomOffset;
-      var topOffset = ref.topOffset;
-      var maxHeight = ref.maxHeight;
+      var _self$props2 = self.props,
+          init = _self$props2.init,
+          top = _self$props2.top,
+          resizePage = _self$props2.resizePage,
+          bottomOffset = _self$props2.bottomOffset,
+          topOffset = _self$props2.topOffset,
+          maxHeight = _self$props2.maxHeight;
       if (!init) { return; }
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('messagebar:attachmentdelete', self.onDeleteAttachment);
-      el.addEventListener('messagebar:attachmentclick', self.onClickAttachment);
-      el.addEventListener('messagebar:resizepage', self.onResizePage);
       var params = Utils.noUndefinedProps({
         el: el,
         top: top,
         resizePage: resizePage,
         bottomOffset: bottomOffset,
         topOffset: topOffset,
-        maxHeight: maxHeight
+        maxHeight: maxHeight,
+        on: {
+          attachmentDelete: self.onAttachmentDelete,
+          attachmentClick: self.onAttachmentClick,
+          resizePage: self.onResizePage
+        }
       });
       self.$f7ready(function () {
         self.f7Messagebar = self.$f7.messagebar.create(params);
       });
     },
-
     updated: function updated() {
       var self = this;
       if (!self.f7Messagebar) { return; }
-      var ref = self.props;
-      var sheetVisible = ref.sheetVisible;
-      var attachmentsVisible = ref.attachmentsVisible;
+      var _self$props3 = self.props,
+          sheetVisible = _self$props3.sheetVisible,
+          attachmentsVisible = _self$props3.attachmentsVisible;
 
       if (self.updateSheetVisible) {
         self.updateSheetVisible = false;
@@ -6934,151 +7246,101 @@
         self.f7Messagebar.resizePage();
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Messagebar && self.f7Messagebar.destroy) { self.f7Messagebar.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('messagebar:attachmentdelete', self.onDeleteAttachment);
-      el.removeEventListener('messagebar:attachmentclick', self.onClickAttachment);
-      el.removeEventListener('messagebar:resizepage', self.onResizePage);
     },
-
     methods: {
       clear: function clear() {
-        var ref;
+        var _this$f7Messagebar;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).clear.apply(ref, args);
+        return (_this$f7Messagebar = this.f7Messagebar).clear.apply(_this$f7Messagebar, arguments);
       },
-
       getValue: function getValue() {
-        var ref;
+        var _this$f7Messagebar2;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).getValue.apply(ref, args);
+        return (_this$f7Messagebar2 = this.f7Messagebar).getValue.apply(_this$f7Messagebar2, arguments);
       },
-
       setValue: function setValue() {
-        var ref;
+        var _this$f7Messagebar3;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).setValue.apply(ref, args);
+        return (_this$f7Messagebar3 = this.f7Messagebar).setValue.apply(_this$f7Messagebar3, arguments);
       },
-
       setPlaceholder: function setPlaceholder() {
-        var ref;
+        var _this$f7Messagebar4;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).setPlaceholder.apply(ref, args);
+        return (_this$f7Messagebar4 = this.f7Messagebar).setPlaceholder.apply(_this$f7Messagebar4, arguments);
       },
-
       resize: function resize() {
-        var ref;
+        var _this$f7Messagebar5;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).resizePage.apply(ref, args);
+        return (_this$f7Messagebar5 = this.f7Messagebar).resizePage.apply(_this$f7Messagebar5, arguments);
       },
-
       focus: function focus() {
-        var ref;
+        var _this$f7Messagebar6;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).focus.apply(ref, args);
+        return (_this$f7Messagebar6 = this.f7Messagebar).focus.apply(_this$f7Messagebar6, arguments);
       },
-
       blur: function blur() {
-        var ref;
+        var _this$f7Messagebar7;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).blur.apply(ref, args);
+        return (_this$f7Messagebar7 = this.f7Messagebar).blur.apply(_this$f7Messagebar7, arguments);
       },
-
       attachmentsShow: function attachmentsShow() {
-        var ref;
+        var _this$f7Messagebar8;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).attachmentsShow.apply(ref, args);
+        return (_this$f7Messagebar8 = this.f7Messagebar).attachmentsShow.apply(_this$f7Messagebar8, arguments);
       },
-
       attachmentsHide: function attachmentsHide() {
-        var ref;
+        var _this$f7Messagebar9;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).attachmentsHide.apply(ref, args);
+        return (_this$f7Messagebar9 = this.f7Messagebar).attachmentsHide.apply(_this$f7Messagebar9, arguments);
       },
-
       attachmentsToggle: function attachmentsToggle() {
-        var ref;
+        var _this$f7Messagebar10;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).attachmentsToggle.apply(ref, args);
+        return (_this$f7Messagebar10 = this.f7Messagebar).attachmentsToggle.apply(_this$f7Messagebar10, arguments);
       },
-
       sheetShow: function sheetShow() {
-        var ref;
+        var _this$f7Messagebar11;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).sheetShow.apply(ref, args);
+        return (_this$f7Messagebar11 = this.f7Messagebar).sheetShow.apply(_this$f7Messagebar11, arguments);
       },
-
       sheetHide: function sheetHide() {
-        var ref;
+        var _this$f7Messagebar12;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).sheetHide.apply(ref, args);
+        return (_this$f7Messagebar12 = this.f7Messagebar).sheetHide.apply(_this$f7Messagebar12, arguments);
       },
-
       sheetToggle: function sheetToggle() {
-        var ref;
+        var _this$f7Messagebar13;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messagebar) { return undefined; }
-        return (ref = this.f7Messagebar).sheetToggle.apply(ref, args);
+        return (_this$f7Messagebar13 = this.f7Messagebar).sheetToggle.apply(_this$f7Messagebar13, arguments);
       },
-
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       onInput: function onInput(event) {
         this.dispatchEvent('input', event);
       },
-
       onFocus: function onFocus(event) {
         this.dispatchEvent('focus', event);
       },
-
       onBlur: function onBlur(event) {
         this.dispatchEvent('blur', event);
       },
-
       onClick: function onClick(event) {
         var self = this;
         var value;
@@ -7092,26 +7354,24 @@
         this.dispatchEvent('send', value, clear);
         this.dispatchEvent('click', event);
       },
-
-      onDeleteAttachment: function onDeleteAttachment(event) {
-        this.dispatchEvent('messagebar:attachmentdelete messagebarAttachmentDelete', event);
+      onAttachmentDelete: function onAttachmentDelete(instance, attachmentEl, attachmentElIndex) {
+        this.dispatchEvent('messagebar:attachmentdelete messagebarAttachmentDelete', instance, attachmentEl, attachmentElIndex);
       },
-
-      onClickAttachment: function onClickAttachment(event) {
-        this.dispatchEvent('messagebar:attachmentclick messagebarAttachmentClick', event);
+      onAttachmentClick: function onAttachmentClick(instance, attachmentEl, attachmentElIndex) {
+        this.dispatchEvent('messagebar:attachmentclick messagebarAttachmentClick', instance, attachmentEl, attachmentElIndex);
       },
-
-      onResizePage: function onResizePage(event) {
-        this.dispatchEvent('messagebar:resizepage messagebarResizePage', event);
+      onResizePage: function onResizePage(instance) {
+        this.dispatchEvent('messagebar:resizepage messagebarResizePage', instance);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -7120,13 +7380,12 @@
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'messages-title', Mixins.colorClasses(props));
       return _h('div', {
         style: style,
@@ -7136,12 +7395,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -7155,11 +7412,9 @@
       },
       messages: {
         type: Array,
-
-        default: function default$1() {
+        default: function _default() {
           return [];
         }
-
       },
       newMessagesFirst: {
         type: Boolean,
@@ -7187,14 +7442,13 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          className = props.className;
       var classes = Utils.classNames(className, 'messages', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -7205,7 +7459,6 @@
         }
       }, [this.$slots['default']]);
     },
-
     beforeUpdate: function beforeUpdate() {
       var self = this;
       if (!self.props.init) { return; }
@@ -7218,13 +7471,12 @@
         children[i].classList.add('message-appeared');
       }
     },
-
     updated: function updated() {
       var self = this;
-      var ref = self.props;
-      var init = ref.init;
-      var autoLayout = ref.autoLayout;
-      var scrollMessages = ref.scrollMessages;
+      var _self$props = self.props,
+          init = _self$props.init,
+          autoLayout = _self$props.autoLayout,
+          scrollMessages = _self$props.scrollMessages;
       if (!init) { return; }
       var el = self.$refs.el;
       if (!el) { return; }
@@ -7245,25 +7497,24 @@
         self.f7Messages.scroll();
       }
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.props;
-      var init = ref.init;
-      var autoLayout = ref.autoLayout;
-      var messages = ref.messages;
-      var newMessagesFirst = ref.newMessagesFirst;
-      var scrollMessages = ref.scrollMessages;
-      var scrollMessagesOnEdge = ref.scrollMessagesOnEdge;
-      var firstMessageRule = ref.firstMessageRule;
-      var lastMessageRule = ref.lastMessageRule;
-      var tailMessageRule = ref.tailMessageRule;
-      var sameNameMessageRule = ref.sameNameMessageRule;
-      var sameHeaderMessageRule = ref.sameHeaderMessageRule;
-      var sameFooterMessageRule = ref.sameFooterMessageRule;
-      var sameAvatarMessageRule = ref.sameAvatarMessageRule;
-      var customClassMessageRule = ref.customClassMessageRule;
-      var renderMessage = ref.renderMessage;
+      var _self$props2 = self.props,
+          init = _self$props2.init,
+          autoLayout = _self$props2.autoLayout,
+          messages = _self$props2.messages,
+          newMessagesFirst = _self$props2.newMessagesFirst,
+          scrollMessages = _self$props2.scrollMessages,
+          scrollMessagesOnEdge = _self$props2.scrollMessagesOnEdge,
+          firstMessageRule = _self$props2.firstMessageRule,
+          lastMessageRule = _self$props2.lastMessageRule,
+          tailMessageRule = _self$props2.tailMessageRule,
+          sameNameMessageRule = _self$props2.sameNameMessageRule,
+          sameHeaderMessageRule = _self$props2.sameHeaderMessageRule,
+          sameFooterMessageRule = _self$props2.sameFooterMessageRule,
+          sameAvatarMessageRule = _self$props2.sameAvatarMessageRule,
+          customClassMessageRule = _self$props2.customClassMessageRule,
+          renderMessage = _self$props2.renderMessage;
       if (!init) { return; }
       self.$f7ready(function (f7) {
         self.f7Messages = f7.messages.create(Utils.noUndefinedProps({
@@ -7285,85 +7536,74 @@
         }));
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       if (this.f7Messages && this.f7Messages.destroy) { this.f7Messages.destroy(); }
     },
-
     methods: {
       renderMessages: function renderMessages(messagesToRender, method) {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.renderMessages(messagesToRender, method);
       },
-
       layout: function layout() {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.layout();
       },
-
       scroll: function scroll(duration, scrollTop) {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.scroll(duration, scrollTop);
       },
-
       clear: function clear() {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.clear();
       },
-
       removeMessage: function removeMessage(messageToRemove, layout) {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.removeMessage(messageToRemove, layout);
       },
-
       removeMessages: function removeMessages(messagesToRemove, layout) {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.removeMessages(messagesToRemove, layout);
       },
-
       addMessage: function addMessage() {
-        var ref;
+        var _this$f7Messages;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messages) { return undefined; }
-        return (ref = this.f7Messages).addMessage.apply(ref, args);
+        return (_this$f7Messages = this.f7Messages).addMessage.apply(_this$f7Messages, arguments);
       },
-
       addMessages: function addMessages() {
-        var ref;
+        var _this$f7Messages2;
 
-        var args = [], len = arguments.length;
-        while ( len-- ) args[ len ] = arguments[ len ];
         if (!this.f7Messages) { return undefined; }
-        return (ref = this.f7Messages).addMessages.apply(ref, args);
+        return (_this$f7Messages2 = this.f7Messages).addMessages.apply(_this$f7Messages2, arguments);
       },
-
       showTyping: function showTyping(message) {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.showTyping(message);
       },
-
       hideTyping: function hideTyping() {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.hideTyping();
       },
-
       destroy: function destroy() {
         if (!this.f7Messages) { return undefined; }
         return this.f7Messages.destroy();
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7NavLeft = {
+  function _toConsumableArray$1(arr) { return _arrayWithoutHoles$1(arr) || _iterableToArray$1(arr) || _nonIterableSpread$1(); }
+
+  function _nonIterableSpread$1() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+  function _iterableToArray$1(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") { return Array.from(iter); } }
+
+  function _arrayWithoutHoles$1(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+  var f7NavLeft = {
     name: 'f7-nav-left',
     props: Object.assign({
       id: [String, Number],
@@ -7376,25 +7616,25 @@
       },
       sliding: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var backLink = props.backLink;
-      var backLinkUrl = props.backLinkUrl;
-      var backLinkForce = props.backLinkForce;
-      var backLinkShowText = props.backLinkShowText;
-      var sliding = props.sliding;
-      var className = props.className;
-      var style = props.style;
-      var id = props.id;
+      var backLink = props.backLink,
+          backLinkUrl = props.backLinkUrl,
+          backLinkForce = props.backLinkForce,
+          backLinkShowText = props.backLinkShowText,
+          sliding = props.sliding,
+          className = props.className,
+          style = props.style,
+          id = props.id;
       var linkEl;
       var needBackLinkText = backLinkShowText;
       if (typeof needBackLinkText === 'undefined') { needBackLinkText = !this.$theme.md; }
 
       if (backLink) {
-        linkEl = _h(F7Link, {
-          class: backLink === true || backLink && this.$theme.md ? 'icon-only' : undefined,
+        var text = backLink !== true && needBackLinkText ? backLink : undefined;
+        linkEl = _h(f7Link, {
+          class: !text ? 'icon-only' : undefined,
           on: {
             click: this.onBackClick
           },
@@ -7403,7 +7643,7 @@
             back: true,
             icon: 'icon-back',
             force: backLinkForce || undefined,
-            text: backLink !== true && needBackLinkText ? backLink : undefined
+            text: text
           }
         });
       }
@@ -7416,7 +7656,7 @@
 
       if (slots && Object.keys(slots).length) {
         Object.keys(slots).forEach(function (key) {
-          children.push.apply(children, slots[key]);
+          children.push.apply(children, _toConsumableArray$1(slots[key]));
         });
       }
 
@@ -7428,46 +7668,50 @@
         }
       }, [linkEl, children]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onBackClick']);
     },
-
     methods: {
       onBackClick: function onBackClick(event) {
         this.dispatchEvent('back-click backClick click:back clickBack', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7NavRight = {
+  function _toConsumableArray$2(arr) { return _arrayWithoutHoles$2(arr) || _iterableToArray$2(arr) || _nonIterableSpread$2(); }
+
+  function _nonIterableSpread$2() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+  function _iterableToArray$2(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") { return Array.from(iter); } }
+
+  function _arrayWithoutHoles$2(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+  var f7NavRight = {
     name: 'f7-nav-right',
     props: Object.assign({
       id: [String, Number],
       sliding: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var sliding = props.sliding;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          sliding = props.sliding;
       var classes = Utils.classNames(className, 'right', {
         sliding: sliding
       }, Mixins.colorClasses(props));
@@ -7476,7 +7720,7 @@
 
       if (slots && Object.keys(slots).length) {
         Object.keys(slots).forEach(function (key) {
-          children.push.apply(children, slots[key]);
+          children.push.apply(children, _toConsumableArray$2(slots[key]));
         });
       }
 
@@ -7488,35 +7732,39 @@
         }
       }, [children]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
+  function _toConsumableArray$3(arr) { return _arrayWithoutHoles$3(arr) || _iterableToArray$3(arr) || _nonIterableSpread$3(); }
+
+  function _nonIterableSpread$3() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+  function _iterableToArray$3(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") { return Array.from(iter); } }
+
+  function _arrayWithoutHoles$3(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
   var f7NavTitleLarge = {
     name: 'f7-nav-title',
     props: Object.assign({
       id: [String, Number]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          className = props.className;
       var classes = Utils.classNames(className, 'title-large', Mixins.colorClasses(props));
       var children = [];
       var slots = self.$slots;
 
       if (slots && Object.keys(slots).length) {
         Object.keys(slots).forEach(function (key) {
-          children.push.apply(children, slots[key]);
+          children.push.apply(children, _toConsumableArray$3(slots[key]));
         });
       }
 
@@ -7530,16 +7778,21 @@
         class: 'title-large-text'
       }, [children])]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7NavTitle = {
+  function _toConsumableArray$4(arr) { return _arrayWithoutHoles$4(arr) || _iterableToArray$4(arr) || _nonIterableSpread$4(); }
+
+  function _nonIterableSpread$4() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+  function _iterableToArray$4(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") { return Array.from(iter); } }
+
+  function _arrayWithoutHoles$4(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+  var f7NavTitle = {
     name: 'f7-nav-title',
     props: Object.assign({
       id: [String, Number],
@@ -7547,20 +7800,19 @@
       subtitle: String,
       sliding: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var title = props.title;
-      var subtitle = props.subtitle;
-      var id = props.id;
-      var style = props.style;
-      var sliding = props.sliding;
-      var className = props.className;
+      var title = props.title,
+          subtitle = props.subtitle,
+          id = props.id,
+          style = props.style,
+          sliding = props.sliding,
+          className = props.className;
       var subtitleEl;
 
-      if (self.subtitle) {
+      if (subtitle) {
         subtitleEl = _h('span', {
           class: 'subtitle'
         }, [subtitle]);
@@ -7575,7 +7827,9 @@
       if (slots && Object.keys(slots).length) {
         children = [];
         Object.keys(slots).forEach(function (key) {
-          children.push.apply(children, slots[key]);
+          var _children;
+
+          (_children = children).push.apply(_children, _toConsumableArray$4(slots[key]));
         });
       }
 
@@ -7587,12 +7841,10 @@
         }
       }, [children, !children && title, !children && subtitleEl]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -7616,103 +7868,122 @@
       hidden: Boolean,
       noShadow: Boolean,
       noHairline: Boolean,
-      inner: {
-        type: Boolean,
-        default: true
-      },
       innerClass: String,
       innerClassName: String,
       large: Boolean,
+      largeTransparent: Boolean,
       titleLarge: String
     }, Mixins.colorProps),
+    data: function data() {
+      var _this = this;
 
+      var props = __vueComponentProps(this);
+
+      var state = function () {
+        var self = _this;
+        var $f7 = self.$f7;
+
+        if (!$f7) {
+          self.$f7ready(function () {
+            self.setState({
+              _theme: self.$theme
+            });
+          });
+        }
+
+        return {
+          _theme: $f7 ? self.$theme : null
+        };
+      }();
+
+      return {
+        state: state
+      };
+    },
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var backLink = props.backLink;
-      var backLinkUrl = props.backLinkUrl;
-      var backLinkForce = props.backLinkForce;
-      var backLinkShowText = props.backLinkShowText;
-      var sliding = props.sliding;
-      var title = props.title;
-      var subtitle = props.subtitle;
-      var inner = props.inner;
-      var innerClass = props.innerClass;
-      var innerClassName = props.innerClassName;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var hidden = props.hidden;
-      var noShadow = props.noShadow;
-      var noHairline = props.noHairline;
-      var large = props.large;
-      var titleLarge = props.titleLarge;
-      var innerEl;
+      var backLink = props.backLink,
+          backLinkUrl = props.backLinkUrl,
+          backLinkForce = props.backLinkForce,
+          backLinkShowText = props.backLinkShowText,
+          sliding = props.sliding,
+          title = props.title,
+          subtitle = props.subtitle,
+          innerClass = props.innerClass,
+          innerClassName = props.innerClassName,
+          className = props.className,
+          id = props.id,
+          style = props.style,
+          hidden = props.hidden,
+          noShadow = props.noShadow,
+          noHairline = props.noHairline,
+          large = props.large,
+          largeTransparent = props.largeTransparent,
+          titleLarge = props.titleLarge;
+      var theme = self.state.theme;
       var leftEl;
       var titleEl;
       var rightEl;
       var titleLargeEl;
-      var addLeftTitleClass = self.$theme && self.$theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
-      var addCenterTitleClass = self.$theme && self.$theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle || self.$theme && self.$theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle;
+      var addLeftTitleClass = theme && theme.ios && self.$f7 && !self.$f7.params.navbar.iosCenterTitle;
+      var addCenterTitleClass = theme && theme.md && self.$f7 && self.$f7.params.navbar.mdCenterTitle || theme && theme.aurora && self.$f7 && self.$f7.params.navbar.auroraCenterTitle;
       var slots = self.$slots;
-
-      if (inner) {
-        if (backLink || slots['nav-left']) {
-          leftEl = _h(F7NavLeft, {
-            on: {
-              backClick: self.onBackClick
-            },
-            attrs: {
-              backLink: backLink,
-              backLinkUrl: backLinkUrl,
-              backLinkForce: backLinkForce,
-              backLinkShowText: backLinkShowText
-            }
-          }, [slots['nav-left']]);
-        }
-
-        if (title || subtitle || slots.title) {
-          titleEl = _h(F7NavTitle, {
-            attrs: {
-              title: title,
-              subtitle: subtitle
-            }
-          }, [slots.title]);
-        }
-
-        if (slots['nav-right']) {
-          rightEl = _h(F7NavRight, [slots['nav-right']]);
-        }
-
-        var largeTitle = titleLarge;
-        if (!largeTitle && large && title) { largeTitle = title; }
-
-        if (largeTitle) {
-          titleLargeEl = _h('div', {
-            class: 'title-large'
-          }, [_h('div', {
-            class: 'title-large-text'
-          }, [largeTitle])]);
-        }
-
-        innerEl = _h('div', {
-          ref: 'inner',
-          class: Utils.classNames('navbar-inner', innerClass, innerClassName, {
-            sliding: sliding,
-            'navbar-inner-left-title': addLeftTitleClass,
-            'navbar-inner-centered-title': addCenterTitleClass,
-            'navbar-inner-large': large
-          })
-        }, [leftEl, titleEl, rightEl, titleLargeEl, this.$slots['default']]);
-      }
-
       var classes = Utils.classNames(className, 'navbar', {
         'navbar-hidden': hidden,
-        'no-shadow': noShadow,
-        'no-hairline': noHairline,
-        'navbar-large': large
+        'navbar-large': large,
+        'navbar-large-transparent': largeTransparent
       }, Mixins.colorClasses(props));
+
+      if (backLink || slots['nav-left'] || slots.left) {
+        leftEl = _h(f7NavLeft, {
+          on: {
+            backClick: self.onBackClick
+          },
+          attrs: {
+            backLink: backLink,
+            backLinkUrl: backLinkUrl,
+            backLinkForce: backLinkForce,
+            backLinkShowText: backLinkShowText
+          }
+        }, [slots['nav-left'], slots.left]);
+      }
+
+      if (title || subtitle || slots.title) {
+        titleEl = _h(f7NavTitle, {
+          attrs: {
+            title: title,
+            subtitle: subtitle
+          }
+        }, [slots.title]);
+      }
+
+      if (slots['nav-right'] || slots.right) {
+        rightEl = _h(f7NavRight, [slots['nav-right'], slots.right]);
+      }
+
+      var largeTitle = titleLarge;
+      if (!largeTitle && large && title) { largeTitle = title; }
+
+      if (largeTitle || slots['title-large']) {
+        titleLargeEl = _h('div', {
+          class: 'title-large'
+        }, [_h('div', {
+          class: 'title-large-text'
+        }, [largeTitle || '', this.$slots['title-large']])]);
+      }
+
+      var innerEl = _h('div', {
+        class: Utils.classNames('navbar-inner', innerClass, innerClassName, {
+          sliding: sliding,
+          'no-shadow': noShadow,
+          'no-hairline': noHairline,
+          'navbar-inner-left-title': addLeftTitleClass,
+          'navbar-inner-centered-title': addCenterTitleClass
+        })
+      }, [leftEl, titleEl, rightEl, titleLargeEl, this.$slots['default']]);
+
       return _h('div', {
         ref: 'el',
         style: style,
@@ -7720,65 +7991,231 @@
         attrs: {
           id: id
         }
-      }, [this.$slots['before-inner'], innerEl, this.$slots['after-inner']]);
+      }, [_h('div', {
+        class: 'navbar-bg'
+      }), this.$slots['before-inner'], innerEl, this.$slots['after-inner']]);
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onBackClick']);
+      Utils.bindMethods(this, ['onBackClick', 'onHide', 'onShow', 'onExpand', 'onCollapse']);
     },
-
+    mounted: function mounted() {
+      var self = this;
+      var el = self.$refs.el;
+      if (!el) { return; }
+      self.$f7ready(function (f7) {
+        self.eventTargetEl = el;
+        f7.on('navbarShow', self.onShow);
+        f7.on('navbarHide', self.onHide);
+        f7.on('navbarCollapse', self.onCollapse);
+        f7.on('navbarExpand', self.onExpand);
+      });
+    },
     updated: function updated() {
       var self = this;
       if (!self.$f7) { return; }
       var el = self.$refs.el;
-
-      if (el && el.children && el.children.length) {
-        self.$f7.navbar.size(el);
-      } else if (self.$refs.inner) {
-        self.$f7.navbar.size(self.$refs.inner);
-      }
+      self.$f7.navbar.size(el);
     },
-
+    beforeDestroy: function beforeDestroy() {
+      var self = this;
+      var el = self.$refs.el;
+      if (!el || !self.$f7) { return; }
+      var f7 = self.$f7;
+      f7.off('navbarShow', self.onShow);
+      f7.off('navbarHide', self.onHide);
+      f7.off('navbarCollapse', self.onCollapse);
+      f7.off('navbarExpand', self.onExpand);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
+    },
     methods: {
+      onHide: function onHide(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('navbar:hide navbarHide');
+      },
+      onShow: function onShow(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('navbar:show navbarShow');
+      },
+      onExpand: function onExpand(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('navbar:expand navbarExpand');
+      },
+      onCollapse: function onCollapse(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('navbar:collapse navbarCollapse');
+      },
       hide: function hide(animate) {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.navbar.hide(self.$refs.el, animate);
       },
-
       show: function show(animate) {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.navbar.show(self.$refs.el, animate);
       },
-
       size: function size() {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.navbar.size(self.$refs.el);
       },
-
       onBackClick: function onBackClick(event) {
         this.dispatchEvent('back-click backClick click:back clickBack', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+      },
+      setState: function setState(updater, callback) {
+        __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
-  var F7PageContent = {
+  var f7Preloader = {
+    name: 'f7-preloader',
+    props: Object.assign({
+      id: [String, Number],
+      size: [Number, String]
+    }, Mixins.colorProps),
+    data: function data() {
+      var _this = this;
+
+      var props = __vueComponentProps(this);
+
+      var state = function () {
+        var self = _this;
+        var $f7 = self.$f7;
+
+        if (!$f7) {
+          self.$f7ready(function () {
+            self.setState({
+              _theme: self.$theme
+            });
+          });
+        }
+
+        return {
+          _theme: $f7 ? self.$theme : null
+        };
+      }();
+
+      return {
+        state: state
+      };
+    },
+    render: function render() {
+      var _h = this.$createElement;
+      var self = this;
+      var sizeComputed = self.sizeComputed,
+          props = self.props;
+      var id = props.id,
+          style = props.style,
+          className = props.className;
+      var theme = self.state._theme;
+      var preloaderStyle = {};
+
+      if (sizeComputed) {
+        preloaderStyle.width = "".concat(sizeComputed, "px");
+        preloaderStyle.height = "".concat(sizeComputed, "px");
+        preloaderStyle['--f7-preloader-size'] = "".concat(sizeComputed, "px");
+      }
+
+      if (style) { Utils.extend(preloaderStyle, style || {}); }
+      var innerEl;
+
+      if (theme && theme.md) {
+        innerEl = _h('span', {
+          class: 'preloader-inner'
+        }, [_h('span', {
+          class: 'preloader-inner-gap'
+        }), _h('span', {
+          class: 'preloader-inner-left'
+        }, [_h('span', {
+          class: 'preloader-inner-half-circle'
+        })]), _h('span', {
+          class: 'preloader-inner-right'
+        }, [_h('span', {
+          class: 'preloader-inner-half-circle'
+        })])]);
+      } else if (theme && theme.ios) {
+        innerEl = _h('span', {
+          class: 'preloader-inner'
+        }, [_h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        }), _h('span', {
+          class: 'preloader-inner-line'
+        })]);
+      } else if (theme && theme.aurora) {
+        innerEl = _h('span', {
+          class: 'preloader-inner'
+        }, [_h('span', {
+          class: 'preloader-inner-circle'
+        })]);
+      }
+
+      var classes = Utils.classNames(className, 'preloader', Mixins.colorClasses(props));
+      return _h('span', {
+        style: preloaderStyle,
+        class: classes,
+        attrs: {
+          id: id
+        }
+      }, [innerEl]);
+    },
+    computed: {
+      sizeComputed: function sizeComputed() {
+        var s = this.props.size;
+
+        if (s && typeof s === 'string' && s.indexOf('px') >= 0) {
+          s = s.replace('px', '');
+        }
+
+        return s;
+      },
+      props: function props() {
+        return __vueComponentProps(this);
+      }
+    },
+    methods: {
+      setState: function setState(updater, callback) {
+        __vueComponentSetState(this, updater, callback);
+      }
+    }
+  };
+
+  var f7PageContent = {
     name: 'f7-page-content',
     props: Object.assign({
       id: [String, Number],
@@ -7805,38 +8242,35 @@
       messagesContent: Boolean,
       loginScreen: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var ptr = props.ptr;
-      var ptrPreloader = props.ptrPreloader;
-      var ptrDistance = props.ptrDistance;
-      var ptrBottom = props.ptrBottom;
-      var ptrMousewheel = props.ptrMousewheel;
-      var infinite = props.infinite;
-      var infinitePreloader = props.infinitePreloader;
-      var id = props.id;
-      var style = props.style;
-      var infiniteDistance = props.infiniteDistance;
-      var infiniteTop = props.infiniteTop;
+      var ptr = props.ptr,
+          ptrPreloader = props.ptrPreloader,
+          ptrDistance = props.ptrDistance,
+          ptrBottom = props.ptrBottom,
+          ptrMousewheel = props.ptrMousewheel,
+          infinite = props.infinite,
+          infinitePreloader = props.infinitePreloader,
+          id = props.id,
+          style = props.style,
+          infiniteDistance = props.infiniteDistance,
+          infiniteTop = props.infiniteTop;
       var ptrEl;
       var infiniteEl;
 
       if (ptr && ptrPreloader) {
         ptrEl = _h('div', {
           class: 'ptr-preloader'
-        }, [_h('div', {
-          class: 'preloader'
-        }), _h('div', {
+        }, [_h(f7Preloader), _h('div', {
           class: 'ptr-arrow'
         })]);
       }
 
       if (infinite && infinitePreloader) {
-        infiniteEl = _h('div', {
-          class: 'preloader infinite-scroll-preloader'
+        infiniteEl = _h(f7Preloader, {
+          class: 'infinite-scroll-preloader'
         });
       }
 
@@ -7852,23 +8286,22 @@
         }
       }, [ptrBottom ? null : ptrEl, infiniteTop ? infiniteEl : null, self.$slots.default, infiniteTop ? null : infiniteEl, ptrBottom ? ptrEl : null]);
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var className = props.className;
-        var tab = props.tab;
-        var tabActive = props.tabActive;
-        var ptr = props.ptr;
-        var ptrBottom = props.ptrBottom;
-        var infinite = props.infinite;
-        var infiniteTop = props.infiniteTop;
-        var hideBarsOnScroll = props.hideBarsOnScroll;
-        var hideNavbarOnScroll = props.hideNavbarOnScroll;
-        var hideToolbarOnScroll = props.hideToolbarOnScroll;
-        var messagesContent = props.messagesContent;
-        var loginScreen = props.loginScreen;
+        var className = props.className,
+            tab = props.tab,
+            tabActive = props.tabActive,
+            ptr = props.ptr,
+            ptrBottom = props.ptrBottom,
+            infinite = props.infinite,
+            infiniteTop = props.infiniteTop,
+            hideBarsOnScroll = props.hideBarsOnScroll,
+            hideNavbarOnScroll = props.hideNavbarOnScroll,
+            hideToolbarOnScroll = props.hideToolbarOnScroll,
+            messagesContent = props.messagesContent,
+            loginScreen = props.loginScreen;
         return Utils.classNames(className, 'page-content', {
           tab: tab,
           'tab-active': tabActive,
@@ -7883,97 +8316,97 @@
           'login-screen-content': loginScreen
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onPtrPullStart', 'onPtrPullMove', 'onPtrPullEnd', 'onPtrRefresh', 'onPtrDone', 'onInfinite', 'onTabShow', 'onTabHide']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var ptr = ref.ptr;
-      var infinite = ref.infinite;
-      var tab = ref.tab;
+      var _self$props = self.props,
+          ptr = _self$props.ptr,
+          infinite = _self$props.infinite,
+          tab = _self$props.tab;
+      self.$f7ready(function (f7) {
+        self.eventTargetEl = el;
 
-      if (ptr) {
-        el.addEventListener('ptr:pullstart', self.onPtrPullStart);
-        el.addEventListener('ptr:pullmove', self.onPtrPullMove);
-        el.addEventListener('ptr:pullend', self.onPtrPullEnd);
-        el.addEventListener('ptr:refresh', self.onPtrRefresh);
-        el.addEventListener('ptr:done', self.onPtrDone);
-      }
+        if (ptr) {
+          f7.on('ptrPullStart', self.onPtrPullStart);
+          f7.on('ptrPullMove', self.onPtrPullMove);
+          f7.on('ptrPullEnd', self.onPtrPullEnd);
+          f7.on('ptrRefresh', self.onPtrRefresh);
+          f7.on('ptrDone', self.onPtrDone);
+        }
 
-      if (infinite) {
-        el.addEventListener('infinite', self.onInfinite);
-      }
+        if (infinite) {
+          f7.on('infinite', self.onInfinite);
+        }
 
-      if (tab) {
-        el.addEventListener('tab:show', self.onTabShow);
-        el.addEventListener('tab:hide', self.onTabHide);
-      }
+        if (tab) {
+          f7.on('tabShow', self.onTabShow);
+          f7.on('tabHide', self.onTabHide);
+        }
+      });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var el = self.$refs.el;
-      el.removeEventListener('ptr:pullstart', self.onPtrPullStart);
-      el.removeEventListener('ptr:pullmove', self.onPtrPullMove);
-      el.removeEventListener('ptr:pullend', self.onPtrPullEnd);
-      el.removeEventListener('ptr:refresh', self.onPtrRefresh);
-      el.removeEventListener('ptr:done', self.onPtrDone);
-      el.removeEventListener('infinite', self.onInfinite);
-      el.removeEventListener('tab:show', self.onTabShow);
-      el.removeEventListener('tab:hide', self.onTabHide);
+      if (!self.$f7) { return; }
+      self.$f7.off('ptrPullStart', self.onPtrPullStart);
+      self.$f7.off('ptrPullMove', self.onPtrPullMove);
+      self.$f7.off('ptrPullEnd', self.onPtrPullEnd);
+      self.$f7.off('ptrRefresh', self.onPtrRefresh);
+      self.$f7.off('ptrDone', self.onPtrDone);
+      self.$f7.off('infinite', self.onInfinite);
+      self.$f7.off('tabShow', self.onTabShow);
+      self.$f7.off('tabHide', self.onTabHide);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
     },
-
     methods: {
-      onPtrPullStart: function onPtrPullStart(event) {
-        this.dispatchEvent('ptr:pullstart ptrPullStart', event);
+      onPtrPullStart: function onPtrPullStart(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('ptr:pullstart ptrPullStart');
       },
-
-      onPtrPullMove: function onPtrPullMove(event) {
-        this.dispatchEvent('ptr:pullmove ptrPullMove', event);
+      onPtrPullMove: function onPtrPullMove(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('ptr:pullmove ptrPullMove');
       },
-
-      onPtrPullEnd: function onPtrPullEnd(event) {
-        this.dispatchEvent('ptr:pullend ptrPullEnd', event);
+      onPtrPullEnd: function onPtrPullEnd(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('ptr:pullend ptrPullEnd');
       },
-
-      onPtrRefresh: function onPtrRefresh(event) {
-        var done = event.detail;
-        this.dispatchEvent('ptr:refresh ptrRefresh', event, done);
+      onPtrRefresh: function onPtrRefresh(el, done) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('ptr:refresh ptrRefresh', done);
       },
-
-      onPtrDone: function onPtrDone(event) {
-        this.dispatchEvent('ptr:done ptrDone', event);
+      onPtrDone: function onPtrDone(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('ptr:done ptrDone');
       },
-
-      onInfinite: function onInfinite(event) {
-        this.dispatchEvent('infinite', event);
+      onInfinite: function onInfinite(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('infinite');
       },
-
-      onTabShow: function onTabShow(event) {
-        this.dispatchEvent('tab:show tabShow', event);
+      onTabShow: function onTabShow(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:show tabShow');
       },
-
-      onTabHide: function onTabHide(event) {
-        this.dispatchEvent('tab:hide tabHide', event);
+      onTabHide: function onTabHide(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:hide tabHide');
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -8028,66 +8461,65 @@
       messagesContent: Boolean,
       loginScreen: Boolean
     }, Mixins.colorProps),
-
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           hasSubnavbar: false,
           hasNavbarLarge: false,
           hasNavbarLargeCollapsed: false,
+          hasCardExpandableOpened: false,
           routerPositionClass: '',
           routerForceUnstack: false,
           routerPageRole: null,
+          routerPageRoleDetailRoot: false,
           routerPageMasterStack: false
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var name = props.name;
-      var pageContent = props.pageContent;
-      var messagesContent = props.messagesContent;
-      var ptr = props.ptr;
-      var ptrDistance = props.ptrDistance;
-      var ptrPreloader = props.ptrPreloader;
-      var ptrBottom = props.ptrBottom;
-      var ptrMousewheel = props.ptrMousewheel;
-      var infinite = props.infinite;
-      var infiniteDistance = props.infiniteDistance;
-      var infinitePreloader = props.infinitePreloader;
-      var infiniteTop = props.infiniteTop;
-      var hideBarsOnScroll = props.hideBarsOnScroll;
-      var hideNavbarOnScroll = props.hideNavbarOnScroll;
-      var hideToolbarOnScroll = props.hideToolbarOnScroll;
-      var loginScreen = props.loginScreen;
-      var className = props.className;
-      var stacked = props.stacked;
-      var tabs = props.tabs;
-      var subnavbar = props.subnavbar;
-      var withSubnavbar = props.withSubnavbar;
-      var navbarLarge = props.navbarLarge;
-      var withNavbarLarge = props.withNavbarLarge;
-      var noNavbar = props.noNavbar;
-      var noToolbar = props.noToolbar;
-      var noSwipeback = props.noSwipeback;
+      var id = props.id,
+          style = props.style,
+          name = props.name,
+          pageContent = props.pageContent,
+          messagesContent = props.messagesContent,
+          ptr = props.ptr,
+          ptrDistance = props.ptrDistance,
+          ptrPreloader = props.ptrPreloader,
+          ptrBottom = props.ptrBottom,
+          ptrMousewheel = props.ptrMousewheel,
+          infinite = props.infinite,
+          infiniteDistance = props.infiniteDistance,
+          infinitePreloader = props.infinitePreloader,
+          infiniteTop = props.infiniteTop,
+          hideBarsOnScroll = props.hideBarsOnScroll,
+          hideNavbarOnScroll = props.hideNavbarOnScroll,
+          hideToolbarOnScroll = props.hideToolbarOnScroll,
+          loginScreen = props.loginScreen,
+          className = props.className,
+          stacked = props.stacked,
+          tabs = props.tabs,
+          subnavbar = props.subnavbar,
+          withSubnavbar = props.withSubnavbar,
+          navbarLarge = props.navbarLarge,
+          withNavbarLarge = props.withNavbarLarge,
+          noNavbar = props.noNavbar,
+          noToolbar = props.noToolbar,
+          noSwipeback = props.noSwipeback;
       var fixedList = [];
       var staticList = [];
-      var needsPageContent = pageContent;
-      var ref = self.$slots;
-      var slotsStatic = ref.static;
-      var slotsFixed = ref.fixed;
-      var slotsDefault = ref.default;
+      var _self$$slots = self.$slots,
+          slotsStatic = _self$$slots.static,
+          slotsFixed = _self$$slots.fixed,
+          slotsDefault = _self$$slots.default;
       var fixedTags;
       fixedTags = 'navbar toolbar tabbar subnavbar searchbar messagebar fab list-index'.split(' ');
       var hasSubnavbar;
@@ -8103,14 +8535,16 @@
             var tag = child.tag;
 
             if (!tag) {
-              if (needsPageContent) { staticList.push(child); }
+              if (pageContent) { staticList.push(child); }
               return;
             }
 
             if (tag.indexOf('subnavbar') >= 0) { hasSubnavbar = true; }
 
             if (tag.indexOf('navbar') >= 0) {
-              if (child.componentOptions && child.componentOptions.propsData && 'large' in child.componentOptions.propsData && child.componentOptions.propsData !== false) { hasNavbarLarge = true; }
+              if (child.componentOptions && child.componentOptions.propsData && 'large' in child.componentOptions.propsData && (child.componentOptions.propsData.large || child.componentOptions.propsData.large === '')) {
+                hasNavbarLarge = true;
+              }
             }
 
             if (typeof hasMessages === 'undefined' && tag.indexOf('messages') >= 0) { hasMessages = true; }
@@ -8122,7 +8556,7 @@
             }
           }
 
-          if (needsPageContent) {
+          if (pageContent) {
             if (isFixedTag) { fixedList.push(child); }else { staticList.push(child); }
           }
         });
@@ -8140,11 +8574,14 @@
         'no-swipeback': noSwipeback,
         'page-master': this.state.routerPageRole === 'master',
         'page-master-detail': this.state.routerPageRole === 'detail',
+        'page-master-detail-root': this.state.routerPageRoleDetailRoot === true,
         'page-master-stacked': this.state.routerPageMasterStack === true,
-        'page-with-navbar-large-collapsed': this.state.hasNavbarLargeCollapsed === true
+        'page-with-navbar-large-collapsed': this.state.hasNavbarLargeCollapsed === true,
+        'page-with-card-opened': this.state.hasCardExpandableOpened === true,
+        'login-screen-page': loginScreen
       }, Mixins.colorClasses(props));
 
-      if (!needsPageContent) {
+      if (!pageContent) {
         return _h('div', {
           ref: 'el',
           style: style,
@@ -8156,7 +8593,15 @@
         }, [slotsFixed, slotsStatic, slotsDefault]);
       }
 
-      var pageContentEl = _h(F7PageContent, {
+      var pageContentEl = _h(f7PageContent, {
+        on: {
+          ptrPullStart: self.onPtrPullStart,
+          ptrPullMove: self.onPtrPullMove,
+          ptrPullEnd: self.onPtrPullEnd,
+          ptrRefresh: self.onPtrRefresh,
+          ptrDone: self.onPtrDone,
+          infinite: self.onInfinite
+        },
         attrs: {
           ptr: ptr,
           ptrDistance: ptrDistance,
@@ -8185,162 +8630,125 @@
         }
       }, [fixedList, slotsFixed, pageContentEl]);
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onPtrPullStart', 'onPtrPullMove', 'onPtrPullEnd', 'onPtrRefresh', 'onPtrDone', 'onInfinite', 'onPageMounted', 'onPageInit', 'onPageReinit', 'onPageBeforeIn', 'onPageBeforeOut', 'onPageAfterOut', 'onPageAfterIn', 'onPageBeforeRemove', 'onPageStack', 'onPageUnstack', 'onPagePosition', 'onPageRole', 'onPageMasterStack', 'onPageMasterUnstack', 'onPageNavbarLargeCollapsed', 'onPageNavbarLargeExpanded']);
+      Utils.bindMethods(this, ['onPtrPullStart', 'onPtrPullMove', 'onPtrPullEnd', 'onPtrRefresh', 'onPtrDone', 'onInfinite', 'onPageMounted', 'onPageInit', 'onPageReinit', 'onPageBeforeIn', 'onPageBeforeOut', 'onPageAfterOut', 'onPageAfterIn', 'onPageBeforeRemove', 'onPageStack', 'onPageUnstack', 'onPagePosition', 'onPageRole', 'onPageMasterStack', 'onPageMasterUnstack', 'onPageNavbarLargeCollapsed', 'onPageNavbarLargeExpanded', 'onCardOpened', 'onCardClose']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var ptr = ref.ptr;
-      var infinite = ref.infinite;
-
-      if (ptr) {
-        el.addEventListener('ptr:pullstart', self.onPtrPullStart);
-        el.addEventListener('ptr:pullmove', self.onPtrPullMove);
-        el.addEventListener('ptr:pullend', self.onPtrPullEnd);
-        el.addEventListener('ptr:refresh', self.onPtrRefresh);
-        el.addEventListener('ptr:done', self.onPtrDone);
-      }
-
-      if (infinite) {
-        el.addEventListener('infinite', self.onInfinite);
-      }
-
-      el.addEventListener('page:mounted', self.onPageMounted);
-      el.addEventListener('page:init', self.onPageInit);
-      el.addEventListener('page:reinit', self.onPageReinit);
-      el.addEventListener('page:beforein', self.onPageBeforeIn);
-      el.addEventListener('page:beforeout', self.onPageBeforeOut);
-      el.addEventListener('page:afterout', self.onPageAfterOut);
-      el.addEventListener('page:afterin', self.onPageAfterIn);
-      el.addEventListener('page:beforeremove', self.onPageBeforeRemove);
-      el.addEventListener('page:stack', self.onPageStack);
-      el.addEventListener('page:unstack', self.onPageUnstack);
-      el.addEventListener('page:position', self.onPagePosition);
-      el.addEventListener('page:role', self.onPageRole);
-      el.addEventListener('page:masterstack', self.onPageMasterStack);
-      el.addEventListener('page:masterunstack', self.onPageMasterUnstack);
-      el.addEventListener('page:navbarlargecollapsed', self.onPageNavbarLargeCollapsed);
-      el.addEventListener('page:navbarlargeexpanded', self.onPageNavbarLargeExpanded);
+      self.$f7ready(function (f7) {
+        self.eventTargetEl = el;
+        f7.on('pageMounted', self.onPageMounted);
+        f7.on('pageInit', self.onPageInit);
+        f7.on('pageReinit', self.onPageReinit);
+        f7.on('pageBeforeIn', self.onPageBeforeIn);
+        f7.on('pageBeforeOut', self.onPageBeforeOut);
+        f7.on('pageAfterOut', self.onPageAfterOut);
+        f7.on('pageAfterIn', self.onPageAfterIn);
+        f7.on('pageBeforeRemove', self.onPageBeforeRemove);
+        f7.on('pageStack', self.onPageStack);
+        f7.on('pageUnstack', self.onPageUnstack);
+        f7.on('pagePosition', self.onPagePosition);
+        f7.on('pageRole', self.onPageRole);
+        f7.on('pageMasterStack', self.onPageMasterStack);
+        f7.on('pageMasterUnstack', self.onPageMasterUnstack);
+        f7.on('pageNavbarLargeCollapsed', self.onPageNavbarLargeCollapsed);
+        f7.on('pageNavbarLargeExpanded', self.onPageNavbarLargeExpanded);
+        f7.on('cardOpened', self.onCardOpened);
+        f7.on('cardClose', self.onCardClose);
+      });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var el = self.$refs.el;
-      el.removeEventListener('ptr:pullstart', self.onPtrPullStart);
-      el.removeEventListener('ptr:pullmove', self.onPtrPullMove);
-      el.removeEventListener('ptr:pullend', self.onPtrPullEnd);
-      el.removeEventListener('ptr:refresh', self.onPtrRefresh);
-      el.removeEventListener('ptr:done', self.onPtrDone);
-      el.removeEventListener('infinite', self.onInfinite);
-      el.removeEventListener('page:mounted', self.onPageMounted);
-      el.removeEventListener('page:init', self.onPageInit);
-      el.removeEventListener('page:reinit', self.onPageReinit);
-      el.removeEventListener('page:beforein', self.onPageBeforeIn);
-      el.removeEventListener('page:beforeout', self.onPageBeforeOut);
-      el.removeEventListener('page:afterout', self.onPageAfterOut);
-      el.removeEventListener('page:afterin', self.onPageAfterIn);
-      el.removeEventListener('page:beforeremove', self.onPageBeforeRemove);
-      el.removeEventListener('page:stack', self.onPageStack);
-      el.removeEventListener('page:unstack', self.onPageUnstack);
-      el.removeEventListener('page:position', self.onPagePosition);
-      el.removeEventListener('page:role', self.onPageRole);
-      el.removeEventListener('page:masterstack', self.onPageMasterStack);
-      el.removeEventListener('page:masterunstack', self.onPageMasterUnstack);
-      el.removeEventListener('page:navbarlargecollapsed', self.onPageNavbarLargeCollapsed);
-      el.removeEventListener('page:navbarlargeexpanded', self.onPageNavbarLargeExpanded);
+      if (!self.$f7) { return; }
+      var f7 = self.$f7;
+      f7.off('pageMounted', self.onPageMounted);
+      f7.off('pageInit', self.onPageInit);
+      f7.off('pageReinit', self.onPageReinit);
+      f7.off('pageBeforeIn', self.onPageBeforeIn);
+      f7.off('pageBeforeOut', self.onPageBeforeOut);
+      f7.off('pageAfterOut', self.onPageAfterOut);
+      f7.off('pageAfterIn', self.onPageAfterIn);
+      f7.off('pageBeforeRemove', self.onPageBeforeRemove);
+      f7.off('pageStack', self.onPageStack);
+      f7.off('pageUnstack', self.onPageUnstack);
+      f7.off('pagePosition', self.onPagePosition);
+      f7.off('pageRole', self.onPageRole);
+      f7.off('pageMasterStack', self.onPageMasterStack);
+      f7.off('pageMasterUnstack', self.onPageMasterUnstack);
+      f7.off('pageNavbarLargeCollapsed', self.onPageNavbarLargeCollapsed);
+      f7.off('pageNavbarLargeExpanded', self.onPageNavbarLargeExpanded);
+      f7.off('cardOpened', self.onCardOpened);
+      f7.off('cardClose', self.onCardClose);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
     },
-
     methods: {
-      onPtrPullStart: function onPtrPullStart(event) {
-        this.dispatchEvent('ptr:pullstart ptrPullStart', event);
-      },
+      onPtrPullStart: function onPtrPullStart() {
+        var arguments$1 = arguments;
 
-      onPtrPullMove: function onPtrPullMove(event) {
-        this.dispatchEvent('ptr:pullmove ptrPullMove', event);
-      },
+        for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+          args[_key] = arguments$1[_key];
+        }
 
-      onPtrPullEnd: function onPtrPullEnd(event) {
-        this.dispatchEvent('ptr:pullend ptrPullEnd', event);
+        this.dispatchEvent.apply(this, ['ptr:pullstart ptrPullStart'].concat(args));
       },
+      onPtrPullMove: function onPtrPullMove() {
+        var arguments$1 = arguments;
 
-      onPtrRefresh: function onPtrRefresh(event) {
-        var done = event.detail;
-        this.dispatchEvent('ptr:refresh ptrRefresh', event, done);
+        for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+          args[_key2] = arguments$1[_key2];
+        }
+
+        this.dispatchEvent.apply(this, ['ptr:pullmove ptrPullMove'].concat(args));
       },
+      onPtrPullEnd: function onPtrPullEnd() {
+        var arguments$1 = arguments;
 
-      onPtrDone: function onPtrDone(event) {
-        this.dispatchEvent('ptr:done ptrDone', event);
+        for (var _len3 = arguments.length, args = new Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments$1[_key3];
+        }
+
+        this.dispatchEvent.apply(this, ['ptr:pullend ptrPullEnd'].concat(args));
       },
+      onPtrRefresh: function onPtrRefresh() {
+        var arguments$1 = arguments;
 
-      onInfinite: function onInfinite(event) {
-        this.dispatchEvent('infinite', event);
+        for (var _len4 = arguments.length, args = new Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments$1[_key4];
+        }
+
+        this.dispatchEvent.apply(this, ['ptr:refresh ptrRefresh'].concat(args));
       },
+      onPtrDone: function onPtrDone() {
+        var arguments$1 = arguments;
 
-      onPageMounted: function onPageMounted(event) {
-        var page = event.detail;
-        this.dispatchEvent('page:mounted pageMounted', event, page);
+        for (var _len5 = arguments.length, args = new Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+          args[_key5] = arguments$1[_key5];
+        }
+
+        this.dispatchEvent.apply(this, ['ptr:done ptrDone'].concat(args));
       },
+      onInfinite: function onInfinite() {
+        var arguments$1 = arguments;
 
-      onPageStack: function onPageStack() {
-        this.setState({
-          routerForceUnstack: false
-        });
+        for (var _len6 = arguments.length, args = new Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+          args[_key6] = arguments$1[_key6];
+        }
+
+        this.dispatchEvent.apply(this, ['infinite'].concat(args));
       },
-
-      onPageUnstack: function onPageUnstack() {
-        this.setState({
-          routerForceUnstack: true
-        });
+      onPageMounted: function onPageMounted(page) {
+        if (this.eventTargetEl !== page.el) { return; }
+        this.dispatchEvent('page:mounted pageMounted', page);
       },
-
-      onPagePosition: function onPagePosition(event) {
-        var position = event.detail.position;
-        this.setState({
-          routerPositionClass: ("page-" + position)
-        });
-      },
-
-      onPageRole: function onPageRole(event) {
-        this.setState({
-          routerPageRole: event.detail.role
-        });
-      },
-
-      onPageMasterStack: function onPageMasterStack() {
-        this.setState({
-          routerPageMasterStack: true
-        });
-      },
-
-      onPageMasterUnstack: function onPageMasterUnstack() {
-        this.setState({
-          routerPageMasterStack: false
-        });
-      },
-
-      onPageNavbarLargeCollapsed: function onPageNavbarLargeCollapsed() {
-        this.setState({
-          hasNavbarLargeCollapsed: true
-        });
-      },
-
-      onPageNavbarLargeExpanded: function onPageNavbarLargeExpanded() {
-        this.setState({
-          hasNavbarLargeCollapsed: false
-        });
-      },
-
-      onPageInit: function onPageInit(event) {
-        var page = event.detail;
-        var ref = this.props;
-        var withSubnavbar = ref.withSubnavbar;
-        var subnavbar = ref.subnavbar;
-        var withNavbarLarge = ref.withNavbarLarge;
-        var navbarLarge = ref.navbarLarge;
+      onPageInit: function onPageInit(page) {
+        if (this.eventTargetEl !== page.el) { return; }
+        var _this$props = this.props,
+            withSubnavbar = _this$props.withSubnavbar,
+            subnavbar = _this$props.subnavbar,
+            withNavbarLarge = _this$props.withNavbarLarge,
+            navbarLarge = _this$props.navbarLarge;
 
         if (typeof withSubnavbar === 'undefined' && typeof subnavbar === 'undefined') {
           if (page.$navbarEl && page.$navbarEl.length && page.$navbarEl.find('.subnavbar').length || page.$el.children('.navbar').find('.subnavbar').length) {
@@ -8351,46 +8759,44 @@
         }
 
         if (typeof withNavbarLarge === 'undefined' && typeof navbarLarge === 'undefined') {
-          if (page.$navbarEl && page.$navbarEl.hasClass('navbar-inner-large')) {
+          if (page.$navbarEl && page.$navbarEl.hasClass('navbar-large')) {
             this.setState({
               hasNavbarLarge: true
             });
           }
         }
 
-        this.dispatchEvent('page:init pageInit', event, page);
+        this.dispatchEvent('page:init pageInit', page);
       },
-
-      onPageReinit: function onPageReinit(event) {
-        var page = event.detail;
-        this.dispatchEvent('page:reinit pageReinit', event, page);
+      onPageReinit: function onPageReinit(page) {
+        if (this.eventTargetEl !== page.el) { return; }
+        this.dispatchEvent('page:reinit pageReinit', page);
       },
+      onPageBeforeIn: function onPageBeforeIn(page) {
+        if (this.eventTargetEl !== page.el) { return; }
 
-      onPageBeforeIn: function onPageBeforeIn(event) {
-        var page = event.detail;
+        if (!page.swipeBack) {
+          if (page.from === 'next') {
+            this.setState({
+              routerPositionClass: 'page-next'
+            });
+          }
 
-        if (page.from === 'next') {
-          this.setState({
-            routerPositionClass: 'page-next'
-          });
+          if (page.from === 'previous') {
+            this.setState({
+              routerPositionClass: 'page-previous'
+            });
+          }
         }
 
-        if (page.from === 'previous') {
-          this.setState({
-            routerPositionClass: 'page-previous'
-          });
-        }
-
-        this.dispatchEvent('page:beforein pageBeforeIn', event, page);
+        this.dispatchEvent('page:beforein pageBeforeIn', page);
       },
-
-      onPageBeforeOut: function onPageBeforeOut(event) {
-        var page = event.detail;
-        this.dispatchEvent('page:beforeout pageBeforeOut', event, page);
+      onPageBeforeOut: function onPageBeforeOut(page) {
+        if (this.eventTargetEl !== page.el) { return; }
+        this.dispatchEvent('page:beforeout pageBeforeOut', page);
       },
-
-      onPageAfterOut: function onPageAfterOut(event) {
-        var page = event.detail;
+      onPageAfterOut: function onPageAfterOut(page) {
+        if (this.eventTargetEl !== page.el) { return; }
 
         if (page.to === 'next') {
           this.setState({
@@ -8404,42 +8810,101 @@
           });
         }
 
-        this.dispatchEvent('page:afterout pageAfterOut', event, page);
+        this.dispatchEvent('page:afterout pageAfterOut', page);
       },
-
-      onPageAfterIn: function onPageAfterIn(event) {
-        var page = event.detail;
+      onPageAfterIn: function onPageAfterIn(page) {
+        if (this.eventTargetEl !== page.el) { return; }
         this.setState({
           routerPositionClass: 'page-current'
         });
-        this.dispatchEvent('page:afterin pageAfterIn', event, page);
+        this.dispatchEvent('page:afterin pageAfterIn', page);
       },
-
-      onPageBeforeRemove: function onPageBeforeRemove(event) {
-        var page = event.detail;
-        this.dispatchEvent('page:beforeremove pageBeforeRemove', event, page);
+      onPageBeforeRemove: function onPageBeforeRemove(page) {
+        if (this.eventTargetEl !== page.el) { return; }
+        this.dispatchEvent('page:beforeremove pageBeforeRemove', page);
       },
-
+      onPageStack: function onPageStack(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerForceUnstack: false
+        });
+      },
+      onPageUnstack: function onPageUnstack(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerForceUnstack: true
+        });
+      },
+      onPagePosition: function onPagePosition(pageEl, position) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerPositionClass: "page-".concat(position)
+        });
+      },
+      onPageRole: function onPageRole(pageEl, rolesData) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerPageRole: rolesData.role,
+          routerPageRoleDetailRoot: rolesData.detailRoot
+        });
+      },
+      onPageMasterStack: function onPageMasterStack(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerPageMasterStack: true
+        });
+      },
+      onPageMasterUnstack: function onPageMasterUnstack(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          routerPageMasterStack: false
+        });
+      },
+      onPageNavbarLargeCollapsed: function onPageNavbarLargeCollapsed(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          hasNavbarLargeCollapsed: true
+        });
+      },
+      onPageNavbarLargeExpanded: function onPageNavbarLargeExpanded(pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          hasNavbarLargeCollapsed: false
+        });
+      },
+      onCardOpened: function onCardOpened(cardEl, pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          hasCardExpandableOpened: true
+        });
+      },
+      onCardClose: function onCardClose(cardEl, pageEl) {
+        if (this.eventTargetEl !== pageEl) { return; }
+        this.setState({
+          hasCardExpandableOpened: false
+        });
+      },
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len7 = arguments.length, args = new Array(_len7 > 1 ? _len7 - 1 : 0), _key7 = 1; _key7 < _len7; _key7++) {
+          args[_key7 - 1] = arguments$1[_key7];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
+  function _defineProperty$1(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
   var f7Panel = {
     name: 'f7-panel',
     props: Object.assign({
@@ -8450,14 +8915,41 @@
       reveal: Boolean,
       left: Boolean,
       right: Boolean,
-      opened: Boolean
+      opened: Boolean,
+      resizable: Boolean,
+      backdrop: {
+        type: Boolean,
+        default: true
+      },
+      backdropEl: {
+        type: String,
+        default: undefined
+      },
+      visibleBreakpoint: {
+        type: Number,
+        default: undefined
+      },
+      collapsedBreakpoint: {
+        type: Number,
+        default: undefined
+      },
+      swipe: Boolean,
+      swipeOnlyClose: Boolean,
+      swipeActiveArea: {
+        type: Number,
+        default: 0
+      },
+      swipeThreshold: {
+        type: Number,
+        default: 0
+      }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var id = props.id;
-      var style = props.style;
+      var id = props.id,
+          style = props.style,
+          resizable = props.resizable;
       return _h('div', {
         ref: 'el',
         style: style,
@@ -8465,72 +8957,66 @@
         attrs: {
           id: id
         }
-      }, [this.$slots['default']]);
+      }, [this.$slots['default'], resizable && _h('div', {
+        class: 'panel-resize-handler'
+      })]);
     },
-
     computed: {
       classes: function classes() {
-        var obj;
+        var _Utils$classNames;
 
         var self = this;
         var props = self.props;
-        var left = props.left;
-        var reveal = props.reveal;
-        var className = props.className;
-        var opened = props.opened;
-        var side = props.side;
-        var effect = props.effect;
+        var left = props.left,
+            reveal = props.reveal,
+            className = props.className,
+            resizable = props.resizable;
+        var side = props.side,
+            effect = props.effect;
         side = side || (left ? 'left' : 'right');
         effect = effect || (reveal ? 'reveal' : 'cover');
-        return Utils.classNames(className, 'panel', ( obj = {
-          'panel-active': opened
-        }, obj[("panel-" + side)] = side, obj[("panel-" + effect)] = effect, obj ), Mixins.colorClasses(props));
+        return Utils.classNames(className, 'panel', (_Utils$classNames = {
+          'panel-resizable': resizable
+        }, _defineProperty$1(_Utils$classNames, "panel-".concat(side), side), _defineProperty$1(_Utils$classNames, "panel-".concat(effect), effect), _Utils$classNames), Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
     watch: {
+      'props.resizable': function watchResizable(resizable) {
+        var self = this;
+        if (!self.f7Panel) { return; }
+        if (resizable) { self.f7Panel.enableResizable(); }else { self.f7Panel.disableResizable(); }
+      },
       'props.opened': function watchOpened(opened) {
         var self = this;
-        if (!self.$f7) { return; }
-        var side = self.props.side || (self.props.left ? 'left' : 'right');
+        if (!self.f7Panel) { return; }
 
         if (opened) {
-          self.$f7.panel.open(side);
+          self.f7Panel.open();
         } else {
-          self.$f7.panel.open(side);
+          self.f7Panel.close();
         }
       }
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed', 'onBackdropClick', 'onPanelSwipe', 'onPanelSwipeOpen', 'onBreakpoint']);
+      Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed', 'onBackdropClick', 'onSwipe', 'onSwipeOpen', 'onBreakpoint', 'onCollapsedBreakpoint', 'onResize']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      var ref = self.props;
-      var side = ref.side;
-      var effect = ref.effect;
-      var opened = ref.opened;
-      var left = ref.left;
-      var reveal = ref.reveal;
-
-      if (el) {
-        el.addEventListener('panel:open', self.onOpen);
-        el.addEventListener('panel:opened', self.onOpened);
-        el.addEventListener('panel:close', self.onClose);
-        el.addEventListener('panel:closed', self.onClosed);
-        el.addEventListener('panel:backdrop-click', self.onBackdropClick);
-        el.addEventListener('panel:swipe', self.onPanelSwipe);
-        el.addEventListener('panel:swipeopen', self.onPanelSwipeOpen);
-        el.addEventListener('panel:breakpoint', self.onBreakpoint);
-      }
-
+      var _self$props = self.props,
+          opened = _self$props.opened,
+          resizable = _self$props.resizable,
+          backdrop = _self$props.backdrop,
+          backdropEl = _self$props.backdropEl,
+          visibleBreakpoint = _self$props.visibleBreakpoint,
+          collapsedBreakpoint = _self$props.collapsedBreakpoint,
+          swipe = _self$props.swipe,
+          swipeOnlyClose = _self$props.swipeOnlyClose,
+          swipeActiveArea = _self$props.swipeActiveArea,
+          swipeThreshold = _self$props.swipeThreshold;
       self.$f7ready(function () {
         var $ = self.$$;
         if (!$) { return; }
@@ -8539,101 +9025,99 @@
           $('<div class="panel-backdrop"></div>').insertBefore(el);
         }
 
-        self.f7Panel = self.$f7.panel.create({
-          el: el
+        var params = Utils.noUndefinedProps({
+          el: el,
+          resizable: resizable,
+          backdrop: backdrop,
+          backdropEl: backdropEl,
+          visibleBreakpoint: visibleBreakpoint,
+          collapsedBreakpoint: collapsedBreakpoint,
+          swipe: swipe,
+          swipeOnlyClose: swipeOnlyClose,
+          swipeActiveArea: swipeActiveArea,
+          swipeThreshold: swipeThreshold,
+          on: {
+            open: self.onOpen,
+            opened: self.onOpened,
+            close: self.onClose,
+            closed: self.onClosed,
+            backdropClick: self.onBackdropClick,
+            swipe: self.onSwipe,
+            swipeOpen: self.onSwipeOpen,
+            collapsedBreakpoint: self.onCollapsedBreakpoint,
+            breakpoint: self.onBreakpoint,
+            resize: self.onResize
+          }
         });
+        self.f7Panel = self.$f7.panel.create(params);
+
+        if (opened) {
+          self.f7Panel.open(false);
+        }
       });
-
-      if (opened) {
-        el.style.display = 'block';
-      }
-
-      var $ = self.$$;
-      if (!$) { return; }
-      var panelSide = side || (left ? 'left' : 'right');
-      var panelEffect = effect || (reveal ? 'reveal' : 'cover');
-
-      if (opened) {
-        $('html').addClass(("with-panel-" + panelSide + "-" + panelEffect));
-      }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      if (self.f7Panel) { self.f7Panel.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('panel:open', self.onOpen);
-      el.removeEventListener('panel:opened', self.onOpened);
-      el.removeEventListener('panel:close', self.onClose);
-      el.removeEventListener('panel:closed', self.onClosed);
-      el.removeEventListener('panel:backdrop-click', self.onBackdropClick);
-      el.removeEventListener('panel:swipe', self.onPanelSwipe);
-      el.removeEventListener('panel:swipeopen', self.onPanelSwipeOpen);
-      el.removeEventListener('panel:breakpoint', self.onBreakpoint);
-    },
 
+      if (self.f7Panel && self.f7Panel.destroy) {
+        self.f7Panel.destroy();
+      }
+    },
     methods: {
       onOpen: function onOpen(event) {
         this.dispatchEvent('panel:open panelOpen', event);
       },
-
       onOpened: function onOpened(event) {
         this.dispatchEvent('panel:opened panelOpened', event);
       },
-
       onClose: function onClose(event) {
         this.dispatchEvent('panel:close panelClose', event);
       },
-
       onClosed: function onClosed(event) {
         this.dispatchEvent('panel:closed panelClosed', event);
       },
-
       onBackdropClick: function onBackdropClick(event) {
         this.dispatchEvent('panel:backdrop-click panelBackdropClick', event);
       },
-
-      onPanelSwipe: function onPanelSwipe(event) {
+      onSwipe: function onSwipe(event) {
         this.dispatchEvent('panel:swipe panelSwipe', event);
       },
-
-      onPanelSwipeOpen: function onPanelSwipeOpen(event) {
+      onSwipeOpen: function onSwipeOpen(event) {
         this.dispatchEvent('panel:swipeopen panelSwipeOpen', event);
       },
-
       onBreakpoint: function onBreakpoint(event) {
         this.dispatchEvent('panel:breakpoint panelBreakpoint', event);
       },
-
+      onCollapsedBreakpoint: function onCollapsedBreakpoint(event) {
+        this.dispatchEvent('panel:collapsedbreakpoint panelCollapsedBreakpoint', event);
+      },
+      onResize: function onResize(event) {
+        this.dispatchEvent('panel:resize panelResize', event);
+      },
       open: function open(animate) {
         var self = this;
-        if (!self.$f7) { return; }
-        var side = self.props.side || (self.props.left ? 'left' : 'right');
-        self.$f7.panel.open(side, animate);
+        if (!self.f7Panel) { return; }
+        self.f7Panel.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        if (!self.$f7) { return; }
-        var side = self.props.side || (self.props.left ? 'left' : 'right');
-        self.$f7.panel.close(side, animate);
+        if (!self.f7Panel) { return; }
+        self.f7Panel.close(animate);
       },
-
       toggle: function toggle(animate) {
         var self = this;
-        if (!self.$f7) { return; }
-        var side = self.props.side || (self.props.left ? 'left' : 'right');
-        self.$f7.panel.toggle(side, animate);
+        if (!self.f7Panel) { return; }
+        self.f7Panel.toggle(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -8679,11 +9163,21 @@
         type: Boolean,
         default: true
       },
-      backLinkText: {
-        type: String
+      pageBackLinkText: {
+        type: String,
+        default: undefined
+      },
+      popupCloseLinkText: {
+        type: String,
+        default: undefined
       },
       navbarOfText: {
-        type: String
+        type: String,
+        default: undefined
+      },
+      navbarShowCount: {
+        type: Boolean,
+        default: undefined
       },
       swiper: {
         type: Object
@@ -8710,30 +9204,26 @@
       renderPopup: Function,
       renderStandalone: Function
     },
-
     render: function render() {
       var _h = this.$createElement;
       return null;
     },
-
     watch: {
       'props.photos': function watchPhotos(newValue) {
         var self = this;
         var pb = self.f7PhotoBrowser;
         if (!pb) { return; }
-        self.f7PhotoBrowser.photos = newValue;
+        self.f7PhotoBrowser.params.photos = newValue;
 
         if (pb.opened && pb.swiper) {
           pb.swiper.update();
         }
       }
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7PhotoBrowser && self.f7PhotoBrowser.destroy) { self.f7PhotoBrowser.destroy(); }
     },
-
     mounted: function mounted() {
       var self = this;
       if (!self.props.init) { return; }
@@ -8748,63 +9238,53 @@
             open: function open() {
               self.dispatchEvent('photobrowser:open photoBrowserOpen');
             },
-
             close: function close() {
               self.dispatchEvent('photobrowser:close photoBrowserClose');
             },
-
             opened: function opened() {
               self.dispatchEvent('photobrowser:opened photoBrowserOpened');
             },
-
             closed: function closed() {
               self.dispatchEvent('photobrowser:closed photoBrowserClosed');
             },
-
             swipeToClose: function swipeToClose() {
               self.dispatchEvent('photobrowser:swipetoclose photoBrowserSwipeToClose');
             }
-
           }
         });
         self.f7PhotoBrowser = f7.photoBrowser.create(params);
       });
     },
-
     methods: {
       open: function open(index) {
         return this.f7PhotoBrowser.open(index);
       },
-
       close: function close() {
         return this.f7PhotoBrowser.close();
       },
-
       expositionToggle: function expositionToggle() {
         return this.f7PhotoBrowser.expositionToggle();
       },
-
       expositionEnable: function expositionEnable() {
         return this.f7PhotoBrowser.expositionEnable();
       },
-
       expositionDisable: function expositionDisable() {
         return this.f7PhotoBrowser.expositionDisable();
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -8814,17 +9294,19 @@
       id: [String, Number],
       opened: Boolean,
       target: [String, Object],
+      backdrop: Boolean,
+      backdropEl: [String, Object, window.HTMLElement],
       closeByBackdropClick: Boolean,
-      closeByOutsideClick: Boolean
+      closeByOutsideClick: Boolean,
+      closeOnEscape: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
       var classes = Utils.classNames(className, 'popover', Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -8839,7 +9321,6 @@
         class: 'popover-inner'
       }, [this.$slots['default']])]);
     },
-
     watch: {
       'props.opened': function watchOpened(opened) {
         var self = this;
@@ -8852,31 +9333,38 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('popover:open', self.onOpen);
-      el.addEventListener('popover:opened', self.onOpened);
-      el.addEventListener('popover:close', self.onClose);
-      el.addEventListener('popover:closed', self.onClosed);
       var props = self.props;
-      var target = props.target;
-      var opened = props.opened;
-      var closeByBackdropClick = props.closeByBackdropClick;
-      var closeByOutsideClick = props.closeByOutsideClick;
+      var target = props.target,
+          opened = props.opened,
+          backdrop = props.backdrop,
+          backdropEl = props.backdropEl,
+          closeByBackdropClick = props.closeByBackdropClick,
+          closeByOutsideClick = props.closeByOutsideClick,
+          closeOnEscape = props.closeOnEscape;
       var popoverParams = {
-        el: el
+        el: el,
+        on: {
+          open: self.onOpen,
+          opened: self.onOpened,
+          close: self.onClose,
+          closed: self.onClosed
+        }
       };
       if (target) { popoverParams.targetEl = target; }
       {
-        if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') { popoverParams.closeByBackdropClick = closeByBackdropClick; }
-        if (typeof self.$options.propsData.closeByOutsideClick !== 'undefined') { popoverParams.closeByOutsideClick = closeByOutsideClick; }
+        var propsData = self.$options.propsData;
+        if (typeof propsData.closeByBackdropClick !== 'undefined') { popoverParams.closeByBackdropClick = closeByBackdropClick; }
+        if (typeof propsData.closeByOutsideClick !== 'undefined') { popoverParams.closeByOutsideClick = closeByOutsideClick; }
+        if (typeof propsData.closeOnEscape !== 'undefined') { popoverParams.closeOnEscape = closeOnEscape; }
+        if (typeof propsData.backdrop !== 'undefined') { popoverParams.backdrop = backdrop; }
+        if (typeof propsData.backdropEl !== 'undefined') { popoverParams.backdropEl = backdropEl; }
       }
       self.$f7ready(function () {
         self.f7Popover = self.$f7.popover.create(popoverParams);
@@ -8886,60 +9374,47 @@
         }
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Popover) { self.f7Popover.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('popover:open', self.onOpen);
-      el.removeEventListener('popover:opened', self.onOpened);
-      el.removeEventListener('popover:close', self.onClose);
-      el.removeEventListener('popover:closed', self.onClosed);
     },
-
     methods: {
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('popover:open popoverOpen', event);
+      onOpen: function onOpen(instance) {
+        this.dispatchEvent('popover:open popoverOpen', instance);
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('popover:opened popoverOpened', event);
+      onOpened: function onOpened(instance) {
+        this.dispatchEvent('popover:opened popoverOpened', instance);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('popover:close popoverClose', event);
+      onClose: function onClose(instance) {
+        this.dispatchEvent('popover:close popoverClose', instance);
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('popover:closed popoverClosed', event);
+      onClosed: function onClosed(instance) {
+        this.dispatchEvent('popover:closed popoverClosed', instance);
       },
-
-      open: function open(target, animate) {
+      open: function open(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.popover.open(self.$refs.el, target, animate);
+        if (!self.f7Popover) { return undefined; }
+        return self.f7Popover.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.sheet.close(self.$refs.el, animate);
+        if (!self.f7Popover) { return undefined; }
+        return self.f7Popover.close(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -8949,21 +9424,30 @@
       id: [String, Number],
       tabletFullscreen: Boolean,
       opened: Boolean,
-      closeByBackdropClick: Boolean,
+      animate: Boolean,
       backdrop: Boolean,
-      animate: Boolean
+      backdropEl: [String, Object, window.HTMLElement],
+      closeByBackdropClick: Boolean,
+      closeOnEscape: Boolean,
+      swipeToClose: {
+        type: [Boolean, String],
+        default: false
+      },
+      swipeHandler: [String, Object, window.HTMLElement],
+      push: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var tabletFullscreen = props.tabletFullscreen;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          tabletFullscreen = props.tabletFullscreen,
+          push = props.push;
       var classes = Utils.classNames(className, 'popup', {
-        'popup-tablet-fullscreen': tabletFullscreen
+        'popup-tablet-fullscreen': tabletFullscreen,
+        'popup-push': push
       }, Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
@@ -8974,7 +9458,6 @@
         }
       }, [this.$slots['default']]);
     },
-
     watch: {
       'props.opened': function watchOpened(opened) {
         var self = this;
@@ -8987,30 +9470,39 @@
         }
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('popup:open', self.onOpen);
-      el.addEventListener('popup:opened', self.onOpened);
-      el.addEventListener('popup:close', self.onClose);
-      el.addEventListener('popup:closed', self.onClosed);
       var props = self.props;
-      var closeByBackdropClick = props.closeByBackdropClick;
-      var backdrop = props.backdrop;
-      var animate = props.animate;
+      var closeByBackdropClick = props.closeByBackdropClick,
+          backdrop = props.backdrop,
+          backdropEl = props.backdropEl,
+          animate = props.animate,
+          closeOnEscape = props.closeOnEscape,
+          swipeToClose = props.swipeToClose,
+          swipeHandler = props.swipeHandler;
       var popupParams = {
-        el: el
+        el: el,
+        on: {
+          open: self.onOpen,
+          opened: self.onOpened,
+          close: self.onClose,
+          closed: self.onClosed
+        }
       };
       {
-        if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') { popupParams.closeByBackdropClick = closeByBackdropClick; }
-        if (typeof self.$options.propsData.animate !== 'undefined') { popupParams.animate = animate; }
-        if (typeof self.$options.propsData.backdrop !== 'undefined') { popupParams.backdrop = backdrop; }
+        var propsData = self.$options.propsData;
+        if (typeof propsData.closeByBackdropClick !== 'undefined') { popupParams.closeByBackdropClick = closeByBackdropClick; }
+        if (typeof propsData.closeOnEscape !== 'undefined') { popupParams.closeOnEscape = closeOnEscape; }
+        if (typeof propsData.animate !== 'undefined') { popupParams.animate = animate; }
+        if (typeof propsData.backdrop !== 'undefined') { popupParams.backdrop = backdrop; }
+        if (typeof propsData.backdropEl !== 'undefined') { popupParams.backdropEl = backdropEl; }
+        if (typeof propsData.swipeToClose !== 'undefined') { popupParams.swipeToClose = swipeToClose; }
+        if (typeof propsData.swipeHandler !== 'undefined') { popupParams.swipeHandler = swipeHandler; }
       }
       self.$f7ready(function () {
         self.f7Popup = self.$f7.popup.create(popupParams);
@@ -9020,164 +9512,47 @@
         }
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Popup) { self.f7Popup.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('popup:open', self.onOpen);
-      el.removeEventListener('popup:opened', self.onOpened);
-      el.removeEventListener('popup:close', self.onClose);
-      el.removeEventListener('popup:closed', self.onClosed);
     },
-
     methods: {
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('popup:open popupOpen', event);
+      onOpen: function onOpen(instance) {
+        this.dispatchEvent('popup:open popupOpen', instance);
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('popup:opened popupOpened', event);
+      onOpened: function onOpened(instance) {
+        this.dispatchEvent('popup:opened popupOpened', instance);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('popup:close popupClose', event);
+      onClose: function onClose(instance) {
+        this.dispatchEvent('popup:close popupClose', instance);
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('popup:closed popupClosed', event);
+      onClosed: function onClosed(instance) {
+        this.dispatchEvent('popup:closed popupClosed', instance);
       },
-
       open: function open(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.popup.open(self.$refs.el, animate);
+        if (!self.f7Popup) { return undefined; }
+        return self.f7Popup.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.popup.close(self.$refs.el, animate);
+        if (!self.f7Popup) { return undefined; }
+        return self.f7Popup.close(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
-    }
-  };
-
-  var f7Preloader = {
-    name: 'f7-preloader',
-    props: Object.assign({
-      id: [String, Number],
-      size: [Number, String]
-    }, Mixins.colorProps),
-
-    render: function render() {
-      var _h = this.$createElement;
-      var self = this;
-      var sizeComputed = self.sizeComputed;
-      var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
-      var preloaderStyle = {};
-
-      if (sizeComputed) {
-        preloaderStyle.width = sizeComputed + "px";
-        preloaderStyle.height = sizeComputed + "px";
-        preloaderStyle['--f7-preloader-size'] = sizeComputed + "px";
-      }
-
-      if (style) { Utils.extend(preloaderStyle, style || {}); }
-      var innerEl;
-
-      if (self.$theme.md) {
-        innerEl = _h('span', {
-          class: 'preloader-inner'
-        }, [_h('span', {
-          class: 'preloader-inner-gap'
-        }), _h('span', {
-          class: 'preloader-inner-left'
-        }, [_h('span', {
-          class: 'preloader-inner-half-circle'
-        })]), _h('span', {
-          class: 'preloader-inner-right'
-        }, [_h('span', {
-          class: 'preloader-inner-half-circle'
-        })])]);
-      } else if (self.$theme.ios) {
-        innerEl = _h('span', {
-          class: 'preloader-inner'
-        }, [_h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        }), _h('span', {
-          class: 'preloader-inner-line'
-        })]);
-      } else if (self.$theme.aurora) {
-        innerEl = _h('span', {
-          class: 'preloader-inner'
-        }, [_h('span', {
-          class: 'preloader-inner-circle'
-        })]);
-      }
-
-      var classes = Utils.classNames(className, 'preloader', Mixins.colorClasses(props));
-      return _h('span', {
-        style: preloaderStyle,
-        class: classes,
-        attrs: {
-          id: id
-        }
-      }, [innerEl]);
-    },
-
-    computed: {
-      sizeComputed: function sizeComputed() {
-        var s = this.props.size;
-
-        if (s && typeof s === 'string' && s.indexOf('px') >= 0) {
-          s = s.replace('px', '');
-        }
-
-        return s;
-      },
-
-      props: function props() {
-        return __vueComponentProps(this);
-      }
-
     }
   };
 
@@ -9188,19 +9563,18 @@
       progress: Number,
       infinite: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var progress = props.progress;
-      var id = props.id;
-      var style = props.style;
-      var infinite = props.infinite;
-      var className = props.className;
+      var progress = props.progress,
+          id = props.id,
+          style = props.style,
+          infinite = props.infinite,
+          className = props.className;
       var transformStyle = {
-        transform: progress ? ("translate3d(" + (-100 + progress) + "%, 0, 0)") : '',
-        WebkitTransform: progress ? ("translate3d(" + (-100 + progress) + "%, 0, 0)") : ''
+        transform: progress ? "translate3d(".concat(-100 + progress, "%, 0, 0)") : '',
+        WebkitTransform: progress ? "translate3d(".concat(-100 + progress, "%, 0, 0)") : ''
       };
       var classes = Utils.classNames(className, 'progressbar', {
         'progressbar-infinite': infinite
@@ -9217,20 +9591,17 @@
         style: transformStyle
       })]);
     },
-
     methods: {
       set: function set(progress, speed) {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.progressbar.set(self.$refs.el, progress, speed);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -9245,20 +9616,19 @@
       readonly: Boolean,
       defaultChecked: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var name = props.name;
-      var value = props.value;
-      var disabled = props.disabled;
-      var readonly = props.readonly;
-      var checked = props.checked;
-      var defaultChecked = props.defaultChecked;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var name = props.name,
+          value = props.value,
+          disabled = props.disabled,
+          readonly = props.readonly,
+          checked = props.checked,
+          defaultChecked = props.defaultChecked,
+          id = props.id,
+          style = props.style,
+          className = props.className;
       var inputEl;
       {
         inputEl = _h('input', {
@@ -9294,29 +9664,27 @@
         }
       }, [inputEl, iconEl, this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onChange']);
     },
-
     methods: {
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -9330,16 +9698,15 @@
         default: 'div'
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var tag = props.tag;
-      var noGap = props.noGap;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          tag = props.tag,
+          noGap = props.noGap;
       var RowTag = tag;
       var classes = Utils.classNames(className, 'row', {
         'no-gap': noGap
@@ -9353,37 +9720,33 @@
         }
       }, [this.$slots['default']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -9483,26 +9846,25 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var clearEl;
       var disableEl;
       var props = self.props;
-      var placeholder = props.placeholder;
-      var clearButton = props.clearButton;
-      var disableButton = props.disableButton;
-      var disableButtonText = props.disableButtonText;
-      var form = props.form;
-      var noShadow = props.noShadow;
-      var noHairline = props.noHairline;
-      var expandable = props.expandable;
-      var className = props.className;
-      var style = props.style;
-      var id = props.id;
-      var value = props.value;
-      var inline = props.inline;
+      var placeholder = props.placeholder,
+          clearButton = props.clearButton,
+          disableButton = props.disableButton,
+          disableButtonText = props.disableButtonText,
+          form = props.form,
+          noShadow = props.noShadow,
+          noHairline = props.noHairline,
+          expandable = props.expandable,
+          className = props.className,
+          style = props.style,
+          id = props.id,
+          value = props.value,
+          inline = props.inline;
 
       if (clearButton) {
         clearEl = _h('span', {
@@ -9559,40 +9921,38 @@
         class: 'searchbar-icon'
       }), clearEl, this.$slots['input-wrap-end']]), disableEl, this.$slots['inner-end'], this.$slots['default']]), this.$slots['after-inner']]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onSubmit', 'onClearButtonClick', 'onDisableButtonClick', 'onInput', 'onChange', 'onFocus', 'onBlur']);
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.props;
-      var init = ref.init;
-      var inputEvents = ref.inputEvents;
-      var searchContainer = ref.searchContainer;
-      var searchIn = ref.searchIn;
-      var searchItem = ref.searchItem;
-      var searchGroup = ref.searchGroup;
-      var searchGroupTitle = ref.searchGroupTitle;
-      var hideOnEnableEl = ref.hideOnEnableEl;
-      var hideOnSearchEl = ref.hideOnSearchEl;
-      var foundEl = ref.foundEl;
-      var notFoundEl = ref.notFoundEl;
-      var backdrop = ref.backdrop;
-      var backdropEl = ref.backdropEl;
-      var disableButton = ref.disableButton;
-      var ignore = ref.ignore;
-      var customSearch = ref.customSearch;
-      var removeDiacritics = ref.removeDiacritics;
-      var hideDividers = ref.hideDividers;
-      var hideGroups = ref.hideGroups;
-      var form = ref.form;
-      var expandable = ref.expandable;
-      var inline = ref.inline;
-      var ref$1 = self.$refs;
-      var el = ref$1.el;
-      var clearEl = ref$1.clearEl;
-      var disableEl = ref$1.disableEl;
+      var _self$props = self.props,
+          init = _self$props.init,
+          inputEvents = _self$props.inputEvents,
+          searchContainer = _self$props.searchContainer,
+          searchIn = _self$props.searchIn,
+          searchItem = _self$props.searchItem,
+          searchGroup = _self$props.searchGroup,
+          searchGroupTitle = _self$props.searchGroupTitle,
+          hideOnEnableEl = _self$props.hideOnEnableEl,
+          hideOnSearchEl = _self$props.hideOnSearchEl,
+          foundEl = _self$props.foundEl,
+          notFoundEl = _self$props.notFoundEl,
+          backdrop = _self$props.backdrop,
+          backdropEl = _self$props.backdropEl,
+          disableButton = _self$props.disableButton,
+          ignore = _self$props.ignore,
+          customSearch = _self$props.customSearch,
+          removeDiacritics = _self$props.removeDiacritics,
+          hideDividers = _self$props.hideDividers,
+          hideGroups = _self$props.hideGroups,
+          form = _self$props.form,
+          expandable = _self$props.expandable,
+          inline = _self$props.inline;
+      var _self$$refs = self.$refs,
+          el = _self$$refs.el,
+          clearEl = _self$$refs.clearEl,
+          disableEl = _self$$refs.disableEl;
 
       if (form && el) {
         el.addEventListener('submit', self.onSubmit, false);
@@ -9634,19 +9994,15 @@
             search: function search(searchbar, query, previousQuery) {
               self.dispatchEvent('searchbar:search searchbarSearch', searchbar, query, previousQuery);
             },
-
             clear: function clear(searchbar, previousQuery) {
               self.dispatchEvent('searchbar:clear searchbarClear', searchbar, previousQuery);
             },
-
             enable: function enable(searchbar) {
               self.dispatchEvent('searchbar:enable searchbarEnable', searchbar);
             },
-
             disable: function disable(searchbar) {
               self.dispatchEvent('searchbar:disable searchbarDisable', searchbar);
             }
-
           }
         });
         Object.keys(params).forEach(function (key) {
@@ -9657,13 +10013,12 @@
         self.f7Searchbar = self.$f7.searchbar.create(params);
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var ref = self.$refs;
-      var el = ref.el;
-      var clearEl = ref.clearEl;
-      var disableEl = ref.disableEl;
+      var _self$$refs2 = self.$refs,
+          el = _self$$refs2.el,
+          clearEl = _self$$refs2.clearEl,
+          disableEl = _self$$refs2.disableEl;
 
       if (self.props.form && el) {
         el.removeEventListener('submit', self.onSubmit, false);
@@ -9679,74 +10034,62 @@
 
       if (self.f7Searchbar && self.f7Searchbar.destroy) { self.f7Searchbar.destroy(); }
     },
-
     methods: {
       search: function search(query) {
         if (!this.f7Searchbar) { return undefined; }
         return this.f7Searchbar.search(query);
       },
-
       enable: function enable() {
         if (!this.f7Searchbar) { return undefined; }
         return this.f7Searchbar.enable();
       },
-
       disable: function disable() {
         if (!this.f7Searchbar) { return undefined; }
         return this.f7Searchbar.disable();
       },
-
       toggle: function toggle() {
         if (!this.f7Searchbar) { return undefined; }
         return this.toggle.disable();
       },
-
       clear: function clear() {
         if (!this.f7Searchbar) { return undefined; }
         return this.f7Searchbar.clear();
       },
-
       onChange: function onChange(event) {
         this.dispatchEvent('change', event);
       },
-
       onInput: function onInput(event) {
         this.dispatchEvent('input', event);
       },
-
       onFocus: function onFocus(event) {
         this.dispatchEvent('focus', event);
       },
-
       onBlur: function onBlur(event) {
         this.dispatchEvent('blur', event);
       },
-
       onSubmit: function onSubmit(event) {
         this.dispatchEvent('submit', event);
       },
-
       onClearButtonClick: function onClearButtonClick(event) {
         this.dispatchEvent('click:clear clickClear', event);
       },
-
       onDisableButtonClick: function onDisableButtonClick(event) {
         this.dispatchEvent('click:disable clickDisable', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -9762,28 +10105,35 @@
       roundIos: Boolean,
       roundMd: Boolean,
       roundAurora: Boolean,
+      strong: Boolean,
+      strongIos: Boolean,
+      strongMd: Boolean,
+      strongAurora: Boolean,
       tag: {
         type: String,
         default: 'div'
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var raised = props.raised;
-      var raisedIos = props.raisedIos;
-      var raisedAurora = props.raisedAurora;
-      var raisedMd = props.raisedMd;
-      var round = props.round;
-      var roundIos = props.roundIos;
-      var roundAurora = props.roundAurora;
-      var roundMd = props.roundMd;
-      var id = props.id;
-      var style = props.style;
-      var tag = props.tag;
+      var className = props.className,
+          raised = props.raised,
+          raisedIos = props.raisedIos,
+          raisedAurora = props.raisedAurora,
+          raisedMd = props.raisedMd,
+          round = props.round,
+          roundIos = props.roundIos,
+          roundAurora = props.roundAurora,
+          roundMd = props.roundMd,
+          strong = props.strong,
+          strongIos = props.strongIos,
+          strongMd = props.strongMd,
+          strongAurora = props.strongAurora,
+          id = props.id,
+          style = props.style,
+          tag = props.tag;
       var classNames = Utils.classNames(className, {
         segmented: true,
         'segmented-raised': raised,
@@ -9793,7 +10143,11 @@
         'segmented-round': round,
         'segmented-round-ios': roundIos,
         'segmented-round-aurora': roundAurora,
-        'segmented-round-md': roundMd
+        'segmented-round-md': roundMd,
+        'segmented-strong': strong,
+        'segmented-strong-ios': strongIos,
+        'segmented-strong-md': strongMd,
+        'segmented-strong-aurora': strongAurora
       }, Mixins.colorClasses(props));
       var SegmentedTag = tag;
       return _h(SegmentedTag, {
@@ -9804,12 +10158,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -9818,20 +10170,32 @@
     props: Object.assign({
       id: [String, Number],
       opened: Boolean,
+      top: Boolean,
+      bottom: Boolean,
+      position: String,
       backdrop: Boolean,
+      backdropEl: [String, Object, window.HTMLElement],
       closeByBackdropClick: Boolean,
-      closeByOutsideClick: Boolean
+      closeByOutsideClick: Boolean,
+      closeOnEscape: Boolean,
+      push: Boolean,
+      swipeToClose: Boolean,
+      swipeToStep: Boolean,
+      swipeHandler: [String, Object, window.HTMLElement]
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var fixedList = [];
       var staticList = [];
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          className = props.className,
+          top = props.top,
+          bottom = props.bottom,
+          position = props.position,
+          push = props.push;
       var fixedTags;
       fixedTags = 'navbar toolbar tabbar subnavbar searchbar messagebar fab list-index'.split(' ');
       var slotsDefault = self.$slots.default;
@@ -9861,7 +10225,11 @@
         class: 'sheet-modal-inner'
       }, [staticList]);
 
-      var classes = Utils.classNames(className, 'sheet-modal', Mixins.colorClasses(props));
+      var positionComputed = 'bottom';
+      if (position) { positionComputed = position; }else if (top) { positionComputed = 'top'; }else if (bottom) { positionComputed = 'bottom'; }
+      var classes = Utils.classNames(className, 'sheet-modal', "sheet-modal-".concat(positionComputed), {
+        'sheet-modal-push': push
+      }, Mixins.colorClasses(props));
       return _h('div', {
         ref: 'el',
         style: style,
@@ -9871,7 +10239,6 @@
         }
       }, [fixedList, innerEl]);
     },
-
     watch: {
       'props.opened': function watchOpened(opened) {
         var self = this;
@@ -9884,40 +10251,47 @@
         }
       }
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
+      Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed', 'onStepOpen', 'onStepClose', 'onStepProgress']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
       if (!el) { return; }
-      el.addEventListener('sheet:open', self.onOpen);
-      el.addEventListener('sheet:opened', self.onOpened);
-      el.addEventListener('sheet:close', self.onClose);
-      el.addEventListener('sheet:closed', self.onClosed);
       var props = self.props;
-      var opened = props.opened;
-      var backdrop = props.backdrop;
-      var closeByBackdropClick = props.closeByBackdropClick;
-      var closeByOutsideClick = props.closeByOutsideClick;
+      var opened = props.opened,
+          backdrop = props.backdrop,
+          backdropEl = props.backdropEl,
+          closeByBackdropClick = props.closeByBackdropClick,
+          closeByOutsideClick = props.closeByOutsideClick,
+          closeOnEscape = props.closeOnEscape,
+          swipeToClose = props.swipeToClose,
+          swipeToStep = props.swipeToStep,
+          swipeHandler = props.swipeHandler;
       var sheetParams = {
-        el: self.$refs.el
-      };
-      var useDefaultBackdrop;
-      {
-        useDefaultBackdrop = self.$options.propsData.backdrop === undefined;
-        if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') { sheetParams.closeByBackdropClick = closeByBackdropClick; }
-        if (typeof self.$options.propsData.closeByOutsideClick !== 'undefined') { sheetParams.closeByOutsideClick = closeByOutsideClick; }
-      }
-      self.$f7ready(function (f7) {
-        if (useDefaultBackdrop) {
-          sheetParams.backdrop = f7.params.sheet && f7.params.sheet.backdrop !== undefined ? f7.params.sheet.backdrop : !self.$theme.ios;
-        } else {
-          sheetParams.backdrop = backdrop;
+        el: self.$refs.el,
+        on: {
+          open: self.onOpen,
+          opened: self.onOpened,
+          close: self.onClose,
+          closed: self.onClosed,
+          stepOpen: self.onStepOpen,
+          stepClose: self.onStepClose,
+          stepProgress: self.onStepProgress
         }
-
+      };
+      {
+        var propsData = self.$options.propsData;
+        if (typeof propsData.backdrop !== 'undefined') { sheetParams.backdrop = backdrop; }
+        if (typeof propsData.backdropEl !== 'undefined') { sheetParams.backdropEl = backdropEl; }
+        if (typeof propsData.closeByBackdropClick !== 'undefined') { sheetParams.closeByBackdropClick = closeByBackdropClick; }
+        if (typeof propsData.closeByOutsideClick !== 'undefined') { sheetParams.closeByOutsideClick = closeByOutsideClick; }
+        if (typeof propsData.closeOnEscape !== 'undefined') { sheetParams.closeOnEscape = closeOnEscape; }
+        if (typeof propsData.swipeToClose !== 'undefined') { sheetParams.swipeToClose = swipeToClose; }
+        if (typeof propsData.swipeToStep !== 'undefined') { sheetParams.swipeToStep = swipeToStep; }
+        if (typeof propsData.swipeHandler !== 'undefined') { sheetParams.swipeHandler = swipeHandler; }
+      }
+      self.$f7ready(function () {
         self.f7Sheet = self.$f7.sheet.create(sheetParams);
 
         if (opened) {
@@ -9925,63 +10299,60 @@
         }
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (self.f7Sheet) { self.f7Sheet.destroy(); }
-      var el = self.$refs.el;
-      if (!el) { return; }
-      el.removeEventListener('popup:open', self.onOpen);
-      el.removeEventListener('popup:opened', self.onOpened);
-      el.removeEventListener('popup:close', self.onClose);
-      el.removeEventListener('popup:closed', self.onClosed);
     },
-
     methods: {
-      onOpen: function onOpen(event) {
-        this.dispatchEvent('sheet:open sheetOpen', event);
+      onStepProgress: function onStepProgress(instance, progress) {
+        this.dispatchEvent('sheet:stepprogress sheetStepProgress', instance, progress);
       },
-
-      onOpened: function onOpened(event) {
-        this.dispatchEvent('sheet:opened sheetOpened', event);
+      onStepOpen: function onStepOpen(instance) {
+        this.dispatchEvent('sheet:stepopen sheetStepOpen', instance);
       },
-
-      onClose: function onClose(event) {
-        this.dispatchEvent('sheet:close sheetClose', event);
+      onStepClose: function onStepClose(instance) {
+        this.dispatchEvent('sheet:stepclose sheetStepClose', instance);
       },
-
-      onClosed: function onClosed(event) {
-        this.dispatchEvent('sheet:closed sheetClosed', event);
+      onOpen: function onOpen(instance) {
+        this.dispatchEvent('sheet:open sheetOpen', instance);
       },
-
+      onOpened: function onOpened(instance) {
+        this.dispatchEvent('sheet:opened sheetOpened', instance);
+      },
+      onClose: function onClose(instance) {
+        this.dispatchEvent('sheet:close sheetClose', instance);
+      },
+      onClosed: function onClosed(instance) {
+        this.dispatchEvent('sheet:closed sheetClosed', instance);
+      },
       open: function open(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.sheet.open(self.$refs.el, animate);
+        if (!self.f7Sheet) { return undefined; }
+        return self.f7Sheet.open(animate);
       },
-
       close: function close(animate) {
         var self = this;
-        if (!self.$f7) { return undefined; }
-        return self.$f7.sheet.close(self.$refs.el, animate);
+        if (!self.f7Sheet) { return undefined; }
+        return self.f7Sheet.close(animate);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
+  function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
   var f7SkeletonBlock = {
     name: 'f7-skeleton-block',
     props: Object.assign({
@@ -9993,48 +10364,47 @@
         default: 'div'
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var width = props.width;
-      var height = props.height;
-      var tag = props.tag;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          width = props.width,
+          height = props.height,
+          tag = props.tag;
       var classes = Utils.classNames('skeleton-block', className, Mixins.colorClasses(props));
       var styleAttribute = style;
 
       if (width) {
-        var widthValue = typeof width === 'number' ? (width + "px") : width;
+        var widthValue = typeof width === 'number' ? "".concat(width, "px") : width;
 
         if (!styleAttribute) {
           styleAttribute = {
             width: widthValue
           };
-        } else if (typeof styleAttribute === 'object') {
+        } else if (_typeof(styleAttribute) === 'object') {
           styleAttribute = Object.assign({
             width: widthValue
           }, styleAttribute);
         } else if (typeof styleAttribute === 'string') {
-          styleAttribute = "width: " + widthValue + "; " + styleAttribute;
+          styleAttribute = "width: ".concat(widthValue, "; ").concat(styleAttribute);
         }
       }
 
       if (height) {
-        var heightValue = typeof height === 'number' ? (height + "px") : height;
+        var heightValue = typeof height === 'number' ? "".concat(height, "px") : height;
 
         if (!styleAttribute) {
           styleAttribute = {
             height: heightValue
           };
-        } else if (typeof styleAttribute === 'object') {
+        } else if (_typeof(styleAttribute) === 'object') {
           styleAttribute = Object.assign({
             height: heightValue
           }, styleAttribute);
         } else if (typeof styleAttribute === 'string') {
-          styleAttribute = "height: " + heightValue + "; " + styleAttribute;
+          styleAttribute = "height: ".concat(heightValue, "; ").concat(styleAttribute);
         }
       }
 
@@ -10047,15 +10417,14 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
+  function _typeof$1(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof$1 = function _typeof(obj) { return typeof obj; }; } else { _typeof$1 = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof$1(obj); }
   var f7SkeletonText = {
     name: 'f7-skeleton-text',
     props: Object.assign({
@@ -10067,48 +10436,47 @@
         default: 'span'
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var width = props.width;
-      var height = props.height;
-      var tag = props.tag;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          width = props.width,
+          height = props.height,
+          tag = props.tag;
       var classes = Utils.classNames('skeleton-text', className, Mixins.colorClasses(props));
       var styleAttribute = style;
 
       if (width) {
-        var widthValue = typeof width === 'number' ? (width + "px") : width;
+        var widthValue = typeof width === 'number' ? "".concat(width, "px") : width;
 
         if (!styleAttribute) {
           styleAttribute = {
             width: widthValue
           };
-        } else if (typeof styleAttribute === 'object') {
+        } else if (_typeof$1(styleAttribute) === 'object') {
           styleAttribute = Object.assign({
             width: widthValue
           }, styleAttribute);
         } else if (typeof styleAttribute === 'string') {
-          styleAttribute = "width: " + widthValue + "; " + styleAttribute;
+          styleAttribute = "width: ".concat(widthValue, "; ").concat(styleAttribute);
         }
       }
 
       if (height) {
-        var heightValue = typeof height === 'number' ? (height + "px") : height;
+        var heightValue = typeof height === 'number' ? "".concat(height, "px") : height;
 
         if (!styleAttribute) {
           styleAttribute = {
             height: heightValue
           };
-        } else if (typeof styleAttribute === 'object') {
+        } else if (_typeof$1(styleAttribute) === 'object') {
           styleAttribute = Object.assign({
             height: heightValue
           }, styleAttribute);
         } else if (typeof styleAttribute === 'string') {
-          styleAttribute = "height: " + heightValue + "; " + styleAttribute;
+          styleAttribute = "height: ".concat(heightValue, "; ").concat(styleAttribute);
         }
       }
 
@@ -10121,42 +10489,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
-    }
-  };
-
-  var f7Statusbar = {
-    name: 'f7-statusbar',
-    props: Object.assign({
-      id: [String, Number]
-    }, Mixins.colorProps),
-
-    render: function render() {
-      var _h = this.$createElement;
-      var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var classes = Utils.classNames(className, 'statusbar', Mixins.colorClasses(props));
-      return _h('div', {
-        style: style,
-        class: classes,
-        attrs: {
-          id: id
-        }
-      }, [this.$slots['default']]);
-    },
-
-    computed: {
-      props: function props() {
-        return __vueComponentProps(this);
-      }
-
     }
   };
 
@@ -10185,6 +10521,8 @@
         default: 1
       },
       formatValue: Function,
+      name: String,
+      inputId: String,
       input: {
         type: Boolean,
         default: true
@@ -10244,21 +10582,22 @@
       raisedIos: Boolean,
       raisedAurora: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var input = props.input;
-      var buttonsOnly = props.buttonsOnly;
-      var inputType = props.inputType;
-      var value = props.value;
-      var inputReadonly = props.inputReadonly;
-      var min = props.min;
-      var max = props.max;
-      var step = props.step;
-      var id = props.id;
-      var style = props.style;
+      var input = props.input,
+          buttonsOnly = props.buttonsOnly,
+          inputType = props.inputType,
+          value = props.value,
+          inputReadonly = props.inputReadonly,
+          min = props.min,
+          max = props.max,
+          step = props.step,
+          id = props.id,
+          style = props.style,
+          name = props.name,
+          inputId = props.inputId;
       var inputWrapEl;
       var valueEl;
 
@@ -10272,9 +10611,12 @@
               value: value
             },
             on: {
-              input: self.onInput
+              input: self.onInput,
+              change: self.onChange
             },
             attrs: {
+              name: name,
+              id: inputId,
               type: inputType,
               min: inputType === 'number' ? min : undefined,
               max: inputType === 'number' ? max : undefined,
@@ -10308,32 +10650,31 @@
         class: 'stepper-button-plus'
       })]);
     },
-
     computed: {
       classes: function classes() {
         var self = this;
         var props = self.props;
-        var round = props.round;
-        var roundIos = props.roundIos;
-        var roundMd = props.roundMd;
-        var roundAurora = props.roundAurora;
-        var fill = props.fill;
-        var fillIos = props.fillIos;
-        var fillMd = props.fillMd;
-        var fillAurora = props.fillAurora;
-        var large = props.large;
-        var largeIos = props.largeIos;
-        var largeMd = props.largeMd;
-        var largeAurora = props.largeAurora;
-        var small = props.small;
-        var smallIos = props.smallIos;
-        var smallMd = props.smallMd;
-        var smallAurora = props.smallAurora;
-        var raised = props.raised;
-        var raisedMd = props.raisedMd;
-        var raisedIos = props.raisedIos;
-        var raisedAurora = props.raisedAurora;
-        var disabled = props.disabled;
+        var round = props.round,
+            roundIos = props.roundIos,
+            roundMd = props.roundMd,
+            roundAurora = props.roundAurora,
+            fill = props.fill,
+            fillIos = props.fillIos,
+            fillMd = props.fillMd,
+            fillAurora = props.fillAurora,
+            large = props.large,
+            largeIos = props.largeIos,
+            largeMd = props.largeMd,
+            largeAurora = props.largeAurora,
+            small = props.small,
+            smallIos = props.smallIos,
+            smallMd = props.smallMd,
+            smallAurora = props.smallAurora,
+            raised = props.raised,
+            raisedMd = props.raisedMd,
+            raisedIos = props.raisedIos,
+            raisedAurora = props.raisedAurora,
+            disabled = props.disabled;
         return Utils.classNames(self.props.className, 'stepper', {
           disabled: disabled,
           'stepper-round': round,
@@ -10358,22 +10699,18 @@
           'stepper-raised-aurora': raisedAurora
         }, Mixins.colorClasses(props));
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onInput', 'onMinusClick', 'onPlusClick']);
     },
-
     mounted: function mounted() {
       var self = this;
-      var ref = self.$refs;
-      var minusEl = ref.minusEl;
-      var plusEl = ref.plusEl;
+      var _self$$refs = self.$refs,
+          minusEl = _self$$refs.minusEl,
+          plusEl = _self$$refs.plusEl;
 
       if (minusEl) {
         minusEl.addEventListener('click', self.onMinusClick);
@@ -10385,18 +10722,18 @@
 
       if (!self.props.init) { return; }
       self.$f7ready(function (f7) {
-        var ref = self.props;
-        var min = ref.min;
-        var max = ref.max;
-        var value = ref.value;
-        var step = ref.step;
-        var formatValue = ref.formatValue;
-        var autorepeat = ref.autorepeat;
-        var autorepeatDynamic = ref.autorepeatDynamic;
-        var wraps = ref.wraps;
-        var manualInputMode = ref.manualInputMode;
-        var decimalPoint = ref.decimalPoint;
-        var buttonsEndInputMode = ref.buttonsEndInputMode;
+        var _self$props = self.props,
+            min = _self$props.min,
+            max = _self$props.max,
+            value = _self$props.value,
+            step = _self$props.step,
+            formatValue = _self$props.formatValue,
+            autorepeat = _self$props.autorepeat,
+            autorepeatDynamic = _self$props.autorepeatDynamic,
+            wraps = _self$props.wraps,
+            manualInputMode = _self$props.manualInputMode,
+            decimalPoint = _self$props.decimalPoint,
+            buttonsEndInputMode = _self$props.buttonsEndInputMode;
         var el = self.$refs.el;
         if (!el) { return; }
         self.f7Stepper = f7.stepper.create(Utils.noUndefinedProps({
@@ -10416,17 +10753,15 @@
             change: function change(stepper, newValue) {
               self.dispatchEvent('stepper:change stepperChange', newValue);
             }
-
           }
         }));
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var ref = self.$refs;
-      var minusEl = ref.minusEl;
-      var plusEl = ref.plusEl;
+      var _self$$refs2 = self.$refs,
+          minusEl = _self$$refs2.minusEl,
+          plusEl = _self$$refs2.plusEl;
 
       if (minusEl) {
         minusEl.removeEventListener('click', self.onMinusClick);
@@ -10442,23 +10777,19 @@
         self.f7Stepper.destroy();
       }
     },
-
     methods: {
       increment: function increment() {
         if (!this.f7Stepper) { return; }
         this.f7Stepper.increment();
       },
-
       decrement: function decrement() {
         if (!this.f7Stepper) { return; }
         this.f7Stepper.decrement();
       },
-
       setValue: function setValue(newValue) {
         var self = this;
         if (self.f7Stepper && self.f7Stepper.setValue) { self.f7Stepper.setValue(newValue); }
       },
-
       getValue: function getValue() {
         var self = this;
 
@@ -10468,29 +10799,31 @@
 
         return undefined;
       },
-
       onInput: function onInput(event) {
         var stepper = this.f7Stepper;
         this.dispatchEvent('input', event, stepper);
       },
-
+      onChange: function onChange(event) {
+        var stepper = this.f7Stepper;
+        this.dispatchEvent('change', event, stepper);
+      },
       onMinusClick: function onMinusClick(event) {
         var stepper = this.f7Stepper;
         this.dispatchEvent('stepper:minusclick stepperMinusClick', event, stepper);
       },
-
       onPlusClick: function onPlusClick(event) {
         var stepper = this.f7Stepper;
         this.dispatchEvent('stepper:plusclick stepperPlusClick', event, stepper);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     }
   };
 
@@ -10505,17 +10838,16 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var inner = props.inner;
-      var title = props.title;
-      var style = props.style;
-      var id = props.id;
-      var className = props.className;
-      var sliding = props.sliding;
+      var inner = props.inner,
+          title = props.title,
+          style = props.style,
+          id = props.id,
+          className = props.className,
+          sliding = props.sliding;
       var classes = Utils.classNames(className, 'subnavbar', {
         sliding: sliding
       }, Mixins.colorClasses(props));
@@ -10528,15 +10860,13 @@
       }, [inner ? _h('div', {
         class: 'subnavbar-inner'
       }, [title && _h('div', {
-        class: 'title'
+        class: 'subnavbar-title'
       }, [title]), this.$slots['default']]) : this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -10548,16 +10878,15 @@
       right: Boolean,
       side: String
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var left = props.left;
-      var right = props.right;
-      var side = props.side;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
+      var left = props.left,
+          right = props.right,
+          side = props.side,
+          className = props.className,
+          id = props.id,
+          style = props.style;
       var sideComputed = side;
 
       if (!sideComputed) {
@@ -10565,7 +10894,7 @@
         if (right) { sideComputed = 'right'; }
       }
 
-      var classes = Utils.classNames(className, ("swipeout-actions-" + sideComputed), Mixins.colorClasses(props));
+      var classes = Utils.classNames(className, "swipeout-actions-".concat(sideComputed), Mixins.colorClasses(props));
       return _h('div', {
         style: style,
         class: classes,
@@ -10574,12 +10903,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -10588,25 +10915,26 @@
     props: Object.assign({
       id: [String, Number],
       text: String,
+      confirmTitle: String,
       confirmText: String,
       overswipe: Boolean,
       close: Boolean,
       delete: Boolean,
       href: String
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var overswipe = props.overswipe;
-      var deleteProp = props.delete;
-      var close = props.close;
-      var href = props.href;
-      var confirmText = props.confirmText;
-      var text = props.text;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          overswipe = props.overswipe,
+          deleteProp = props.delete,
+          close = props.close,
+          href = props.href,
+          confirmTitle = props.confirmTitle,
+          confirmText = props.confirmText,
+          text = props.text;
       var classes = Utils.classNames(className, {
         'swipeout-overswipe': overswipe,
         'swipeout-delete': deleteProp,
@@ -10619,41 +10947,38 @@
         attrs: {
           href: href || '#',
           id: id,
-          'data-confirm': confirmText || undefined
+          'data-confirm': confirmText || undefined,
+          'data-confirm-title': confirmTitle || undefined
         }
       }, [this.$slots['default'] || [text]]);
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onClick']);
     },
-
     mounted: function mounted() {
       this.$refs.el.addEventListener('click', this.onClick);
     },
-
     beforeDestroy: function beforeDestroy() {
       this.$refs.el.removeEventListener('click', this.onClick);
     },
-
     methods: {
       onClick: function onClick(event) {
         this.dispatchEvent('click', event);
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -10663,14 +10988,13 @@
       id: [String, Number],
       zoom: Boolean
     },
-
     render: function render() {
       var _h = this.$createElement;
       var props = this.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var zoom = props.zoom;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          zoom = props.zoom;
       var classes = Utils.classNames(className, 'swiper-slide');
       return _h('div', {
         style: style,
@@ -10682,12 +11006,10 @@
         class: 'swiper-zoom-container'
       }, [this.$slots['default']]) : this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -10704,14 +11026,13 @@
         default: true
       }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          className = props.className;
       var paginationEl;
       var scrollbarEl;
       var buttonNextEl;
@@ -10754,13 +11075,12 @@
         class: 'swiper-wrapper'
       }, [this.$slots['default']]), paginationEl, scrollbarEl, buttonPrevEl, buttonNextEl, this.$slots['after-wrapper']]);
     },
-
     computed: {
       paginationComputed: function paginationComputed() {
         var self = this;
-        var ref = self.props;
-        var pagination = ref.pagination;
-        var params = ref.params;
+        var _self$props = self.props,
+            pagination = _self$props.pagination,
+            params = _self$props.params;
 
         if (pagination === true || params && params.pagination && !params.pagination.el) {
           return true;
@@ -10768,12 +11088,11 @@
 
         return false;
       },
-
       scrollbarComputed: function scrollbarComputed() {
         var self = this;
-        var ref = self.props;
-        var scrollbar = ref.scrollbar;
-        var params = ref.params;
+        var _self$props2 = self.props,
+            scrollbar = _self$props2.scrollbar,
+            params = _self$props2.params;
 
         if (scrollbar === true || params && params.scrollbar && !params.scrollbar.el) {
           return true;
@@ -10781,12 +11100,11 @@
 
         return false;
       },
-
       navigationComputed: function navigationComputed() {
         var self = this;
-        var ref = self.props;
-        var navigation = ref.navigation;
-        var params = ref.params;
+        var _self$props3 = self.props,
+            navigation = _self$props3.navigation,
+            params = _self$props3.params;
 
         if (navigation === true || params && params.navigation && !params.navigation.nextEl && !params.navigation.prevEl) {
           return true;
@@ -10794,13 +11112,10 @@
 
         return false;
       },
-
       props: function props() {
         return __vueComponentProps(this);
       }
-
     },
-
     updated: function updated() {
       var self = this;
 
@@ -10811,7 +11126,6 @@
 
       if (self.swiper && self.swiper.update) { self.swiper.update(); }
     },
-
     mounted: function mounted() {
       var self = this;
       if (!self.props.init) { return; }
@@ -10821,11 +11135,11 @@
           navigation: {},
           scrollbar: {}
         };
-        var ref = self.props;
-        var params = ref.params;
-        var pagination = ref.pagination;
-        var navigation = ref.navigation;
-        var scrollbar = ref.scrollbar;
+        var _self$props4 = self.props,
+            params = _self$props4.params,
+            pagination = _self$props4.pagination,
+            navigation = _self$props4.navigation,
+            scrollbar = _self$props4.scrollbar;
         if (params) { Utils.extend(newParams, params); }
         if (pagination && !newParams.pagination.el) { newParams.pagination.el = self.$refs.paginationEl; }
 
@@ -10838,13 +11152,11 @@
         self.swiper = f7.swiper.create(self.$refs.el, newParams);
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
       if (!self.props.init) { return; }
       if (self.swiper && self.swiper.destroy) { self.swiper.destroy(); }
     }
-
   };
 
   var f7Tab = {
@@ -10853,29 +11165,27 @@
       id: [String, Number],
       tabActive: Boolean
     }, Mixins.colorProps),
-
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           tabContent: null
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var tabActive = props.tabActive;
-      var id = props.id;
-      var className = props.className;
-      var style = props.style;
+      var tabActive = props.tabActive,
+          id = props.id,
+          className = props.className,
+          style = props.style;
       var tabContent = self.state.tabContent;
       var classes = Utils.classNames(className, 'tab', {
         'tab-active': tabActive
@@ -10896,84 +11206,81 @@
         }) : this.$slots['default']]);
       }
     },
-
     created: function created() {
       Utils.bindMethods(this, ['onTabShow', 'onTabHide']);
     },
-
     updated: function updated() {
       var self = this;
       if (!self.routerData) { return; }
-      eventsEmitter.emit('tabRouterDidUpdate', self.routerData);
+      f7.events.emit('tabRouterDidUpdate', self.routerData);
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var el = self.$refs.el;
 
-      if (el) {
-        el.removeEventListener('tab:show', self.onTabShow);
-        el.removeEventListener('tab:hide', self.onTabHide);
+      if (self.$f7) {
+        self.$f7.off('tabShow', self.onTabShow);
+        self.$f7.off('tabHide', self.onTabHide);
       }
 
       if (!self.routerData) { return; }
       f7.routers.tabs.splice(f7.routers.tabs.indexOf(self.routerData), 1);
       self.routerData = null;
+      self.eventTargetEl = null;
       delete self.routerData;
+      delete self.eventTargetEl;
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-
-      if (el) {
-        el.addEventListener('tab:show', self.onTabShow);
-        el.addEventListener('tab:hide', self.onTabHide);
-      }
-
       self.setState({
         tabContent: null
       });
       self.$f7ready(function () {
+        self.$f7.on('tabShow', self.onTabShow);
+        self.$f7.on('tabHide', self.onTabHide);
+        self.eventTargetEl = el;
         self.routerData = {
           el: el,
-          component: self
+          component: self,
+          setTabContent: function setTabContent(tabContent) {
+            self.setState({
+              tabContent: tabContent
+            });
+          }
         };
         f7.routers.tabs.push(self.routerData);
       });
     },
-
     methods: {
       show: function show(animate) {
         if (!this.$f7) { return; }
         this.$f7.tab.show(this.$refs.el, animate);
       },
-
-      onTabShow: function onTabShow(event) {
-        this.dispatchEvent('tab:show tabShow', event);
+      onTabShow: function onTabShow(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:show tabShow');
       },
-
-      onTabHide: function onTabHide(event) {
-        this.dispatchEvent('tab:hide tabHide', event);
+      onTabHide: function onTabHide(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('tab:hide tabHide');
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -10983,19 +11290,22 @@
       id: [String, Number],
       animated: Boolean,
       swipeable: Boolean,
-      routable: Boolean
+      routable: Boolean,
+      swiperParams: {
+        type: Object,
+        default: undefined
+      }
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var animated = props.animated;
-      var swipeable = props.swipeable;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
-      var routable = props.routable;
+      var animated = props.animated,
+          swipeable = props.swipeable,
+          id = props.id,
+          style = props.style,
+          className = props.className,
+          routable = props.routable;
       var classes = Utils.classNames(className, Mixins.colorClasses(props));
       var wrapClasses = Utils.classNames({
         'tabs-animated-wrap': animated,
@@ -11010,6 +11320,7 @@
         return _h('div', {
           style: style,
           class: Utils.classNames(wrapClasses, classes),
+          ref: 'wrapEl',
           attrs: {
             id: id
           }
@@ -11026,12 +11337,20 @@
         }
       }, [this.$slots['default']]);
     },
-
+    mounted: function mounted() {
+      var self = this;
+      var _self$props = self.props,
+          swipeable = _self$props.swipeable,
+          swiperParams = _self$props.swiperParams;
+      if (!swipeable || !swiperParams) { return; }
+      var wrapEl = self.$refs.wrapEl;
+      if (!wrapEl) { return; }
+      wrapEl.f7SwiperParams = swiperParams;
+    },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -11087,35 +11406,61 @@
         default: true
       }
     }, Mixins.colorProps),
+    data: function data() {
+      var _this = this;
 
+      var props = __vueComponentProps(this);
+
+      var state = function () {
+        var self = _this;
+        var $f7 = self.$f7;
+
+        if (!$f7) {
+          self.$f7ready(function () {
+            self.setState({
+              _theme: self.$theme
+            });
+          });
+        }
+
+        return {
+          _theme: $f7 ? self.$theme : null
+        };
+      }();
+
+      return {
+        state: state
+      };
+    },
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var className = props.className;
-      var inner = props.inner;
-      var tabbar = props.tabbar;
-      var labels = props.labels;
-      var scrollable = props.scrollable;
-      var hidden = props.hidden;
-      var noShadow = props.noShadow;
-      var noHairline = props.noHairline;
-      var noBorder = props.noBorder;
-      var topMd = props.topMd;
-      var topIos = props.topIos;
-      var topAurora = props.topAurora;
-      var top = props.top;
-      var bottomMd = props.bottomMd;
-      var bottomIos = props.bottomIos;
-      var bottomAurora = props.bottomAurora;
-      var bottom = props.bottom;
-      var position = props.position;
+      var id = props.id,
+          style = props.style,
+          className = props.className,
+          inner = props.inner,
+          tabbar = props.tabbar,
+          labels = props.labels,
+          scrollable = props.scrollable,
+          hidden = props.hidden,
+          noShadow = props.noShadow,
+          noHairline = props.noHairline,
+          noBorder = props.noBorder,
+          topMd = props.topMd,
+          topIos = props.topIos,
+          topAurora = props.topAurora,
+          top = props.top,
+          bottomMd = props.bottomMd,
+          bottomIos = props.bottomIos,
+          bottomAurora = props.bottomAurora,
+          bottom = props.bottom,
+          position = props.position;
+      var theme = self.state._theme;
       var classes = Utils.classNames(className, 'toolbar', {
         tabbar: tabbar,
-        'toolbar-bottom': self.$theme.md && bottomMd || self.$theme.ios && bottomIos || self.$theme.aurora && bottomAurora || bottom || position === 'bottom',
-        'toolbar-top': self.$theme.md && topMd || self.$theme.ios && topIos || self.$theme.aurora && topAurora || top || position === 'top',
+        'toolbar-bottom': theme && theme.md && bottomMd || theme && theme.ios && bottomIos || theme && theme.aurora && bottomAurora || bottom || position === 'bottom',
+        'toolbar-top': theme && theme.md && topMd || theme && theme.ios && topIos || theme && theme.aurora && topAurora || top || position === 'top',
         'tabbar-labels': labels,
         'tabbar-scrollable': scrollable,
         'toolbar-hidden': hidden,
@@ -11133,7 +11478,9 @@
         class: 'toolbar-inner'
       }, [this.$slots['default']]) : this.$slots['default'], this.$slots['after-inner']]);
     },
-
+    created: function created() {
+      Utils.bindMethods(this, ['onHide', 'onShow']);
+    },
     updated: function updated() {
       var self = this;
 
@@ -11141,33 +11488,264 @@
         self.$f7.toolbar.setHighlight(self.$refs.el);
       }
     },
-
     mounted: function mounted() {
       var self = this;
+      var el = self.$refs.el;
+      if (!el) { return; }
       self.$f7ready(function (f7) {
-        if (self.props.tabbar) { f7.toolbar.setHighlight(self.$refs.el); }
+        self.eventTargetEl = el;
+        if (self.props.tabbar) { f7.toolbar.setHighlight(el); }
+        f7.on('toolbarShow', self.onShow);
+        f7.on('toolbarHide', self.onHide);
       });
     },
-
+    beforeDestroy: function beforeDestroy() {
+      var self = this;
+      var el = self.$refs.el;
+      if (!el || !self.$f7) { return; }
+      var f7 = self.$f7;
+      f7.off('toolbarShow', self.onShow);
+      f7.off('toolbarHide', self.onHide);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
+    },
     methods: {
+      onHide: function onHide(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('toolbar:hide toolbarHide');
+      },
+      onShow: function onShow(navbarEl) {
+        if (this.eventTargetEl !== navbarEl) { return; }
+        this.dispatchEvent('toolbar:show toolbarShow');
+      },
       hide: function hide(animate) {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.toolbar.hide(this.$refs.el, animate);
       },
-
       show: function show(animate) {
         var self = this;
         if (!self.$f7) { return; }
         self.$f7.toolbar.show(this.$refs.el, animate);
-      }
+      },
+      dispatchEvent: function dispatchEvent(events) {
+        var arguments$1 = arguments;
 
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+      },
+      setState: function setState(updater, callback) {
+        __vueComponentSetState(this, updater, callback);
+      }
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
+    }
+  };
 
+  var f7TreeviewItem = {
+    props: Object.assign({
+      id: [String, Number],
+      toggle: {
+        type: Boolean,
+        default: undefined
+      },
+      itemToggle: Boolean,
+      selectable: Boolean,
+      selected: Boolean,
+      opened: Boolean,
+      label: String,
+      loadChildren: Boolean,
+      link: {
+        type: [Boolean, String],
+        default: undefined
+      }
+    }, Mixins.colorProps, {}, Mixins.linkActionsProps, {}, Mixins.linkRouterProps, {}, Mixins.linkIconProps),
+    name: 'f7-treeview-item',
+    render: function render() {
+      var _h = this.$createElement;
+      var self = this;
+      var props = self.props;
+      var id = props.id,
+          style = props.style,
+          toggle = props.toggle,
+          label = props.label,
+          icon = props.icon,
+          iconMaterial = props.iconMaterial,
+          iconF7 = props.iconF7,
+          iconMd = props.iconMd,
+          iconIos = props.iconIos,
+          iconAurora = props.iconAurora,
+          iconSize = props.iconSize,
+          iconColor = props.iconColor,
+          link = props.link;
+      var slots = self.$slots;
+      var hasChildren = slots.default && slots.default.length || slots.children && slots.children.length || slots['children-start'] && slots['children-start'].length;
+      var needToggle = typeof toggle === 'undefined' ? hasChildren : toggle;
+      var iconEl;
+
+      if (icon || iconMaterial || iconF7 || iconMd || iconIos || iconAurora) {
+        iconEl = _h(f7Icon, {
+          attrs: {
+            material: iconMaterial,
+            f7: iconF7,
+            icon: icon,
+            md: iconMd,
+            ios: iconIos,
+            aurora: iconAurora,
+            color: iconColor,
+            size: iconSize
+          }
+        });
+      }
+
+      var TreeviewRootTag = link || link === '' ? 'a' : 'div';
+      return _h('div', {
+        ref: 'el',
+        style: style,
+        class: self.classes,
+        attrs: {
+          id: id
+        }
+      }, [_h(TreeviewRootTag, __vueComponentTransformJSXProps(Object.assign({
+        ref: 'rootEl',
+        class: self.itemRootClasses
+      }, self.itemRootAttrs)), [this.$slots['root-start'], needToggle && _h('div', {
+        class: 'treeview-toggle'
+      }), _h('div', {
+        class: 'treeview-item-content'
+      }, [this.$slots['content-start'], iconEl, this.$slots['media'], _h('div', {
+        class: 'treeview-item-label'
+      }, [this.$slots['label-start'], label, this.$slots['label']]), this.$slots['content'], this.$slots['content-end']]), this.$slots['root'], this.$slots['root-end']]), hasChildren && _h('div', {
+        class: 'treeview-item-children'
+      }, [this.$slots['children-start'], this.$slots['default'], this.$slots['children']])]);
+    },
+    computed: {
+      itemRootAttrs: function itemRootAttrs() {
+        var self = this;
+        var props = self.props;
+        var link = props.link;
+        var href = link;
+        if (link === true) { href = '#'; }
+        if (link === false) { href = undefined; }
+        return Utils.extend({
+          href: href
+        }, Mixins.linkRouterAttrs(props), Mixins.linkActionsAttrs(props));
+      },
+      itemRootClasses: function itemRootClasses() {
+        var self = this;
+        var props = self.props;
+        var selectable = props.selectable,
+            selected = props.selected,
+            itemToggle = props.itemToggle;
+        return Utils.classNames('treeview-item-root', {
+          'treeview-item-selectable': selectable,
+          'treeview-item-selected': selected,
+          'treeview-item-toggle': itemToggle
+        }, Mixins.linkRouterClasses(props), Mixins.linkActionsClasses(props));
+      },
+      classes: function classes() {
+        var self = this;
+        var props = self.props;
+        var className = props.className,
+            opened = props.opened,
+            loadChildren = props.loadChildren;
+        return Utils.classNames(className, 'treeview-item', {
+          'treeview-item-opened': opened,
+          'treeview-load-children': loadChildren
+        }, Mixins.colorClasses(props));
+      },
+      props: function props() {
+        return __vueComponentProps(this);
+      }
+    },
+    created: function created() {
+      Utils.bindMethods(this, ['onClick', 'onOpen', 'onClose', 'onLoadChildren']);
+    },
+    mounted: function mounted() {
+      var self = this;
+      var _self$$refs = self.$refs,
+          el = _self$$refs.el,
+          rootEl = _self$$refs.rootEl;
+      rootEl.addEventListener('click', self.onClick);
+      if (!el) { return; }
+      self.eventTargetEl = el;
+      self.$f7ready(function (f7) {
+        f7.on('treeviewOpen', self.onOpen);
+        f7.on('treeviewClose', self.onClose);
+        f7.on('treeviewLoadChildren', self.onLoadChildren);
+      });
+    },
+    beforeDestroy: function beforeDestroy() {
+      var self = this;
+      var _self$$refs2 = self.$refs,
+          el = _self$$refs2.el,
+          rootEl = _self$$refs2.rootEl;
+      rootEl.removeEventListener('click', self.onClick);
+      if (!el || self.$f7) { return; }
+      self.$f7.off('treeviewOpen', self.onOpen);
+      self.$f7.off('treeviewClose', self.onClose);
+      self.$f7.off('treeviewLoadChildren', self.onLoadChildren);
+      self.eventTargetEl = null;
+      delete self.eventTargetEl;
+    },
+    methods: {
+      onClick: function onClick(event) {
+        this.dispatchEvent('click', event);
+      },
+      onOpen: function onOpen(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('treeview:open treeviewOpen', el);
+      },
+      onClose: function onClose(el) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('treeview:close treeviewClose', el);
+      },
+      onLoadChildren: function onLoadChildren(el, done) {
+        if (this.eventTargetEl !== el) { return; }
+        this.dispatchEvent('treeview:loadchildren treeviewLoadChildren', el, done);
+      },
+      dispatchEvent: function dispatchEvent(events) {
+        var arguments$1 = arguments;
+
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+      }
+    }
+  };
+
+  var f7Treeview = {
+    props: Object.assign({
+      id: [String, Number]
+    }, Mixins.colorProps),
+    name: 'f7-treeview',
+    render: function render() {
+      var _h = this.$createElement;
+      var props = this.props;
+      var className = props.className,
+          id = props.id,
+          style = props.style;
+      var classes = Utils.classNames(className, 'treeview', Mixins.colorClasses(props));
+      return _h('div', {
+        style: style,
+        class: classes,
+        attrs: {
+          id: id
+        }
+      }, [this.$slots['default']]);
+    },
+    computed: {
+      props: function props() {
+        return __vueComponentProps(this);
+      }
     }
   };
 
@@ -11196,6 +11774,7 @@
       removeElementsWithTimeout: Boolean,
       removeElementsTimeout: Number,
       restoreScrollTopOnBack: Boolean,
+      loadInitialPage: Boolean,
       iosSwipeBack: Boolean,
       iosSwipeBackAnimateShadow: Boolean,
       iosSwipeBackAnimateOpacity: Boolean,
@@ -11218,8 +11797,8 @@
       pushStateSeparator: String,
       pushStateOnLoad: Boolean,
       animate: Boolean,
+      transition: String,
       iosDynamicNavbar: Boolean,
-      iosSeparateDynamicNavbar: Boolean,
       iosAnimateNavbarBackIcon: Boolean,
       materialPageLoadDelay: Number,
       passRouteQueryToRequest: Boolean,
@@ -11233,31 +11812,29 @@
         default: true
       }
     }, Mixins.colorProps),
-
     data: function data() {
       var props = __vueComponentProps(this);
 
-      var state = (function () {
+      var state = function () {
         return {
           pages: []
         };
-      })();
+      }();
 
       return {
         state: state
       };
     },
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var id = props.id;
-      var style = props.style;
-      var tab = props.tab;
-      var main = props.main;
-      var tabActive = props.tabActive;
-      var className = props.className;
+      var id = props.id,
+          style = props.style,
+          tab = props.tab,
+          main = props.main,
+          tabActive = props.tabActive,
+          className = props.className;
       var classes = Utils.classNames(className, 'view', {
         'view-main': main,
         'tab-active': tabActive,
@@ -11280,124 +11857,125 @@
         }
       })]);
     },
-
     created: function created() {
-      Utils.bindMethods(this, ['onSwipeBackMove', 'onSwipeBackBeforeChange', 'onSwipeBackAfterChange', 'onSwipeBackBeforeReset', 'onSwipeBackAfterReset', 'onTabShow', 'onTabHide', 'onViewInit']);
+      var self = this;
+      Utils.bindMethods(self, ['onSwipeBackMove', 'onSwipeBackBeforeChange', 'onSwipeBackAfterChange', 'onSwipeBackBeforeReset', 'onSwipeBackAfterReset', 'onTabShow', 'onTabHide', 'onViewInit']);
     },
-
     mounted: function mounted() {
       var self = this;
       var el = self.$refs.el;
-      el.addEventListener('swipeback:move', self.onSwipeBackMove);
-      el.addEventListener('swipeback:beforechange', self.onSwipeBackBeforeChange);
-      el.addEventListener('swipeback:afterchange', self.onSwipeBackAfterChange);
-      el.addEventListener('swipeback:beforereset', self.onSwipeBackBeforeReset);
-      el.addEventListener('swipeback:afterreset', self.onSwipeBackAfterReset);
-      el.addEventListener('tab:show', self.onTabShow);
-      el.addEventListener('tab:hide', self.onTabHide);
-      el.addEventListener('view:init', self.onViewInit);
-      self.setState({
-        pages: []
-      });
       self.$f7ready(function (f7Instance) {
+        f7Instance.on('tabShow', self.onTabShow);
+        f7Instance.on('tabHide', self.onTabHide);
         self.routerData = {
           el: el,
           component: self,
-          instance: null
+          pages: self.state.pages,
+          instance: null,
+          setPages: function setPages(pages) {
+            self.setState({
+              pages: pages
+            });
+          }
         };
         f7.routers.views.push(self.routerData);
         if (!self.props.init) { return; }
-        self.routerData.instance = f7Instance.views.create(el, Utils.noUndefinedProps(self.$options.propsData || {}));
+        self.routerData.instance = f7Instance.views.create(el, Object.assign({
+          on: {
+            init: self.onViewInit
+          }
+        }, Utils.noUndefinedProps(self.$options.propsData || {})));
         self.f7View = self.routerData.instance;
+        self.f7View.on('swipebackMove', self.onSwipeBackMove);
+        self.f7View.on('swipebackBeforeChange', self.onSwipeBackBeforeChange);
+        self.f7View.on('swipebackAfterChange', self.onSwipeBackAfterChange);
+        self.f7View.on('swipebackBeforeReset', self.onSwipeBackBeforeReset);
+        self.f7View.on('swipebackAfterReset', self.onSwipeBackAfterReset);
       });
     },
-
     beforeDestroy: function beforeDestroy() {
       var self = this;
-      var el = self.$refs.el;
-      el.removeEventListener('swipeback:move', self.onSwipeBackMove);
-      el.removeEventListener('swipeback:beforechange', self.onSwipeBackBeforeChange);
-      el.removeEventListener('swipeback:afterchange', self.onSwipeBackAfterChange);
-      el.removeEventListener('swipeback:beforereset', self.onSwipeBackBeforeReset);
-      el.removeEventListener('swipeback:afterreset', self.onSwipeBackAfterReset);
-      el.removeEventListener('tab:show', self.onTabShow);
-      el.removeEventListener('tab:hide', self.onTabHide);
-      el.removeEventListener('view:init', self.onViewInit);
-      if (!self.props.init) { return; }
-      if (self.f7View && self.f7View.destroy) { self.f7View.destroy(); }
+
+      if (f7.instance) {
+        f7.instance.off('tabShow', self.onTabShow);
+        f7.instance.off('tabHide', self.onTabHide);
+      }
+
+      if (self.f7View) {
+        self.f7View.off('swipebackMove', self.onSwipeBackMove);
+        self.f7View.off('swipebackBeforeChange', self.onSwipeBackBeforeChange);
+        self.f7View.off('swipebackAfterChange', self.onSwipeBackAfterChange);
+        self.f7View.off('swipebackBeforeReset', self.onSwipeBackBeforeReset);
+        self.f7View.off('swipebackAfterReset', self.onSwipeBackAfterReset);
+        if (self.f7View.destroy) { self.f7View.destroy(); }
+      }
+
       f7.routers.views.splice(f7.routers.views.indexOf(self.routerData), 1);
       self.routerData = null;
       delete self.routerData;
     },
-
     updated: function updated() {
       var self = this;
       if (!self.routerData) { return; }
-      eventsEmitter.emit('viewRouterDidUpdate', self.routerData);
+      f7.events.emit('viewRouterDidUpdate', self.routerData);
     },
-
     methods: {
-      onViewInit: function onViewInit(event) {
+      onViewInit: function onViewInit(view) {
         var self = this;
-        var view = event.detail;
-        self.dispatchEvent('view:init viewInit', event, view);
+        self.dispatchEvent('view:init viewInit', view);
 
         if (!self.props.init) {
           self.routerData.instance = view;
           self.f7View = self.routerData.instance;
         }
       },
-
-      onSwipeBackMove: function onSwipeBackMove(event) {
-        var swipeBackData = event.detail;
-        this.dispatchEvent('swipeback:move swipeBackMove', event, swipeBackData);
+      onSwipeBackMove: function onSwipeBackMove(data) {
+        var swipeBackData = data;
+        this.dispatchEvent('swipeback:move swipeBackMove', swipeBackData);
       },
-
-      onSwipeBackBeforeChange: function onSwipeBackBeforeChange(event) {
-        var swipeBackData = event.detail;
-        this.dispatchEvent('swipeback:beforechange swipeBackBeforeChange', event, swipeBackData);
+      onSwipeBackBeforeChange: function onSwipeBackBeforeChange(data) {
+        var swipeBackData = data;
+        this.dispatchEvent('swipeback:beforechange swipeBackBeforeChange', swipeBackData);
       },
-
-      onSwipeBackAfterChange: function onSwipeBackAfterChange(event) {
-        var swipeBackData = event.detail;
-        this.dispatchEvent('swipeback:afterchange swipeBackAfterChange', event, swipeBackData);
+      onSwipeBackAfterChange: function onSwipeBackAfterChange(data) {
+        var swipeBackData = data;
+        this.dispatchEvent('swipeback:afterchange swipeBackAfterChange', swipeBackData);
       },
-
-      onSwipeBackBeforeReset: function onSwipeBackBeforeReset(event) {
-        var swipeBackData = event.detail;
-        this.dispatchEvent('swipeback:beforereset swipeBackBeforeReset', event, swipeBackData);
+      onSwipeBackBeforeReset: function onSwipeBackBeforeReset(data) {
+        var swipeBackData = data;
+        this.dispatchEvent('swipeback:beforereset swipeBackBeforeReset', swipeBackData);
       },
-
-      onSwipeBackAfterReset: function onSwipeBackAfterReset(event) {
-        var swipeBackData = event.detail;
-        this.dispatchEvent('swipeback:afterreset swipeBackAfterReset', event, swipeBackData);
+      onSwipeBackAfterReset: function onSwipeBackAfterReset(data) {
+        var swipeBackData = data;
+        this.dispatchEvent('swipeback:afterreset swipeBackAfterReset', swipeBackData);
       },
-
-      onTabShow: function onTabShow(event) {
-        this.dispatchEvent('tab:show tabShow', event);
+      onTabShow: function onTabShow(el) {
+        if (el === this.$refs.el) {
+          this.dispatchEvent('tab:show tabShow');
+        }
       },
-
-      onTabHide: function onTabHide(event) {
-        this.dispatchEvent('tab:hide tabHide', event);
+      onTabHide: function onTabHide(el) {
+        if (el === this.$refs.el) {
+          this.dispatchEvent('tab:hide tabHide');
+        }
       },
-
       dispatchEvent: function dispatchEvent(events) {
-        var args = [], len = arguments.length - 1;
-        while ( len-- > 0 ) args[ len ] = arguments[ len + 1 ];
+        var arguments$1 = arguments;
 
-        __vueComponentDispatchEvent.apply(void 0, [ this, events ].concat( args ));
+        for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments$1[_key];
+        }
+
+        __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
       },
-
       setState: function setState(updater, callback) {
         __vueComponentSetState(this, updater, callback);
       }
-
     },
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -11407,15 +11985,14 @@
       id: [String, Number],
       tabs: Boolean
     }, Mixins.colorProps),
-
     render: function render() {
       var _h = this.$createElement;
       var self = this;
       var props = self.props;
-      var className = props.className;
-      var id = props.id;
-      var style = props.style;
-      var tabs = props.tabs;
+      var className = props.className,
+          id = props.id,
+          style = props.style,
+          tabs = props.tabs;
       var classes = Utils.classNames(className, 'views', {
         tabs: tabs
       }, Mixins.colorClasses(props));
@@ -11427,12 +12004,10 @@
         }
       }, [this.$slots['default']]);
     },
-
     computed: {
       props: function props() {
         return __vueComponentProps(this);
       }
-
     }
   };
 
@@ -11445,14 +12020,14 @@
       pageComponentLoader: function pageComponentLoader(routerEl, component, componentUrl, options, resolve, reject) {
         var router = this;
         var el = routerEl;
-        var routerComponent;
+        var viewRouter;
         f7.routers.views.forEach(function (data) {
           if (data.el && data.el === routerEl) {
-            routerComponent = data.component;
+            viewRouter = data;
           }
         });
 
-        if (!routerComponent || !routerComponent.state.pages) {
+        if (!viewRouter) {
           reject();
           return;
         }
@@ -11464,19 +12039,23 @@
           props: Utils.extend(
             {
               f7route: options.route,
+              $f7route: options.route,
               f7router: router,
+              $f7router: router,
             },
             options.route.params,
             options.props || {}
           ),
         };
-        routerComponent.$f7router = router;
-        routerComponent.$f7route = options.route;
+        if (viewRouter.component) {
+          viewRouter.component.$f7router = router;
+          viewRouter.component.$f7route = options.route;
+        }
 
         var resolved;
         function onDidUpdate(componentRouterData) {
-          if (componentRouterData.component !== routerComponent || resolved) { return; }
-          eventsEmitter.off('viewRouterDidUpdate', onDidUpdate);
+          if (componentRouterData !== viewRouter || resolved) { return; }
+          f7.events.off('viewRouterDidUpdate', onDidUpdate);
 
           var pageEl = el.children[el.children.length - 1];
           pageData.el = pageEl;
@@ -11485,10 +12064,10 @@
           resolved = true;
         }
 
-        eventsEmitter.on('viewRouterDidUpdate', onDidUpdate);
+        f7.events.on('viewRouterDidUpdate', onDidUpdate);
 
-        routerComponent.state.pages.push(pageData);
-        routerComponent.setState({ pages: routerComponent.state.pages });
+        viewRouter.pages.push(pageData);
+        viewRouter.setPages(viewRouter.pages);
       },
       removePage: function removePage($pageEl) {
         if (!$pageEl) { return; }
@@ -11500,10 +12079,10 @@
           router.app.$($pageEl).remove();
           return;
         }
-        var routerComponent;
+        var viewRouter;
         f7.routers.views.forEach(function (data) {
           if (data.el && data.el === router.el) {
-            routerComponent = data.component;
+            viewRouter = data;
           }
         });
 
@@ -11518,11 +12097,11 @@
         if (!pageEl) { return; }
 
         var pageComponentFound;
-        routerComponent.state.pages.forEach(function (page, index) {
+        viewRouter.pages.forEach(function (page, index) {
           if (page.el === pageEl) {
             pageComponentFound = true;
-            routerComponent.state.pages.splice(index, 1);
-            routerComponent.setState({ pages: routerComponent.state.pages });
+            viewRouter.pages.splice(index, 1);
+            viewRouter.setPages(viewRouter.pages);
           }
         });
         if (!pageComponentFound) {
@@ -11533,13 +12112,13 @@
         var router = this;
         if (!tabEl) { reject(); }
 
-        var tabsComponent;
+        var tabRouter;
         f7.routers.tabs.forEach(function (tabData) {
           if (tabData.el && tabData.el === tabEl) {
-            tabsComponent = tabData.component;
+            tabRouter = tabData;
           }
         });
-        if (!tabsComponent) {
+        if (!tabRouter) {
           reject();
           return;
         }
@@ -11551,20 +12130,24 @@
           props: Utils.extend(
             {
               f7route: options.route,
+              $f7route: options.route,
               f7router: router,
+              $f7router: router,
             },
             options.route.params,
             options.props || {}
           ),
         };
 
-        tabsComponent.$f7router = router;
-        tabsComponent.$f7route = options.route;
+        if (tabRouter.component) {
+          tabRouter.component.$f7router = router;
+          tabRouter.component.$f7route = options.route;
+        }
 
         var resolved;
         function onDidUpdate(componentRouterData) {
-          if (componentRouterData.component !== tabsComponent || resolved) { return; }
-          eventsEmitter.off('tabRouterDidUpdate', onDidUpdate);
+          if (componentRouterData !== tabRouter || resolved) { return; }
+          f7.events.off('tabRouterDidUpdate', onDidUpdate);
 
           var tabContentEl = tabEl.children[0];
           resolve(tabContentEl);
@@ -11572,32 +12155,31 @@
           resolved = true;
         }
 
-        eventsEmitter.on('tabRouterDidUpdate', onDidUpdate);
+        f7.events.on('tabRouterDidUpdate', onDidUpdate);
 
-        tabsComponent.setState({ tabContent: tabContent });
+        tabRouter.setTabContent(tabContent);
       },
       removeTabContent: function removeTabContent(tabEl) {
         if (!tabEl) { return; }
 
-        var tabComponent;
+        var tabRouter;
         f7.routers.tabs.forEach(function (tabData) {
           if (tabData.el && tabData.el === tabEl) {
-            tabComponent = tabData.component;
+            tabRouter = tabData;
           }
         });
-        var hasComponent = !!tabComponent.state.tabContent;
-        if (!tabComponent || !hasComponent) {
+        var hasComponent = tabRouter && tabRouter.component;
+        if (!tabRouter || !hasComponent) {
           tabEl.innerHTML = ''; // eslint-disable-line
           return;
         }
-        tabComponent.setState({ tabContent: null });
+        tabRouter.setTabContent(null);
       },
       modalComponentLoader: function modalComponentLoader(rootEl, component, componentUrl, options, resolve, reject) {
         var router = this;
-        var modalsComponent = f7.routers.modals && f7.routers.modals.component;
-        var modalsComponentEl = f7.routers.modals && f7.routers.modals.el;
+        var modalsRouter = f7.routers.modals;
 
-        if (!modalsComponent || !modalsComponent.state.modals) {
+        if (!modalsRouter) {
           reject();
           return;
         }
@@ -11609,49 +12191,53 @@
           props: Utils.extend(
             {
               f7route: options.route,
+              $f7route: options.route,
               f7router: router,
+              $f7router: router,
             },
             options.route.params,
             options.props || {}
           ),
         };
-        modalsComponent.$f7router = router;
-        modalsComponent.$f7route = options.route;
+        if (modalsRouter.component) {
+          modalsRouter.component.$f7router = router;
+          modalsRouter.component.$f7route = options.route;
+        }
 
         var resolved;
-        function onDidUpdate(componentRouterData) {
-          if (componentRouterData.component !== modalsComponent || resolved) { return; }
-          eventsEmitter.off('modalsRouterDidUpdate', onDidUpdate);
+        function onDidUpdate() {
+          if (resolved) { return; }
+          f7.events.off('modalsRouterDidUpdate', onDidUpdate);
 
-          var modalEl = modalsComponentEl.children[modalsComponentEl.children.length - 1];
+          var modalEl = modalsRouter.el.children[modalsRouter.el.children.length - 1];
           modalData.el = modalEl;
 
           resolve(modalEl);
           resolved = true;
         }
 
-        eventsEmitter.on('modalsRouterDidUpdate', onDidUpdate);
+        f7.events.on('modalsRouterDidUpdate', onDidUpdate);
 
-        modalsComponent.state.modals.push(modalData);
-        modalsComponent.setState({ modals: modalsComponent.state.modals });
+        modalsRouter.modals.push(modalData);
+        modalsRouter.setModals(modalsRouter.modals);
       },
       removeModal: function removeModal(modalEl) {
-        var modalsComponent = f7.routers.modals && f7.routers.modals.component;
-        if (!modalsComponent) { return; }
+        var modalsRouter = f7.routers.modals;
+        if (!modalsRouter) { return; }
 
         var modalDataToRemove;
-        modalsComponent.state.modals.forEach(function (modalData) {
+        modalsRouter.modals.forEach(function (modalData) {
           if (modalData.el === modalEl) { modalDataToRemove = modalData; }
         });
 
-        modalsComponent.state.modals.splice(modalsComponent.state.modals.indexOf(modalDataToRemove), 1);
-        modalsComponent.setState({ modals: modalsComponent.state.modals });
+        modalsRouter.modals.splice(modalsRouter.modals.indexOf(modalDataToRemove), 1);
+        modalsRouter.setModals(modalsRouter.modals);
       },
     },
   };
 
   /**
-   * Framework7 Vue 4.2.0
+   * Framework7 Vue 5.0.5
    * Build full featured iOS & Android apps using Framework7 & Vue
    * http://framework7.io/vue/
    *
@@ -11659,16 +12245,27 @@
    *
    * Released under the MIT License
    *
-   * Released on: March 20, 2019
+   * Released on: October 16, 2019
    */
+
+  function f7ready(callback) {
+    f7.ready(callback);
+  }
+
+  var f7Theme = {};
 
   var Plugin = {
     name: 'phenomePlugin',
+    installed: false,
     install: function install(params) {
       if ( params === void 0 ) params = {};
 
+      if (Plugin.installed) { return; }
+      Plugin.installed = true;
+
       var Framework7 = this;
       f7.Framework7 = Framework7;
+      f7.events = new Framework7.Events();
 
       var Extend = params.Vue || Vue; // eslint-disable-line
 
@@ -11682,15 +12279,15 @@
       Vue.component('f7-actions', f7Actions);
       Vue.component('f7-app', f7App);
       Vue.component('f7-appbar', f7Appbar);
-      Vue.component('f7-badge', F7Badge);
+      Vue.component('f7-badge', f7Badge);
       Vue.component('f7-block-footer', f7BlockFooter);
       Vue.component('f7-block-header', f7BlockHeader);
       Vue.component('f7-block-title', f7BlockTitle);
       Vue.component('f7-block', f7Block);
       Vue.component('f7-button', f7Button);
-      Vue.component('f7-card-content', F7CardContent);
-      Vue.component('f7-card-footer', F7CardFooter);
-      Vue.component('f7-card-header', F7CardHeader);
+      Vue.component('f7-card-content', f7CardContent);
+      Vue.component('f7-card-footer', f7CardFooter);
+      Vue.component('f7-card-header', f7CardHeader);
       Vue.component('f7-card', f7Card);
       Vue.component('f7-checkbox', f7Checkbox);
       Vue.component('f7-chip', f7Chip);
@@ -11699,15 +12296,15 @@
       Vue.component('f7-fab-buttons', f7FabButtons);
       Vue.component('f7-fab', f7Fab);
       Vue.component('f7-gauge', f7Gauge);
-      Vue.component('f7-icon', F7Icon);
-      Vue.component('f7-input', F7Input);
-      Vue.component('f7-link', F7Link);
+      Vue.component('f7-icon', f7Icon);
+      Vue.component('f7-input', f7Input);
+      Vue.component('f7-link', f7Link);
       Vue.component('f7-list-button', f7ListButton);
       Vue.component('f7-list-group', f7ListGroup);
       Vue.component('f7-list-index', f7ListIndex);
       Vue.component('f7-list-input', f7ListInput);
       Vue.component('f7-list-item-cell', f7ListItemCell);
-      Vue.component('f7-list-item-content', F7ListItemContent);
+      Vue.component('f7-list-item-content', f7ListItemContent);
       Vue.component('f7-list-item-row', f7ListItemRow);
       Vue.component('f7-list-item', f7ListItem);
       Vue.component('f7-list', f7List);
@@ -11726,12 +12323,12 @@
       Vue.component('f7-messagebar', f7Messagebar);
       Vue.component('f7-messages-title', f7MessagesTitle);
       Vue.component('f7-messages', f7Messages);
-      Vue.component('f7-nav-left', F7NavLeft);
-      Vue.component('f7-nav-right', F7NavRight);
+      Vue.component('f7-nav-left', f7NavLeft);
+      Vue.component('f7-nav-right', f7NavRight);
       Vue.component('f7-nav-title-large', f7NavTitleLarge);
-      Vue.component('f7-nav-title', F7NavTitle);
+      Vue.component('f7-nav-title', f7NavTitle);
       Vue.component('f7-navbar', f7Navbar);
-      Vue.component('f7-page-content', F7PageContent);
+      Vue.component('f7-page-content', f7PageContent);
       Vue.component('f7-page', f7Page);
       Vue.component('f7-panel', f7Panel);
       Vue.component('f7-photo-browser', f7PhotoBrowser);
@@ -11740,15 +12337,14 @@
       Vue.component('f7-preloader', f7Preloader);
       Vue.component('f7-progressbar', f7Progressbar);
       Vue.component('f7-radio', f7Radio);
-      Vue.component('f7-range', F7Range);
-      Vue.component('f7-routable-modals', RoutableModals);
+      Vue.component('f7-range', f7Range);
+      Vue.component('f7-routable-modals', f7RoutableModals);
       Vue.component('f7-row', f7Row);
       Vue.component('f7-searchbar', f7Searchbar);
       Vue.component('f7-segmented', f7Segmented);
       Vue.component('f7-sheet', f7Sheet);
       Vue.component('f7-skeleton-block', f7SkeletonBlock);
       Vue.component('f7-skeleton-text', f7SkeletonText);
-      Vue.component('f7-statusbar', f7Statusbar);
       Vue.component('f7-stepper', f7Stepper);
       Vue.component('f7-subnavbar', f7Subnavbar);
       Vue.component('f7-swipeout-actions', f7SwipeoutActions);
@@ -11757,8 +12353,11 @@
       Vue.component('f7-swiper', f7Swiper);
       Vue.component('f7-tab', f7Tab);
       Vue.component('f7-tabs', f7Tabs);
-      Vue.component('f7-toggle', F7Toggle);
+      Vue.component('f7-text-editor', f7TextEditor);
+      Vue.component('f7-toggle', f7Toggle);
       Vue.component('f7-toolbar', f7Toolbar);
+      Vue.component('f7-treeview-item', f7TreeviewItem);
+      Vue.component('f7-treeview', f7Treeview);
       Vue.component('f7-view', f7View);
       Vue.component('f7-views', f7Views);
 
@@ -11769,36 +12368,37 @@
         },
       });
 
-      var $theme = {};
       var theme = params.theme;
-      if (theme === 'md') { $theme.md = true; }
-      if (theme === 'ios') { $theme.ios = true; }
-      if (theme === 'aurora') { $theme.aurora = true; }
+      if (theme === 'md') { f7Theme.md = true; }
+      if (theme === 'ios') { f7Theme.ios = true; }
+      if (theme === 'aurora') { f7Theme.aurora = true; }
       if (!theme || theme === 'auto') {
-        $theme.ios = !!Framework7.device.ios;
-        $theme.aurora = Framework7.device.desktop && Framework7.device.electron;
-        $theme.md = !$theme.ios && !$theme.aurora;
+        f7Theme.ios = !!Framework7.device.ios;
+        f7Theme.aurora = Framework7.device.desktop && Framework7.device.electron;
+        f7Theme.md = !f7Theme.ios && !f7Theme.aurora;
       }
+      f7.ready(function () {
+        f7Theme.ios = f7.instance.theme === 'ios';
+        f7Theme.md = f7.instance.theme === 'md';
+        f7Theme.aurora = f7.instance.theme === 'aurora';
+      });
       Object.defineProperty(Extend.prototype, '$theme', {
         get: function get() {
           return {
-            ios: f7.instance ? f7.instance.theme === 'ios' : $theme.ios,
-            md: f7.instance ? f7.instance.theme === 'md' : $theme.md,
-            aurora: f7.instance ? f7.instance.theme === 'aurora' : $theme.aurora,
+            ios: f7.instance ? f7.instance.theme === 'ios' : f7Theme.ios,
+            md: f7.instance ? f7.instance.theme === 'md' : f7Theme.md,
+            aurora: f7.instance ? f7.instance.theme === 'aurora' : f7Theme.aurora,
           };
         },
       });
 
-      function f7ready(callback) {
-        f7.ready(callback);
-      }
+
       Extend.prototype.Dom7 = Framework7.$;
       Extend.prototype.$$ = Framework7.$;
       Extend.prototype.$device = Framework7.device;
       Extend.prototype.$request = Framework7.request;
       Extend.prototype.$utils = Framework7.utils;
       Extend.prototype.$f7ready = f7ready;
-      Extend.prototype.$f7Ready = f7ready;
 
       Object.defineProperty(Extend.prototype, '$f7route', {
         get: function get() {

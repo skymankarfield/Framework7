@@ -2,7 +2,7 @@
 /* eslint no-console: ["error", { allow: ["log"] }] */
 const path = require('path');
 const rollup = require('rollup');
-const buble = require('rollup-plugin-buble');
+const babel = require('rollup-plugin-babel');
 const replace = require('rollup-plugin-replace');
 const commonjs = require('rollup-plugin-commonjs');
 const resolve = require('rollup-plugin-node-resolve');
@@ -12,7 +12,6 @@ const fs = require('./utils/fs-extra');
 
 function buildKs(cb) {
   const env = process.env.NODE_ENV || 'development';
-  const target = process.env.TARGET || 'universal';
   const buildPath = env === 'development' ? './build' : './packages';
 
   let f7ReactPath = path.resolve(__dirname, `../${buildPath}/react/framework7-react.esm.js`);
@@ -41,19 +40,12 @@ function buildKs(cb) {
       replace({
         delimiters: ['', ''],
         'process.env.NODE_ENV': JSON.stringify(env),
-        'process.env.TARGET': JSON.stringify(target),
         "'framework7-react'": () => `'${f7ReactPath}'`,
         "'framework7/framework7.esm.bundle'": () => `'${f7Path}'`,
       }),
-      resolve({ jsnext: true }),
+      resolve({ mainFields: ['module', 'main', 'jsnext'] }),
       commonjs(),
-      buble({
-        objectAssign: 'Object.assign',
-        exclude: [
-          'node_modules/react/cjs/react.development.js',
-          'node_modules/react-dom/cjs/react-dom.development.js',
-        ],
-      }),
+      babel(),
     ],
     onwarn(warning, warn) {
       const ignore = ['EVAL'];

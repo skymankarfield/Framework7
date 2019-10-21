@@ -8,20 +8,20 @@ export default {
     id: [String, Number],
     opened: Boolean,
     target: [String, Object],
+    backdrop: Boolean,
+    backdropEl: [String, Object, window.HTMLElement],
     closeByBackdropClick: Boolean,
-    closeByOutsideClick: Boolean
+    closeByOutsideClick: Boolean,
+    closeOnEscape: Boolean
   }, Mixins.colorProps),
-
-  render() {
-    const _h = this.$createElement;
-    const self = this;
-    const props = self.props;
-    const {
-      className,
-      id,
-      style
-    } = props;
-    const classes = Utils.classNames(className, 'popover', Mixins.colorClasses(props));
+  render: function render() {
+    var _h = this.$createElement;
+    var self = this;
+    var props = self.props;
+    var className = props.className,
+        id = props.id,
+        style = props.style;
+    var classes = Utils.classNames(className, 'popover', Mixins.colorClasses(props));
     return _h('div', {
       ref: 'el',
       style: style,
@@ -35,10 +35,9 @@ export default {
       class: 'popover-inner'
     }, [this.$slots['default']])]);
   },
-
   watch: {
     'props.opened': function watchOpened(opened) {
-      const self = this;
+      var self = this;
       if (!self.f7Popover) return;
 
       if (opened) {
@@ -48,35 +47,40 @@ export default {
       }
     }
   },
-
-  created() {
+  created: function created() {
     Utils.bindMethods(this, ['onOpen', 'onOpened', 'onClose', 'onClosed']);
   },
-
-  mounted() {
-    const self = this;
-    const el = self.$refs.el;
+  mounted: function mounted() {
+    var self = this;
+    var el = self.$refs.el;
     if (!el) return;
-    el.addEventListener('popover:open', self.onOpen);
-    el.addEventListener('popover:opened', self.onOpened);
-    el.addEventListener('popover:close', self.onClose);
-    el.addEventListener('popover:closed', self.onClosed);
-    const props = self.props;
-    const {
-      target,
-      opened,
-      closeByBackdropClick,
-      closeByOutsideClick
-    } = props;
-    const popoverParams = {
-      el
+    var props = self.props;
+    var target = props.target,
+        opened = props.opened,
+        backdrop = props.backdrop,
+        backdropEl = props.backdropEl,
+        closeByBackdropClick = props.closeByBackdropClick,
+        closeByOutsideClick = props.closeByOutsideClick,
+        closeOnEscape = props.closeOnEscape;
+    var popoverParams = {
+      el: el,
+      on: {
+        open: self.onOpen,
+        opened: self.onOpened,
+        close: self.onClose,
+        closed: self.onClosed
+      }
     };
     if (target) popoverParams.targetEl = target;
     {
-      if (typeof self.$options.propsData.closeByBackdropClick !== 'undefined') popoverParams.closeByBackdropClick = closeByBackdropClick;
-      if (typeof self.$options.propsData.closeByOutsideClick !== 'undefined') popoverParams.closeByOutsideClick = closeByOutsideClick;
+      var propsData = self.$options.propsData;
+      if (typeof propsData.closeByBackdropClick !== 'undefined') popoverParams.closeByBackdropClick = closeByBackdropClick;
+      if (typeof propsData.closeByOutsideClick !== 'undefined') popoverParams.closeByOutsideClick = closeByOutsideClick;
+      if (typeof propsData.closeOnEscape !== 'undefined') popoverParams.closeOnEscape = closeOnEscape;
+      if (typeof propsData.backdrop !== 'undefined') popoverParams.backdrop = backdrop;
+      if (typeof propsData.backdropEl !== 'undefined') popoverParams.backdropEl = backdropEl;
     }
-    self.$f7ready(() => {
+    self.$f7ready(function () {
       self.f7Popover = self.$f7.popover.create(popoverParams);
 
       if (opened && target) {
@@ -84,56 +88,44 @@ export default {
       }
     });
   },
-
-  beforeDestroy() {
-    const self = this;
+  beforeDestroy: function beforeDestroy() {
+    var self = this;
     if (self.f7Popover) self.f7Popover.destroy();
-    const el = self.$refs.el;
-    if (!el) return;
-    el.removeEventListener('popover:open', self.onOpen);
-    el.removeEventListener('popover:opened', self.onOpened);
-    el.removeEventListener('popover:close', self.onClose);
-    el.removeEventListener('popover:closed', self.onClosed);
   },
-
   methods: {
-    onOpen(event) {
-      this.dispatchEvent('popover:open popoverOpen', event);
+    onOpen: function onOpen(instance) {
+      this.dispatchEvent('popover:open popoverOpen', instance);
     },
-
-    onOpened(event) {
-      this.dispatchEvent('popover:opened popoverOpened', event);
+    onOpened: function onOpened(instance) {
+      this.dispatchEvent('popover:opened popoverOpened', instance);
     },
-
-    onClose(event) {
-      this.dispatchEvent('popover:close popoverClose', event);
+    onClose: function onClose(instance) {
+      this.dispatchEvent('popover:close popoverClose', instance);
     },
-
-    onClosed(event) {
-      this.dispatchEvent('popover:closed popoverClosed', event);
+    onClosed: function onClosed(instance) {
+      this.dispatchEvent('popover:closed popoverClosed', instance);
     },
-
-    open(target, animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.popover.open(self.$refs.el, target, animate);
+    open: function open(animate) {
+      var self = this;
+      if (!self.f7Popover) return undefined;
+      return self.f7Popover.open(animate);
     },
-
-    close(animate) {
-      const self = this;
-      if (!self.$f7) return undefined;
-      return self.$f7.sheet.close(self.$refs.el, animate);
+    close: function close(animate) {
+      var self = this;
+      if (!self.f7Popover) return undefined;
+      return self.f7Popover.close(animate);
     },
+    dispatchEvent: function dispatchEvent(events) {
+      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+        args[_key - 1] = arguments[_key];
+      }
 
-    dispatchEvent(events, ...args) {
-      __vueComponentDispatchEvent(this, events, ...args);
+      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
     }
-
   },
   computed: {
-    props() {
+    props: function props() {
       return __vueComponentProps(this);
     }
-
   }
 };
