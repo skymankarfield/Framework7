@@ -5,6 +5,7 @@ export default {
   initialSlide: 0,
   speed: 300,
   cssMode: false,
+  updateOnWindowResize: true,
   //
   preventInteractionOnTransition: false,
 
@@ -44,6 +45,7 @@ export default {
   slidesPerColumnFill: 'column',
   slidesPerGroup: 1,
   centeredSlides: false,
+  centeredSlidesBounds: false,
   slidesOffsetBefore: 0, // in px
   slidesOffsetAfter: 0, // in px
   normalizeSlideIndex: true,

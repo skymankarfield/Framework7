@@ -1,5 +1,3 @@
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 import Utils from '../utils/utils';
 import Mixins from '../utils/mixins';
 import __vueComponentDispatchEvent from '../runtime-helpers/vue-component-dispatch-event.js';
@@ -30,28 +28,49 @@ export default {
     },
     xlarge: {
       type: [Number, String]
+    },
+    resizable: Boolean,
+    resizableFixed: Boolean,
+    resizableAbsolute: Boolean,
+    resizableHandler: {
+      type: Boolean,
+      default: true
     }
   }, Mixins.colorProps),
-  render: function render() {
-    var _Utils$classNames;
 
-    var _h = this.$createElement;
-    var self = this;
-    var props = self.props;
-    var className = props.className,
-        id = props.id,
-        style = props.style,
-        tag = props.tag,
-        width = props.width,
-        xsmall = props.xsmall,
-        small = props.small,
-        medium = props.medium,
-        large = props.large,
-        xlarge = props.xlarge;
-    var ColTag = tag;
-    var classes = Utils.classNames(className, (_Utils$classNames = {
-      col: width === 'auto'
-    }, _defineProperty(_Utils$classNames, "col-".concat(width), width !== 'auto'), _defineProperty(_Utils$classNames, "xsmall-".concat(xsmall), xsmall), _defineProperty(_Utils$classNames, "small-".concat(small), small), _defineProperty(_Utils$classNames, "medium-".concat(medium), medium), _defineProperty(_Utils$classNames, "large-".concat(large), large), _defineProperty(_Utils$classNames, "xlarge-".concat(xlarge), xlarge), _Utils$classNames), Mixins.colorClasses(props));
+  render() {
+    const _h = this.$createElement;
+    const self = this;
+    const props = self.props;
+    const {
+      className,
+      id,
+      style,
+      tag,
+      width,
+      xsmall,
+      small,
+      medium,
+      large,
+      xlarge,
+      resizable,
+      resizableFixed,
+      resizableAbsolute,
+      resizableHandler
+    } = props;
+    const ColTag = tag;
+    const classes = Utils.classNames(className, {
+      col: width === 'auto',
+      [`col-${width}`]: width !== 'auto',
+      [`xsmall-${xsmall}`]: xsmall,
+      [`small-${small}`]: small,
+      [`medium-${medium}`]: medium,
+      [`large-${large}`]: large,
+      [`xlarge-${xlarge}`]: xlarge,
+      resizable,
+      'resizable-fixed': resizableFixed,
+      'resizable-absolute': resizableAbsolute
+    }, Mixins.colorClasses(props));
     return _h(ColTag, {
       style: style,
       class: classes,
@@ -59,32 +78,53 @@ export default {
       attrs: {
         id: id
       }
-    }, [this.$slots['default']]);
+    }, [this.$slots['default'], resizable && resizableHandler && _h('span', {
+      class: 'resize-handler'
+    })]);
   },
-  created: function created() {
-    Utils.bindMethods(this, ['onClick']);
+
+  created() {
+    Utils.bindMethods(this, ['onClick', 'onResize']);
   },
-  mounted: function mounted() {
-    this.$refs.el.addEventListener('click', this.onClick);
+
+  mounted() {
+    const self = this;
+    self.eventTargetEl = self.$refs.el;
+    self.eventTargetEl.addEventListener('click', self.onClick);
+    self.$f7ready(f7 => {
+      f7.on('gridResize', self.onResize);
+    });
   },
-  beforeDestroy: function beforeDestroy() {
-    this.$refs.el.removeEventListener('click', this.onClick);
+
+  beforeDestroy() {
+    const self = this;
+    const el = self.$refs.el;
+    if (!el || !self.$f7) return;
+    el.removeEventListener('click', self.onClick);
+    self.$f7.off('gridResize', self.onResize);
+    delete self.eventTargetEl;
   },
+
   methods: {
-    onClick: function onClick(event) {
+    onClick(event) {
       this.dispatchEvent('click', event);
     },
-    dispatchEvent: function dispatchEvent(events) {
-      for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-        args[_key - 1] = arguments[_key];
-      }
 
-      __vueComponentDispatchEvent.apply(void 0, [this, events].concat(args));
+    onResize(el) {
+      if (el === this.eventTargetEl) {
+        this.dispatchEvent('grid:resize gridResize');
+      }
+    },
+
+    dispatchEvent(events, ...args) {
+      __vueComponentDispatchEvent(this, events, ...args);
     }
+
   },
   computed: {
-    props: function props() {
+    props() {
       return __vueComponentProps(this);
     }
+
   }
 };

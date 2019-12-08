@@ -1,6 +1,58 @@
-<a href="https://www.patreon.com/vladimirkharlampidi"><img src="https://cdn.framework7.io/i/support-badge.png" height="20"></a>
+<a href="https://www.patreon.com/vladimirkharlampidi"><img src="https://framework7.io/i/support-badge.png" height="20"></a>
 
 # Change Log
+
+# [v5.1.3](https://github.com/framework7io/framework7/compare/v5.1.2...v5.1.3) - November 17, 2019
+  * Core
+    * Fixed issue with setting wrong class on page
+
+# [v5.1.2](https://github.com/framework7io/framework7/compare/v5.1.1...v5.1.2) - November 17, 2019
+  * Core
+    * Fixed issue when `.once` could be called more than once (#3322)
+    * Navbar
+      * Fixed issue when `scrollTopOnTitleClick` didn't work in iOS theme
+    * Swiper - updated to latest 5.2.1
+      * Core
+        * New loop events `beforeLoopFix` and `loopFix`
+        * New parameter `updateOnWindowResize` (by default `true`) that will update/recalc swiper on window resize/orientationchange
+      * Mousewheel
+        * Fixed scroll wheel unwanted frozen effect (#3328)
+      * Thumbs
+        * New `multipleActiveThumbs` (by default `true`) option to control whether multiple thumbnail slides may get activated or not.
+  * Phenome
+    * Navbar
+      * Fixed issue when dynamically updating its classes/props could break its layout
+  * Minor fixes
+
+# [v5.1.1](https://github.com/framework7io/framework7/compare/v5.1.0...v5.1.1) - November 3, 2019
+  * Core
+    * Calendar
+      * Fixed `d`, `m`, `D`, `M` tokens parsing in custom date format
+    * Photo Browser
+      * Fixed issue when opening PhotoBrowser on not first slide can cause empty text in its Navbar
+    * Router Component
+      * New syntax to use custom components in strict HTML layout using `component` attribute, e.g. `<tr component="my-table-row"></tr>` instead of `<my-table-row></my-table-row>`
+  * Minor fixes
+
+# [v5.1.0](https://github.com/framework7io/framework7/compare/v5.0.5...v5.1.0) - October 27, 2019
+  * Core
+    * Grid
+      * New resizable grid
+    * Router Component
+      * Fixed issue when triggering update could break scoped styles
+      * Fixed update callbacks queue
+    * Swiper - updated to latest 5.2.0
+      * Core
+        * New `centeredSlidesBounds` parameter that when enabled will keep first and last slides at bounds
+        * Fixed issue when `freeMode` could break position on resize (#2708, #3303)
+        * Fixed transitin duration issue with `freeModeSticky` (#3302)
+        * Fixed issue with wrong row/column if not full groups (#3294)
+        * Fixed issue when `watchOverflow` and `slidesOffsetBefore`/`slidesOffsetAfter` couldn't work together (#3291)
+      * Mousewheel
+        * Faster & smoother mousewheel inertial scrolling (#3304)
+  * Phenome
+    * Row/Col
+      * New `resizable` components properties to enable resizable grid
 
 # [v5.0.5](https://github.com/framework7io/framework7/compare/v5.0.4...v5.0.5) - October 16, 2019
   * Core
@@ -1256,7 +1308,7 @@
   * Phenome
     * Fixed `TypeError` error in `ActionsGroup` component
 
-# [v3.0.0](https://github.com/framework7io/framework7/compare/v3.0.0-beta.19...v3.0.0) - July 5, 2018 🎉 
+# [v3.0.0](https://github.com/framework7io/framework7/compare/v3.0.0-beta.19...v3.0.0) - July 5, 2018 🎉
 
 # [v3.0.0-beta.19](https://github.com/framework7io/framework7/compare/v3.0.0-beta.18...v3.0.0-beta.19) - July 3, 2018
   * Core
